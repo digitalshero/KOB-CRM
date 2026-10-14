@@ -5,6 +5,18 @@ import { logAudit } from "../utils/audit.js";
 import { computeAutoBuckets } from "./dashboard.controller.js";
 import { fetchMetaSpendAndCpl } from "./meta.controller.js";
 import { ensureLeadByPhone } from "../services/lead-sync.service.js";
+import { config } from "../config/index.js";
+import { getPool } from "../db/pool.js";
+import { withTransaction } from "../db/transaction.js";
+import * as publicIntakeRepo from "../repositories/publicIntake.repository.js";
+import * as adminRepo from "../repositories/admin.repository.js";
+import * as leadRepo from "../repositories/lead.repository.js";
+
+// STAGE 10H: true only when DATA_BACKEND=rds (default remains "supabase").
+// Used only by the specific system/public-webhook handlers migrated in this
+// file (postLeadStage, postTemplateStage) — every other handler here is
+// untouched and keeps using supabaseAdmin exactly as before.
+const useRds = () => config.dataBackend === "rds";
 
 /** Page through PostgREST's 1000-row cap. */
 async function pageAll(build: () => any) {
@@ -701,6 +713,96 @@ export async function postLeadStage(req: Request, res: Response): Promise<void> 
     return;
   }
 
+  if (useRds()) {
+    let leadId: string | null = null;
+    let previousStage: string | null = null;
+
+    if (lead_id) {
+      const row = await publicIntakeRepo.findLeadById(getPool(), lead_id);
+      if (row) { leadId = row.id; previousStage = row.stage; }
+    } else if (phone) {
+      const tail = phoneTail(phone);
+      if (tail.length < 6) {
+        res.status(400).json({ success: false, message: "Phone number too short to match" });
+        return;
+      }
+      const candidates = await publicIntakeRepo.findLeadsByPhoneSuffix(getPool(), tail, 5);
+      const match = candidates.find((l) => phoneTail(l.phone ?? "") === tail);
+      if (match) { leadId = match.id; previousStage = match.stage; }
+    }
+
+    if (!leadId) {
+      res.status(404).json({ success: false, message: "Lead not found" });
+      return;
+    }
+
+    if (previousStage === targetStage) {
+      res.status(200).json({
+        success: true,
+        lead_id: leadId,
+        previous_stage: previousStage,
+        current_stage: previousStage,
+        stage_updated: false,
+        message: "Lead already in target stage",
+      });
+      return;
+    }
+
+    const fromIdx = previousStage ? SEQ.indexOf(previousStage) : -1;
+    const toIdx = SEQ.indexOf(targetStage);
+    const path: string[] = [];
+    if (fromIdx >= 0 && toIdx >= 0 && toIdx > fromIdx) {
+      for (let i = fromIdx + 1; i <= toIdx; i++) path.push(SEQ[i]);
+    } else {
+      path.push(targetStage);
+    }
+
+    let walkFrom = previousStage;
+    let lastError: string | null = null;
+    for (const next of path) {
+      try {
+        // STAGE 10H: actor is NULL (withTransaction(null, ...)) — this is a
+        // system/webhook write, matching supabaseAdmin's service-role calls
+        // on the Supabase path, which never carry a caller JWT. Each hop is
+        // its OWN transaction (business write + its audit row only), never
+        // the whole walk — this intentionally preserves the existing
+        // Supabase path's non-atomic, partial-walk-on-failure behavior.
+        await withTransaction(null, async (client) => {
+          await publicIntakeRepo.updateLeadStageSystem(client, leadId!, next);
+          await adminRepo.insertAuditLog(client, null, "API_STAGE_TRANSITION", "kob_leads", leadId, {
+            source: "lead-stage-api", from: walkFrom, to: next, final_target: targetStage, note: note ?? null,
+          });
+        });
+      } catch (e: any) {
+        lastError = e?.message ?? "Stage update failed";
+        break;
+      }
+      walkFrom = next;
+    }
+
+    if (lastError) {
+      res.status(200).json({
+        success: false,
+        lead_id: leadId,
+        previous_stage: previousStage,
+        current_stage: walkFrom,
+        stage_updated: walkFrom !== previousStage,
+        message: `Stage update failed: ${lastError}`,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      lead_id: leadId,
+      previous_stage: previousStage,
+      current_stage: walkFrom,
+      stage_updated: true,
+      message: "Stage updated successfully",
+    });
+    return;
+  }
+
   // Resolve lead
   let leadId: string | null = null;
   let previousStage: string | null = null;
@@ -881,16 +983,65 @@ export async function postLeads(req: Request, res: Response): Promise<void> {
 
   let source_id: string | null = null;
   let sourceWarning: string | null = null;
-  const { data: srcRow, error: srcErr } = await supabaseAdmin
-    .from("lead_sources")
-    .select("id, name")
-    .ilike("name", alias)
-    .maybeSingle();
-  source_id = srcRow?.id ?? null;
-  if (!source_id) {
-    sourceWarning = srcErr
-      ? `Source lookup failed for "${source}": ${srcErr.message}`
-      : `No active record in lead_sources matches "${source}" (normalized: "${alias}"). Lead saved with an empty Source.`;
+  let sourceRowName: string | null = null;
+
+  if (useRds()) {
+    const { rows } = await getPool().query(`SELECT id, name FROM public.lead_sources WHERE name ILIKE $1 LIMIT 1`, [alias]);
+    source_id = rows[0]?.id ?? null;
+    sourceRowName = rows[0]?.name ?? null;
+  } else {
+    const { data: srcRow, error: srcErr } = await supabaseAdmin
+      .from("lead_sources")
+      .select("id, name")
+      .ilike("name", alias)
+      .maybeSingle();
+    source_id = srcRow?.id ?? null;
+    sourceRowName = srcRow?.name ?? null;
+    if (!source_id && srcErr) {
+      sourceWarning = `Source lookup failed for "${source}": ${srcErr.message}`;
+    }
+  }
+  if (!source_id && !sourceWarning) {
+    sourceWarning = `No active record in lead_sources matches "${source}" (normalized: "${alias}"). Lead saved with an empty Source.`;
+  }
+
+  const noteParts: string[] = [];
+  if (!source_id) noteParts.push(`Source (unmatched): ${source}`);
+  if (pincode) noteParts.push(`Pincode: ${pincode}`);
+  if (language && !mappedLanguage) noteParts.push(`Language (unmatched): ${language}`);
+  const notes = noteParts.length ? noteParts.join(" | ") : null;
+
+  if (useRds()) {
+    let inserted: { id: string; code: string; language: string | null };
+    try {
+      inserted = await withTransaction(null, async (client) => {
+        const last = await leadRepo.getLastManualLeadCode();
+        let nextNum = 1;
+        const m = /^IND-(\d+)$/.exec(last ?? "");
+        if (m) nextNum = parseInt(m[1], 10) + 1;
+        const code = `IND-${String(nextNum).padStart(5, "0")}`;
+        const { rows } = await client.query<{ id: string; code: string; language: string | null }>(
+          `INSERT INTO public.kob_leads (code, full_name, phone, source_id, notes, stage, language)
+           VALUES ($1, $2, $3, $4, $5, 'LEAD_INBOX', $6)
+           RETURNING id, code, language::text AS language`,
+          [code, name, phone, source_id, notes, mappedLanguage ?? null],
+        );
+        return rows[0];
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e?.message ?? "Insert failed" });
+      return;
+    }
+
+    res.status(201).json({
+      id: inserted.id,
+      code: inserted.code,
+      language: inserted.language ?? null,
+      source: sourceRowName,
+      source_id,
+      ...(sourceWarning ? { warning: sourceWarning } : {}),
+    });
+    return;
   }
 
   // Generate next IND-##### code.
@@ -907,12 +1058,6 @@ export async function postLeads(req: Request, res: Response): Promise<void> {
     if (m) nextNum = parseInt(m[1], 10) + 1;
   }
   const code = `IND-${String(nextNum).padStart(5, "0")}`;
-
-  const noteParts: string[] = [];
-  if (!source_id) noteParts.push(`Source (unmatched): ${source}`);
-  if (pincode) noteParts.push(`Pincode: ${pincode}`);
-  if (language && !mappedLanguage) noteParts.push(`Language (unmatched): ${language}`);
-  const notes = noteParts.length ? noteParts.join(" | ") : null;
 
   const { data: inserted, error } = await supabaseAdmin
     .from("kob_leads")
@@ -937,7 +1082,7 @@ export async function postLeads(req: Request, res: Response): Promise<void> {
     id: inserted.id,
     code: inserted.code,
     language: inserted.language ?? null,
-    source: srcRow?.name ?? null,
+    source: sourceRowName,
     source_id,
     ...(sourceWarning ? { warning: sourceWarning } : {}),
   });
@@ -1039,17 +1184,17 @@ export async function postLeadEvents(req: Request, res: Response): Promise<void>
   let leadId: string | null = null;
   let currentStage: string | null = null;
   if (tail.length >= 6) {
-    const { data: leads } = await supabaseAdmin
-      .from("kob_leads")
-      .select("id, phone, stage")
-      .ilike("phone", `%${tail}`)
-      .limit(2);
-    const match = (leads ?? []).find(
-      (l: any) => phoneTail(l.phone ?? "") === tail,
-    );
-    if (match) {
-      leadId = match.id;
-      currentStage = match.stage;
+    if (useRds()) {
+      const m = await leadRepo.findLeadByPhoneIlike(tail);
+      if (m) { leadId = m.id; currentStage = m.stage; }
+    } else {
+      const { data: leads } = await supabaseAdmin
+        .from("kob_leads")
+        .select("id, phone, stage")
+        .ilike("phone", `%${tail}`)
+        .limit(2);
+      const m2 = (leads ?? []).find((l: any) => phoneTail(l.phone ?? "") === tail);
+      if (m2) { leadId = m2.id; currentStage = m2.stage; }
     }
   }
 
@@ -1058,7 +1203,7 @@ export async function postLeadEvents(req: Request, res: Response): Promise<void>
   let leadCreated = false;
   if (!leadId) {
     const p: any = payload ?? {};
-    const ensured = await ensureLeadByPhone(supabaseAdmin, {
+    const ensureInput = {
       phone,
       name:
         p.name ?? p.full_name ?? p.contact_name ?? p.contactName ??
@@ -1066,7 +1211,10 @@ export async function postLeadEvents(req: Request, res: Response): Promise<void>
       language: p.language ?? p.contact?.language ?? null,
       sourceName: p.source ?? p.lead_source ?? "WhatsApp Broadcast",
       origin: "gallabox-lead-events-webhook",
-    });
+    };
+    const ensured = useRds()
+      ? await leadRepo.ensureLeadByPhoneRds(ensureInput)
+      : await ensureLeadByPhone(supabaseAdmin, ensureInput);
     if (ensured.leadId) {
       leadId = ensured.leadId;
       currentStage = ensured.stage;
@@ -1081,20 +1229,33 @@ export async function postLeadEvents(req: Request, res: Response): Promise<void>
     if (!isNaN(d.getTime())) eventAt = d.toISOString();
   }
 
-  const { error: logErr } = await supabaseAdmin
-    .from("lead_events")
-    .insert({
-      lead_id: leadId,
-      phone,
-      event,
-      template: template ?? null,
-      status: status ?? null,
-      event_at: eventAt,
-      payload: payload ?? null,
-    });
-  if (logErr) {
-    res.status(500).json({ error: logErr.message });
-    return;
+  if (useRds()) {
+    try {
+      await withTransaction(null, async (client) => {
+        await leadRepo.insertLeadEvent(client, {
+          lead_id: leadId, phone, event, template: template ?? null, status: status ?? null, event_at: eventAt, payload: payload ?? null,
+        });
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e?.message ?? "Insert failed" });
+      return;
+    }
+  } else {
+    const { error: logErr } = await supabaseAdmin
+      .from("lead_events")
+      .insert({
+        lead_id: leadId,
+        phone,
+        event,
+        template: template ?? null,
+        status: status ?? null,
+        event_at: eventAt,
+        payload: payload ?? null,
+      });
+    if (logErr) {
+      res.status(500).json({ error: logErr.message });
+      return;
+    }
   }
 
   if (!leadId) {
@@ -1123,29 +1284,36 @@ export async function postLeadEvents(req: Request, res: Response): Promise<void>
 
     let walkFrom = currentStage;
     for (const next of path) {
-      const { error: upErr } = await supabaseAdmin
-        .from("kob_leads")
-        .update({ stage: next as any })
-        .eq("id", leadId);
-      if (upErr) {
-        stageUpdateError = upErr.message;
-        break;
+      const meta = {
+        source: "lead-events-webhook",
+        event,
+        template: template ?? null,
+        status: status ?? null,
+        from: walkFrom,
+        to: next,
+        final_target: target,
+      };
+      if (useRds()) {
+        try {
+          await withTransaction(null, async (client) => {
+            await leadRepo.updateLeadStageUnscoped(client, leadId!, next);
+            await adminRepo.insertAuditLog(client, null, "LEAD_EVENT_STAGE_TRANSITION", "kob_leads", leadId!, meta);
+          });
+        } catch (e: any) {
+          stageUpdateError = e?.message ?? "Stage update failed";
+          break;
+        }
+      } else {
+        const { error: upErr } = await supabaseAdmin
+          .from("kob_leads")
+          .update({ stage: next as any })
+          .eq("id", leadId);
+        if (upErr) {
+          stageUpdateError = upErr.message;
+          break;
+        }
+        await supabaseAdmin.from("audit_logs").insert({ actor_id: null, action: "LEAD_EVENT_STAGE_TRANSITION", entity: "kob_leads", entity_id: leadId, meta });
       }
-      await supabaseAdmin.from("audit_logs").insert({
-        actor_id: null,
-        action: "LEAD_EVENT_STAGE_TRANSITION",
-        entity: "kob_leads",
-        entity_id: leadId,
-        meta: {
-          source: "lead-events-webhook",
-          event,
-          template: template ?? null,
-          status: status ?? null,
-          from: walkFrom,
-          to: next,
-          final_target: target,
-        },
-      });
       walkFrom = next;
     }
 
@@ -1274,6 +1442,194 @@ export async function postTemplateStage(req: Request, res: Response): Promise<vo
   const noRetargetingUnconfirmed =
     tplKey === "no_retargeting" && !successStatuses.has(statusKey);
   if (noRetargetingUnconfirmed) targetStage = null;
+
+  if (useRds()) {
+    // STAGE 10H: system/webhook write — actor is always NULL, matching
+    // supabaseAdmin's service-role calls. Each independent audit/update step
+    // below is its own withTransaction(null, ...), mirroring the Supabase
+    // path's own per-REST-call granularity (today's code already performs
+    // the lead update and each audit_logs insert as separate, independent
+    // calls, so this reproduces existing behavior exactly, not a new design).
+    const webhookReason = targetStage
+      ? "template matched stage mapping"
+      : laterUnconfirmed
+        ? "later_retargeting not confirmed as sent/received — no stage change applied"
+        : noRetargetingUnconfirmed
+          ? "no_retargeting not confirmed as sent/delivered/received — no stage change applied"
+          : `no stage mapping for normalized template "${tplKey}"`;
+    await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_WEBHOOK", "kob_leads", null, {
+      source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey,
+      status: status ?? null, timestamp: timestamp ?? null, payload: payload ?? null,
+      resolved_target: targetStage, matched_stage: targetStage, reason: webhookReason,
+    }));
+
+    if (!targetStage) {
+      if (laterUnconfirmed) {
+        res.status(200).json({ success: true, template_name, stage_updated: false, message: "later_retargeting ignored — template not confirmed sent/received" });
+        return;
+      }
+      if (noRetargetingUnconfirmed) {
+        res.status(200).json({ success: true, template_name, stage_updated: false, message: "no_retargeting ignored — template not confirmed sent/delivered/received" });
+        return;
+      }
+      res.status(400).json({ success: false, template_name, message: `No stage mapping for template "${template_name}"` });
+      return;
+    }
+
+    const tail = phoneTail(phone);
+    if (tail.length < 6) {
+      res.status(400).json({ success: false, template_name, message: "Phone number too short to match" });
+      return;
+    }
+
+    const leads = await publicIntakeRepo.findLeadsByPhoneSuffix(getPool(), tail, 20, true);
+    const candidates = leads.filter((l) => phoneTail(l.phone ?? "") === tail);
+    const match = candidates[0];
+    if (candidates.length > 1) {
+      await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_DUPLICATE_PHONE", "kob_leads", match?.id ?? null, {
+        source: "template-stage-webhook", phone, template_name, matched_stage: targetStage,
+        chosen_lead_id: match?.id ?? null,
+        duplicates: candidates.map((l) => ({ id: l.id, stage: l.stage, language: l.language, created_at: l.created_at })),
+        reason: "multiple leads share this phone; newest selected",
+      }));
+    }
+    if (!match) {
+      res.status(404).json({ success: false, template_name, message: "Lead not found for phone" });
+      return;
+    }
+
+    const leadId: string = match.id;
+    const previousStage: string = match.stage;
+
+    const prevIdx = SEQ.indexOf(previousStage);
+    const tgtIdx = SEQ.indexOf(targetStage);
+    if (previousStage === targetStage || (prevIdx >= 0 && tgtIdx >= 0 && tgtIdx < prevIdx)) {
+      const reason = previousStage === targetStage
+        ? "already in target stage — no duplicate history written"
+        : "lead already past target stage — duplicate/out-of-order event ignored";
+      await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_RESULT", "kob_leads", leadId, {
+        source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey, mapping_found: true,
+        matched_stage: targetStage, previous_stage: previousStage, current_stage: previousStage, stage_updated: false, reason,
+      }));
+      res.status(200).json({
+        success: true, lead_id: leadId, template_name, previous_stage: previousStage, current_stage: previousStage,
+        stage_updated: false,
+        message: previousStage === targetStage ? "Lead already in target stage" : "Lead already past target stage — ignored duplicate event",
+      });
+      return;
+    }
+
+    if (WEBINAR_TEMPLATES.has(tplKey) && previousStage !== "EOI_1") {
+      await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_RESULT", "kob_leads", leadId, {
+        source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey, mapping_found: true,
+        matched_stage: targetStage, target_stage: targetStage, previous_stage: previousStage, current_stage: previousStage,
+        stage_updated: false, reason: "webinar template requires lead to be in EOI_1; no stage change applied",
+      }));
+      res.status(200).json({
+        success: true, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+        current_stage: previousStage, stage_updated: false, message: "Webinar template ignored — lead is not in EOI_1 yet",
+      });
+      return;
+    }
+
+    if (LEAD_INBOX_ONLY_TEMPLATES.has(tplKey) && previousStage !== "LEAD_INBOX") {
+      await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_RESULT", "kob_leads", leadId, {
+        source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey, mapping_found: true,
+        matched_stage: targetStage, target_stage: targetStage, previous_stage: previousStage, current_stage: previousStage,
+        stage_updated: false, reason: "template requires lead to be in LEAD_INBOX; no stage change applied",
+      }));
+      res.status(200).json({
+        success: true, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+        current_stage: previousStage, stage_updated: false, message: "Template ignored — lead is not in Lead Inbox",
+      });
+      return;
+    }
+
+    if (tplKey === "later_retargeting" || tplKey === "no_retargeting") {
+      let applied: publicIntakeRepo.RetargetingApplyResult | null = null;
+      let rpcErr: string | null = null;
+      try {
+        // Calls the unmodified RPC inside this transaction so its
+        // set_config('app.later_retargeting'/'app.no_retargeting', 'on', true)
+        // is visible to validate_stage_transition for the UPDATE it performs
+        // internally — exactly matching the Supabase path's single RPC call.
+        applied = await withTransaction(null, (client) =>
+          tplKey === "later_retargeting"
+            ? publicIntakeRepo.applyLaterRetargeting(client, leadId)
+            : publicIntakeRepo.applyNoRetargeting(client, leadId),
+        );
+      } catch (e: any) {
+        rpcErr = e?.message ?? "RPC failed";
+      }
+      const stageUpdated = !rpcErr && !!applied?.updated;
+      const currentStage = applied?.new_stage ?? previousStage;
+      await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_RESULT", "kob_leads", leadId, {
+        source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey, mapping_found: true,
+        matched_stage: targetStage, target_stage: targetStage, previous_stage: previousStage, current_stage: currentStage,
+        stage_updated: stageUpdated, error: rpcErr,
+      }));
+      if (rpcErr) {
+        res.status(200).json({
+          success: false, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+          current_stage: previousStage, stage_updated: false, message: `Stage update failed: ${rpcErr}`,
+        });
+        return;
+      }
+      res.status(200).json({
+        success: true, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+        current_stage: currentStage, stage_updated: stageUpdated,
+        message: stageUpdated ? "Stage updated successfully" : "Lead already in target stage",
+      });
+      return;
+    }
+
+    const fromIdx = SEQ.indexOf(previousStage);
+    const toIdx = SEQ.indexOf(targetStage);
+    const path: string[] = [];
+    if (fromIdx >= 0 && toIdx >= 0 && toIdx > fromIdx) {
+      for (let i = fromIdx + 1; i <= toIdx; i++) path.push(SEQ[i]);
+    } else {
+      path.push(targetStage);
+    }
+
+    let walkFrom = previousStage;
+    let lastError: string | null = null;
+    for (const next of path) {
+      try {
+        await withTransaction(null, async (client) => {
+          await publicIntakeRepo.updateLeadStageSystem(client, leadId, next);
+          await adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_TRANSITION", "kob_leads", leadId, {
+            source: "template-stage-webhook", template_name, status: status ?? null, from: walkFrom, to: next, final_target: targetStage,
+          });
+        });
+      } catch (e: any) {
+        lastError = e?.message ?? "Stage update failed";
+        break;
+      }
+      walkFrom = next;
+    }
+
+    const stageUpdated = walkFrom !== previousStage;
+    await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "TEMPLATE_STAGE_RESULT", "kob_leads", leadId, {
+      source: "template-stage-webhook", phone, template_name, normalized_template_name: tplKey, mapping_found: true,
+      matched_stage: targetStage, target_stage: targetStage, previous_stage: previousStage, current_stage: walkFrom,
+      stage_updated: stageUpdated, error: lastError,
+    }));
+
+    if (lastError) {
+      res.status(200).json({
+        success: false, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+        current_stage: walkFrom, stage_updated: stageUpdated, message: `Stage update failed: ${lastError}`,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true, lead_id: leadId, template_name, previous_stage: previousStage, target_stage: targetStage,
+      current_stage: walkFrom, stage_updated: stageUpdated, message: "Stage updated successfully",
+    });
+    return;
+  }
 
   await supabaseAdmin.from("audit_logs").insert({
     actor_id: null,
@@ -1842,54 +2198,86 @@ export async function postWhatsappMessage(req: Request, res: Response): Promise<
   const tail = phoneTail(phone);
   let lead: any = null;
   if (tail.length >= 6) {
-    const { data: leads, error: lookupErr } = await supabaseAdmin
-      .from("kob_leads")
-      .select("id, phone, stage, unread_message_count, created_at, source_id, language")
-      .ilike("phone", `%${tail}`)
-      .order("created_at", { ascending: false })
-      .limit(5);
-    if (lookupErr) console.error("[wa-webhook] lead lookup error:", lookupErr.message);
-    lead = (leads ?? []).find((l: any) => phoneTail(l.phone ?? "") === tail) ?? null;
+    if (useRds()) {
+      lead = await leadRepo.findLeadByPhoneIlikeRich(tail);
+    } else {
+      const { data: leads, error: lookupErr } = await supabaseAdmin
+        .from("kob_leads")
+        .select("id, phone, stage, unread_message_count, created_at, source_id, language")
+        .ilike("phone", `%${tail}`)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (lookupErr) console.error("[wa-webhook] lead lookup error:", lookupErr.message);
+      lead = (leads ?? []).find((l: any) => phoneTail(l.phone ?? "") === tail) ?? null;
+    }
   }
 
   // Log the message event regardless of match
-  const { error: evErr } = await supabaseAdmin.from("lead_events").insert({
-    lead_id: lead?.id ?? null,
-    phone,
-    event: "whatsapp_message",
-    template: null,
-    status: direction,
-    event_at: eventAt,
-    payload: { message, message_id: message_id ?? null, direction, ...(payload ?? {}) },
-  });
-  if (evErr) console.error("[wa-webhook] lead_events insert failed:", evErr.message);
+  if (useRds()) {
+    try {
+      await withTransaction(null, async (client) => {
+        await leadRepo.insertLeadEvent(client, {
+          lead_id: lead?.id ?? null, phone, event: "whatsapp_message", template: null, status: direction,
+          event_at: eventAt, payload: { message, message_id: message_id ?? null, direction, ...(payload ?? {}) },
+        });
+      });
+    } catch (e: any) {
+      console.error("[wa-webhook] lead_events insert failed:", e?.message);
+    }
+  } else {
+    const { error: evErr } = await supabaseAdmin.from("lead_events").insert({
+      lead_id: lead?.id ?? null,
+      phone,
+      event: "whatsapp_message",
+      template: null,
+      status: direction,
+      event_at: eventAt,
+      payload: { message, message_id: message_id ?? null, direction, ...(payload ?? {}) },
+    });
+    if (evErr) console.error("[wa-webhook] lead_events insert failed:", evErr.message);
+  }
 
   if (!lead) {
     // KOB Sales conversation without a CRM lead: create it so the
     // contact always shows up in Lead Inbox (idempotent by phone).
     const p: any = payload ?? {};
-    const ensured = await ensureLeadByPhone(supabaseAdmin, {
+    const ensureInput = {
       phone,
       name: p.name ?? p.contact_name ?? p.contactName ?? p.contact?.name ?? null,
       language: p.language ?? null,
       sourceName: p.source ?? "WhatsApp Broadcast",
       origin: "gallabox-whatsapp-message-webhook",
-    });
+    };
+    const ensured = useRds()
+      ? await leadRepo.ensureLeadByPhoneRds(ensureInput)
+      : await ensureLeadByPhone(supabaseAdmin, ensureInput);
     if (ensured.leadId) {
       lead = { id: ensured.leadId, unread_message_count: 0 };
-      await supabaseAdmin
-        .from("lead_events")
-        .update({ lead_id: ensured.leadId })
-        .is("lead_id", null)
-        .eq("phone", phone);
+      if (useRds()) {
+        await withTransaction(null, async (client) => {
+          await leadRepo.backfillLeadEventsLeadId(client, ensured.leadId!, phone);
+        });
+      } else {
+        await supabaseAdmin
+          .from("lead_events")
+          .update({ lead_id: ensured.leadId })
+          .is("lead_id", null)
+          .eq("phone", phone);
+      }
     } else {
-      await supabaseAdmin.from("audit_logs").insert({
-        actor_id: null,
-        action: "WHATSAPP_MESSAGE_WEBHOOK_UNMATCHED",
-        entity: "kob_leads",
-        entity_id: null,
-        meta: { phone, message_id: message_id ?? null, direction, error: ensured.error ?? null },
-      });
+      if (useRds()) {
+        await withTransaction(null, async (client) => {
+          await adminRepo.insertAuditLog(client, null, "WHATSAPP_MESSAGE_WEBHOOK_UNMATCHED", "kob_leads", null, { phone, message_id: message_id ?? null, direction, error: ensured.error ?? null });
+        });
+      } else {
+        await supabaseAdmin.from("audit_logs").insert({
+          actor_id: null,
+          action: "WHATSAPP_MESSAGE_WEBHOOK_UNMATCHED",
+          entity: "kob_leads",
+          entity_id: null,
+          meta: { phone, message_id: message_id ?? null, direction, error: ensured.error ?? null },
+        });
+      }
       res.status(422).json({ success: false, error: "Lead could not be created for phone", logged: true });
       return;
     }
@@ -1898,69 +2286,97 @@ export async function postWhatsappMessage(req: Request, res: Response): Promise<
   const isIncoming = (direction ?? "incoming").toLowerCase() === "incoming";
   const nextCount = isIncoming ? (Number(lead.unread_message_count) || 0) + 1 : (Number(lead.unread_message_count) || 0);
 
-  const update: Record<string, unknown> = {
-    last_message: message || null,
-    last_message_at: eventAt ?? new Date().toISOString(),
-    last_activity_at: new Date().toISOString(),
+  const lastMessageAt = eventAt ?? new Date().toISOString();
+  const lastActivityAt = new Date().toISOString();
+  const auditMeta = {
+    source: "whatsapp-message-webhook",
+    phone,
+    message_id: message_id ?? null,
+    direction,
+    unread_message_count: isIncoming ? nextCount : lead.unread_message_count,
   };
-  if (isIncoming) {
-    update.unread_message_count = nextCount;
-    update.has_unread_messages = true;
-  }
 
-  const { error: upErr } = await supabaseAdmin
-    .from("kob_leads")
-    .update(update as any)
-    .eq("id", lead.id);
-  if (upErr) {
-    res.status(500).json({ success: false, error: upErr.message });
-    return;
-  }
+  if (useRds()) {
+    try {
+      await withTransaction(null, async (client) => {
+        await leadRepo.updateLeadMessageFields(client, lead.id, {
+          last_message: message || null,
+          last_message_at: lastMessageAt,
+          last_activity_at: lastActivityAt,
+          ...(isIncoming ? { unread_message_count: nextCount, has_unread_messages: true } : {}),
+        });
+        await adminRepo.insertAuditLog(client, null, "WHATSAPP_MESSAGE_RECEIVED", "kob_leads", lead.id, auditMeta);
+      });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message ?? "Update failed" });
+      return;
+    }
+  } else {
+    const update: Record<string, unknown> = {
+      last_message: message || null,
+      last_message_at: lastMessageAt,
+      last_activity_at: lastActivityAt,
+    };
+    if (isIncoming) {
+      update.unread_message_count = nextCount;
+      update.has_unread_messages = true;
+    }
 
-  await supabaseAdmin.from("audit_logs").insert({
-    actor_id: null,
-    action: "WHATSAPP_MESSAGE_RECEIVED",
-    entity: "kob_leads",
-    entity_id: lead.id,
-    meta: {
-      source: "whatsapp-message-webhook",
-      phone,
-      message_id: message_id ?? null,
-      direction,
-      unread_message_count: isIncoming ? nextCount : lead.unread_message_count,
-    },
-  });
+    const { error: upErr } = await supabaseAdmin
+      .from("kob_leads")
+      .update(update as any)
+      .eq("id", lead.id);
+    if (upErr) {
+      res.status(500).json({ success: false, error: upErr.message });
+      return;
+    }
+
+    await supabaseAdmin.from("audit_logs").insert({
+      actor_id: null,
+      action: "WHATSAPP_MESSAGE_RECEIVED",
+      entity: "kob_leads",
+      entity_id: lead.id,
+      meta: auditMeta,
+    });
+  }
 
   // ---- Language capture from the WhatsApp Broadcast language buttons ----
   const pickedLanguage =
     isIncoming && isButtonReply(payload) ? resolveButtonLanguage(message) : null;
   if (pickedLanguage && lead.source_id) {
-    const { data: src } = await supabaseAdmin
-      .from("lead_sources")
-      .select("name")
-      .eq("id", lead.source_id)
-      .maybeSingle();
-    const isBroadcast =
-      String(src?.name ?? "").trim().toLowerCase() === "whatsapp broadcast";
+    const sourceName = useRds()
+      ? await leadRepo.getLeadSourceNameById(lead.source_id)
+      : (await supabaseAdmin.from("lead_sources").select("name").eq("id", lead.source_id).maybeSingle()).data?.name;
+    const isBroadcast = String(sourceName ?? "").trim().toLowerCase() === "whatsapp broadcast";
     if (isBroadcast && lead.language !== pickedLanguage) {
-      const { error: langErr } = await supabaseAdmin
-        .from("kob_leads")
-        .update({ language: pickedLanguage as any })
-        .eq("id", lead.id);
-      if (!langErr) {
-        await supabaseAdmin.from("audit_logs").insert({
-          actor_id: null,
-          action: "WHATSAPP_BROADCAST_LANGUAGE_SELECTED",
-          entity: "kob_leads",
-          entity_id: lead.id,
-          meta: {
-            source: "whatsapp-message-webhook",
-            phone,
-            button: message,
-            from: lead.language ?? null,
-            to: pickedLanguage,
-          },
-        });
+      const langMeta = {
+        source: "whatsapp-message-webhook",
+        phone,
+        button: message,
+        from: lead.language ?? null,
+        to: pickedLanguage,
+      };
+      if (useRds()) {
+        try {
+          await withTransaction(null, async (client) => {
+            await leadRepo.updateLeadLanguage(client, lead.id, pickedLanguage);
+            await adminRepo.insertAuditLog(client, null, "WHATSAPP_BROADCAST_LANGUAGE_SELECTED", "kob_leads", lead.id, langMeta);
+          });
+        } catch { /* language capture is best-effort */ }
+      } else {
+        const { error: langErr } = await supabaseAdmin
+          .from("kob_leads")
+          .update({ language: pickedLanguage as any })
+          .eq("id", lead.id);
+        if (!langErr) {
+          await supabaseAdmin.from("audit_logs").insert({
+            actor_id: null,
+            action: "WHATSAPP_BROADCAST_LANGUAGE_SELECTED",
+            entity: "kob_leads",
+            entity_id: lead.id,
+            meta: langMeta,
+          });
+        }
       }
     }
   }
@@ -1972,12 +2388,10 @@ export async function postWhatsappMessage(req: Request, res: Response): Promise<
     isIncoming && isButtonReply(payload) ? resolveReplyStage(message) : null;
 
   if (replyTarget) {
-    const { data: fresh } = await supabaseAdmin
-      .from("kob_leads")
-      .select("stage")
-      .eq("id", lead.id)
-      .maybeSingle();
-    const current = (fresh?.stage as string | null) ?? (lead.stage as string | null) ?? null;
+    const freshStage = useRds()
+      ? await leadRepo.getLeadStageById(lead.id)
+      : (await supabaseAdmin.from("kob_leads").select("stage").eq("id", lead.id).maybeSingle()).data?.stage ?? null;
+    const current = (freshStage as string | null) ?? (lead.stage as string | null) ?? null;
     const fromIdx = current ? SEQ.indexOf(current) : -1;
     const toIdx = SEQ.indexOf(replyTarget);
 
@@ -1985,15 +2399,50 @@ export async function postWhatsappMessage(req: Request, res: Response): Promise<
       let walkFrom = current;
       for (let i = fromIdx + 1; i <= toIdx; i++) {
         const next = SEQ[i];
-        const { error: stErr } = await supabaseAdmin
-          .from("kob_leads")
-          .update({ stage: next as any })
-          .eq("id", lead.id);
-        if (stErr) {
-          stageError = stErr.message;
+        if (useRds()) {
+          try {
+            await withTransaction(null, async (client) => {
+              await leadRepo.updateLeadStageUnscoped(client, lead.id, next);
+              await adminRepo.insertAuditLog(client, null, "WHATSAPP_REPLY_STAGE_TRANSITION", "kob_leads", lead.id, {
+                source: "whatsapp-message-webhook", phone, message, from: walkFrom, to: next, final_target: replyTarget,
+              });
+            });
+          } catch (e: any) {
+            stageError = e?.message ?? "Stage update failed";
+            await withTransaction(null, async (client) => {
+              await adminRepo.insertAuditLog(client, null, "WHATSAPP_REPLY_STAGE_TRANSITION_FAILED", "kob_leads", lead.id, {
+                source: "whatsapp-message-webhook", phone, message, from: walkFrom, attempted: next, final_target: replyTarget, error: stageError,
+              });
+            }).catch(() => {});
+            break;
+          }
+        } else {
+          const { error: stErr } = await supabaseAdmin
+            .from("kob_leads")
+            .update({ stage: next as any })
+            .eq("id", lead.id);
+          if (stErr) {
+            stageError = stErr.message;
+            await supabaseAdmin.from("audit_logs").insert({
+              actor_id: null,
+              action: "WHATSAPP_REPLY_STAGE_TRANSITION_FAILED",
+              entity: "kob_leads",
+              entity_id: lead.id,
+              meta: {
+                source: "whatsapp-message-webhook",
+                phone,
+                message,
+                from: walkFrom,
+                attempted: next,
+                final_target: replyTarget,
+                error: stErr.message,
+              },
+            });
+            break;
+          }
           await supabaseAdmin.from("audit_logs").insert({
             actor_id: null,
-            action: "WHATSAPP_REPLY_STAGE_TRANSITION_FAILED",
+            action: "WHATSAPP_REPLY_STAGE_TRANSITION",
             entity: "kob_leads",
             entity_id: lead.id,
             meta: {
@@ -2001,27 +2450,11 @@ export async function postWhatsappMessage(req: Request, res: Response): Promise<
               phone,
               message,
               from: walkFrom,
-              attempted: next,
+              to: next,
               final_target: replyTarget,
-              error: stErr.message,
             },
           });
-          break;
         }
-        await supabaseAdmin.from("audit_logs").insert({
-          actor_id: null,
-          action: "WHATSAPP_REPLY_STAGE_TRANSITION",
-          entity: "kob_leads",
-          entity_id: lead.id,
-          meta: {
-            source: "whatsapp-message-webhook",
-            phone,
-            message,
-            from: walkFrom,
-            to: next,
-            final_target: replyTarget,
-          },
-        });
         walkFrom = next;
       }
       if (!stageError) stageUpdated = { from: current, to: replyTarget };

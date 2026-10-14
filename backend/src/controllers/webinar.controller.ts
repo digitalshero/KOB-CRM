@@ -1,6 +1,16 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { supabaseAdmin } from "../integrations/supabase/client.js";
 import { logAudit } from "../utils/audit.js";
+import { config } from "../config/index.js";
+import * as webinarRepo from "../repositories/webinar.repository.js";
+import { withTransaction } from "../db/transaction.js";
+import { insertAuditLog } from "../repositories/admin.repository.js";
+import { resolveLeadScopeOrDeny } from "../db/authz.js";
+import * as leadRepo from "../repositories/lead.repository.js";
+import { getPool } from "../db/pool.js";
+
+// STAGE 10I-C/D: RDS path for all handlers in this file.
+const useRds = () => config.dataBackend === "rds";
 
 /**
  * Controller for listWebinarBatches.
@@ -14,7 +24,7 @@ import { logAudit } from "../utils/audit.js";
  */
 export async function listWebinarBatches(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -22,41 +32,42 @@ export async function listWebinarBatches(req: Request, res: Response, next: Next
     const from = typeof req.query.from === "string" && req.query.from.trim() ? req.query.from.trim() : undefined;
     const to = typeof req.query.to === "string" && req.query.to.trim() ? req.query.to.trim() : undefined;
 
-    let q = (req.supabase as any)
-      .from("webinar_batches")
-      .select("id, name, scheduled_at, language, notes, created_at")
-      .order("scheduled_at", { ascending: false });
+    const batches = useRds()
+      ? await webinarRepo.listWebinarBatchesInRange({ from, to })
+      : await (async () => {
+          let q = (req.supabase as any)
+            .from("webinar_batches")
+            .select("id, name, scheduled_at, language, notes, created_at")
+            .order("scheduled_at", { ascending: false });
+          if (from) q = q.gte("created_at", from);
+          if (to) q = q.lte("created_at", to);
+          const { data, error } = await q;
+          if (error) throw error;
+          return (data ?? []) as any[];
+        })();
 
-    if (from) q = q.gte("created_at", from);
-    if (to) q = q.lte("created_at", to);
-
-    const { data: batches, error } = await q;
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    const ids = (batches ?? []).map((b: any) => b.id);
+    const ids = batches.map((b: any) => b.id);
     let counts: Record<string, { total: number; attended: number }> = {};
     if (ids.length) {
-      const { data: att, error: aErr } = await (req.supabase as any)
-        .from("webinar_attendance")
-        .select("batch_id, attended")
-        .in("batch_id", ids);
+      const att = useRds()
+        ? await webinarRepo.getAttendanceCountsByBatchIds(ids)
+        : await (async () => {
+            const { data, error: aErr } = await (req.supabase as any)
+              .from("webinar_attendance")
+              .select("batch_id, attended")
+              .in("batch_id", ids);
+            if (aErr) throw aErr;
+            return (data ?? []) as any[];
+          })();
 
-      if (aErr) {
-        res.status(500).json({ error: aErr.message });
-        return;
-      }
-
-      for (const r of (att ?? []) as any[]) {
+      for (const r of att as any[]) {
         const c = (counts[r.batch_id] ||= { total: 0, attended: 0 });
         c.total++;
         if (r.attended) c.attended++;
       }
     }
 
-    const result = (batches ?? []).map((b: any) => ({
+    const result = batches.map((b: any) => ({
       ...b,
       ...(counts[b.id] ?? { total: 0, attended: 0 }),
     }));
@@ -73,7 +84,7 @@ export async function listWebinarBatches(req: Request, res: Response, next: Next
  */
 export async function listBatchAttendance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -84,32 +95,37 @@ export async function listBatchAttendance(req: Request, res: Response, next: Nex
       return;
     }
 
-    const { data: rows, error } = await (req.supabase as any)
-      .from("webinar_attendance")
-      .select("id, lead_id, attended, marked_at, defaulter_marked_at")
-      .eq("batch_id", batchId)
-      .order("created_at", { ascending: true });
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
+    const list = useRds()
+      ? await webinarRepo.getBatchAttendanceRows(batchId)
+      : await (async () => {
+          const { data, error } = await (req.supabase as any)
+            .from("webinar_attendance")
+            .select("id, lead_id, attended, marked_at, defaulter_marked_at")
+            .eq("batch_id", batchId)
+            .order("created_at", { ascending: true });
+          if (error) throw error;
+          return (data ?? []) as any[];
+        })();
 
-    const list = rows ?? [];
-    const ids = [...new Set(list.map((r: any) => r.lead_id).filter(Boolean))];
+    const ids = [...new Set(list.map((r: any) => r.lead_id).filter(Boolean))] as string[];
     const leadMap: Record<string, any> = {};
     if (ids.length) {
       const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
       for (let i = 0; i < ids.length; i += 150) {
         const chunk = ids.slice(i, i + 150);
-        const { data: leads, error: lErr } = await (db as any)
-          .from("kob_leads")
-          .select("id, code, full_name, phone, stage, language")
-          .in("id", chunk);
-        if (lErr) {
-          res.status(500).json({ error: lErr.message });
-          return;
+        if (useRds()) {
+          for (const l of await webinarRepo.getLeadsBasicByIds(chunk)) leadMap[l.id] = l;
+        } else {
+          const { data: leads, error: lErr } = await (db as any)
+            .from("kob_leads")
+            .select("id, code, full_name, phone, stage, language")
+            .in("id", chunk);
+          if (lErr) {
+            res.status(500).json({ error: lErr.message });
+            return;
+          }
+          for (const l of leads ?? []) leadMap[l.id] = l;
         }
-        for (const l of leads ?? []) leadMap[l.id] = l;
       }
     }
 
@@ -129,13 +145,18 @@ export async function listBatchAttendance(req: Request, res: Response, next: Nex
  */
 export async function listWebinarEligibleLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
 
     const language = typeof req.query.language === "string" ? req.query.language : undefined;
     const search = typeof req.query.search === "string" ? req.query.search : undefined;
+
+    if (useRds()) {
+      res.status(200).json(await webinarRepo.listWebinarEligibleLeads({ language, search }));
+      return;
+    }
 
     let q = (req.supabase as any)
       .from("kob_leads")
@@ -173,7 +194,7 @@ export async function listWebinarEligibleLeads(req: Request, res: Response, next
 export async function getWebinarHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-    if (!db) {
+    if (!useRds() && !db) {
       res.status(500).json({ error: "Database client not initialized on request" });
       return;
     }
@@ -181,19 +202,20 @@ export async function getWebinarHistory(req: Request, res: Response, next: NextF
     const from = typeof req.query.from === "string" && req.query.from.trim() ? req.query.from.trim() : undefined;
     const to = typeof req.query.to === "string" && req.query.to.trim() ? req.query.to.trim() : undefined;
 
-    let bq = (db as any)
-      .from("webinar_batches")
-      .select("id, name, scheduled_at, language")
-      .order("scheduled_at", { ascending: false });
-    if (from) bq = bq.gte("scheduled_at", from);
-    if (to) bq = bq.lte("scheduled_at", to);
-    const { data: batches, error: bErr } = await bq;
-    if (bErr) {
-      res.status(500).json({ error: bErr.message });
-      return;
-    }
+    const batchList = useRds()
+      ? await webinarRepo.listWebinarBatchesByScheduledAt({ from, to })
+      : await (async () => {
+          let bq = (db as any)
+            .from("webinar_batches")
+            .select("id, name, scheduled_at, language")
+            .order("scheduled_at", { ascending: false });
+          if (from) bq = bq.gte("scheduled_at", from);
+          if (to) bq = bq.lte("scheduled_at", to);
+          const { data, error: bErr } = await bq;
+          if (bErr) throw bErr;
+          return (data ?? []) as any[];
+        })();
 
-    const batchList = (batches ?? []) as any[];
     if (!batchList.length) {
       res.status(200).json({ rows: [], totals: { total: 0, attended: 0, defaulters: 0 } });
       return;
@@ -202,41 +224,45 @@ export async function getWebinarHistory(req: Request, res: Response, next: NextF
     const batchMap: Record<string, any> = {};
     for (const b of batchList) batchMap[b.id] = b;
 
-    const { data: att, error: aErr } = await (db as any)
-      .from("webinar_attendance")
-      .select("id, batch_id, lead_id, attended, marked_at, defaulter_marked_at, created_at")
-      .in("batch_id", batchList.map((b) => b.id));
-    if (aErr) {
-      res.status(500).json({ error: aErr.message });
-      return;
-    }
+    const list = useRds()
+      ? await webinarRepo.getAttendanceForBatchesFull(batchList.map((b: any) => b.id))
+      : await (async () => {
+          const { data, error: aErr } = await (db as any)
+            .from("webinar_attendance")
+            .select("id, batch_id, lead_id, attended, marked_at, defaulter_marked_at, created_at")
+            .in("batch_id", batchList.map((b: any) => b.id));
+          if (aErr) throw aErr;
+          return (data ?? []) as any[];
+        })();
 
-    const list = (att ?? []) as any[];
-    const leadIds = [...new Set(list.map((r) => r.lead_id).filter(Boolean))];
+    const leadIds = [...new Set(list.map((r) => r.lead_id).filter(Boolean))] as string[];
     const leadMap: Record<string, any> = {};
     for (let i = 0; i < leadIds.length; i += 150) {
       const chunk = leadIds.slice(i, i + 150);
-      const { data: leads, error: lErr } = await (db as any)
-        .from("kob_leads")
-        .select("id, code, full_name, phone, stage, language, assigned_to")
-        .in("id", chunk);
-      if (lErr) {
-        res.status(500).json({ error: lErr.message });
-        return;
+      if (useRds()) {
+        for (const l of await webinarRepo.getLeadsForWebinarHistory(chunk)) leadMap[l.id] = l;
+      } else {
+        const { data: leads, error: lErr } = await (db as any)
+          .from("kob_leads")
+          .select("id, code, full_name, phone, stage, language, assigned_to")
+          .in("id", chunk);
+        if (lErr) {
+          res.status(500).json({ error: lErr.message });
+          return;
+        }
+        for (const l of leads ?? []) leadMap[l.id] = l;
       }
-      for (const l of leads ?? []) leadMap[l.id] = l;
     }
 
-    const execIds = [...new Set(Object.values(leadMap).map((l: any) => l.assigned_to).filter(Boolean))];
+    const execIds = [...new Set(Object.values(leadMap).map((l: any) => l.assigned_to).filter(Boolean))] as string[];
     const execMap: Record<string, string> = {};
     if (execIds.length) {
       for (let i = 0; i < execIds.length; i += 150) {
         const chunk = execIds.slice(i, i + 150);
-        const { data: profs } = await (db as any)
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", chunk);
-        for (const p of profs ?? []) execMap[p.id] = p.full_name;
+        const profs = useRds()
+          ? await webinarRepo.getProfileNamesByIds(chunk)
+          : (await (db as any).from("profiles").select("id, full_name").in("id", chunk)).data ?? [];
+        for (const p of profs) execMap[p.id] = p.full_name;
       }
     }
 
@@ -282,7 +308,7 @@ export async function getWebinarHistory(req: Request, res: Response, next: NextF
  */
 export async function createWebinarBatch(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -301,6 +327,21 @@ export async function createWebinarBatch(req: Request, res: Response, next: Next
 
     if (notes !== undefined && notes !== null && (typeof notes !== "string" || notes.length > 1000)) {
       res.status(400).json({ error: "notes must be at most 1000 characters" });
+      return;
+    }
+
+    const meta = { name: name.trim(), scheduled_at: scheduled_at.trim(), language: language ?? null };
+
+    if (useRds()) {
+      const row = await withTransaction(req.userId ?? null, async (client) => {
+        const inserted = await webinarRepo.insertBatch(client, {
+          name: meta.name, scheduled_at: meta.scheduled_at, language: meta.language, notes: notes ?? null,
+          created_by: req.userId ?? null,
+        });
+        await insertAuditLog(client, req.userId ?? null, "webinar_batch_create", "webinar_batches", (inserted as any).id, meta);
+        return inserted;
+      });
+      res.status(200).json(row);
       return;
     }
 
@@ -327,7 +368,7 @@ export async function createWebinarBatch(req: Request, res: Response, next: Next
       "webinar_batch_create",
       "webinar_batches",
       row.id,
-      { name: name.trim(), scheduled_at: scheduled_at.trim(), language: language ?? null }
+      meta,
     );
 
     res.status(200).json(row);
@@ -342,7 +383,7 @@ export async function createWebinarBatch(req: Request, res: Response, next: Next
  */
 export async function deleteWebinarBatch(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -350,6 +391,15 @@ export async function deleteWebinarBatch(req: Request, res: Response, next: Next
     const batchId = (req.params.id ?? req.body?.batchId) as string | undefined;
     if (!batchId || typeof batchId !== "string" || batchId.trim().length === 0) {
       res.status(400).json({ error: "batchId is required" });
+      return;
+    }
+
+    if (useRds()) {
+      await withTransaction(req.userId ?? null, async (client) => {
+        await webinarRepo.deleteBatch(client, batchId.trim());
+        await insertAuditLog(client, req.userId ?? null, "webinar_batch_delete", "webinar_batches", batchId.trim(), null);
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -377,7 +427,7 @@ export async function deleteWebinarBatch(req: Request, res: Response, next: Next
  */
 export async function addLeadsToBatch(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -400,6 +450,15 @@ export async function addLeadsToBatch(req: Request, res: Response, next: NextFun
       lead_id: lid,
       attended: false,
     }));
+
+    if (useRds()) {
+      await withTransaction(req.userId ?? null, async (client) => {
+        await webinarRepo.upsertAttendanceRows(client, rows.map((r) => ({ batch_id: r.batch_id, lead_id: r.lead_id })));
+        await insertAuditLog(client, req.userId ?? null, "webinar_attendance_add", "webinar_batches", batchId.trim(), { leadIds });
+      });
+      res.status(200).json({ ok: true, added: rows.length });
+      return;
+    }
 
     const { error } = await (req.supabase as any)
       .from("webinar_attendance")
@@ -431,7 +490,7 @@ export async function addLeadsToBatch(req: Request, res: Response, next: NextFun
  */
 export async function removeLeadFromBatch(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -441,14 +500,19 @@ export async function removeLeadFromBatch(req: Request, res: Response, next: Nex
     let attendanceId = (req.params.id ?? req.body?.attendanceId) as string | undefined;
 
     if (batchId && leadId) {
-      const { data: row } = await (req.supabase as any)
-        .from("webinar_attendance")
-        .select("id")
-        .eq("batch_id", batchId)
-        .eq("lead_id", leadId)
-        .maybeSingle();
-      if (row) {
-        attendanceId = row.id;
+      if (useRds()) {
+        const { rows } = await getPool().query(`SELECT id FROM public.webinar_attendance WHERE batch_id = $1 AND lead_id = $2`, [batchId, leadId]);
+        attendanceId = rows[0]?.id ?? attendanceId;
+      } else {
+        const { data: row } = await (req.supabase as any)
+          .from("webinar_attendance")
+          .select("id")
+          .eq("batch_id", batchId)
+          .eq("lead_id", leadId)
+          .maybeSingle();
+        if (row) {
+          attendanceId = row.id;
+        }
       }
     }
 
@@ -457,6 +521,15 @@ export async function removeLeadFromBatch(req: Request, res: Response, next: Nex
         res.status(400).json({ error: "attendanceId or batchId and leadId required" });
         return;
       }
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (useRds()) {
+      await withTransaction(req.userId ?? null, async (client) => {
+        await webinarRepo.deleteAttendance(client, attendanceId!);
+        await insertAuditLog(client, req.userId ?? null, "webinar_attendance_remove", "webinar_attendance", attendanceId!, null);
+      });
       res.status(200).json({ ok: true });
       return;
     }
@@ -485,7 +558,7 @@ export async function removeLeadFromBatch(req: Request, res: Response, next: Nex
  */
 export async function markAttendance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -500,6 +573,15 @@ export async function markAttendance(req: Request, res: Response, next: NextFunc
 
     if (typeof attended !== "boolean") {
       res.status(400).json({ error: "attended must be a boolean" });
+      return;
+    }
+
+    if (useRds()) {
+      await withTransaction(req.userId ?? null, async (client) => {
+        await webinarRepo.markAttendance(client, attendanceId.trim(), attended, req.userId ?? null);
+        await insertAuditLog(client, req.userId ?? null, "webinar_attendance_mark", "webinar_attendance", attendanceId.trim(), { attended });
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -538,7 +620,7 @@ export async function markAttendance(req: Request, res: Response, next: NextFunc
  */
 export async function rescheduleAttendance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -553,6 +635,43 @@ export async function rescheduleAttendance(req: Request, res: Response, next: Ne
 
     if (!newBatchId || typeof newBatchId !== "string" || newBatchId.trim().length === 0) {
       res.status(400).json({ error: "newBatchId is required" });
+      return;
+    }
+
+    if (useRds()) {
+      const result = await withTransaction(req.userId ?? null, async (client) => {
+        const existing = await webinarRepo.getAttendanceById(client, attendanceId.trim());
+        if (!existing) throw Object.assign(new Error("Attendance row not found"), { status: 400 });
+        if (existing.batch_id === newBatchId.trim()) throw Object.assign(new Error("Lead is already in that batch"), { status: 400 });
+
+        const dupId = await webinarRepo.findAttendanceIdByBatchAndLead(client, newBatchId.trim(), existing.lead_id);
+        if (dupId) {
+          await webinarRepo.deleteAttendance(client, attendanceId.trim());
+        } else {
+          await webinarRepo.rescheduleAttendanceRow(client, attendanceId.trim(), newBatchId.trim());
+        }
+
+        const templateIds = await webinarRepo.getWebinarDefaulterTemplateIds(client);
+        let cancelled = 0;
+        if (templateIds.length > 0) {
+          cancelled = await webinarRepo.cancelPendingFireQueueForLead(client, existing.lead_id, templateIds);
+          await webinarRepo.cancelPendingEmailQueueForLead(client, existing.lead_id, templateIds);
+        }
+
+        await insertAuditLog(client, req.userId ?? null, "webinar_attendance_reschedule", "webinar_attendance", attendanceId.trim(), {
+          lead_id: existing.lead_id,
+          old_batch_id: existing.batch_id,
+          new_batch_id: newBatchId.trim(),
+          cancelled_nudges: cancelled,
+        });
+
+        return { cancelled };
+      }).catch((e: any) => {
+        if (e?.status === 400) { res.status(400).json({ error: e.message }); return null; }
+        throw e;
+      });
+      if (result === null) return;
+      res.status(200).json({ ok: true, cancelled_nudges: result.cancelled });
       return;
     }
 
@@ -687,7 +806,7 @@ export async function rescheduleAttendance(req: Request, res: Response, next: Ne
  */
 export async function markLeadEoi2(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -700,7 +819,25 @@ export async function markLeadEoi2(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      // Same scope/trigger reasoning as kob.controller.ts's updateLeadStage (Stage 10G):
+      // executive -> assigned_to = self; team_leader/kob_manager/super_admin -> all.
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      try {
+        await withTransaction(req.userId, async (client) => {
+          await leadRepo.updateLeadStage(client, leadId.trim(), "EOI_2", scope);
+          await insertAuditLog(client, req.userId!, "lead_stage_update", "kob_leads", leadId.trim(), { stage: "EOI_2", via: "webinar" });
+        });
+      } catch (e: any) {
+        res.status(400).json({ error: e?.message ?? "Stage update failed" });
+        return;
+      }
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("kob_leads")
       .update({ stage: "EOI_2" as any })
       .eq("id", leadId.trim());
@@ -710,7 +847,7 @@ export async function markLeadEoi2(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: "EOI_2", via: "webinar" });
+    await logAudit(req.supabase!, req.userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: "EOI_2", via: "webinar" });
 
     res.status(200).json({ ok: true });
   } catch (err) {

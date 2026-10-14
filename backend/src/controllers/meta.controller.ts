@@ -2,6 +2,16 @@ import { type Request, type Response, type NextFunction } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { logAudit } from "../utils/audit.js";
+import { config } from "../config/index.js";
+import { getPool } from "../db/pool.js";
+import { withTransaction } from "../db/transaction.js";
+import { insertAuditLog } from "../repositories/admin.repository.js";
+import { resolveActorRole } from "../db/authz.js";
+
+// STAGE 10I-C: RDS read path for getCampaignSelections() only (used by
+// getMetaCampaignsList and getMetaCplForKpiCard). toggleMetaCampaignSelection
+// (the write + its get_user_role authorization check) stays on Supabase.
+const useRds = () => config.dataBackend === "rds";
 
 const GRAPH_VERSION = "v21.0";
 const AD_ACCOUNT_ID = "act_278974773282719";
@@ -98,20 +108,30 @@ async function getCampaignSelections(supabase: any): Promise<Map<string, { is_en
   }
 
   try {
-    const { data, error } = await supabase
-      .from("meta_campaign_selections")
-      .select("campaign_id, campaign_name, is_enabled");
-
-    if (!error && Array.isArray(data)) {
-      for (const row of data) {
+    if (useRds()) {
+      const { rows } = await getPool().query(`SELECT campaign_id, campaign_name, is_enabled FROM public.meta_campaign_selections`);
+      for (const row of rows) {
         map.set(row.campaign_id, {
           is_enabled: Boolean(row.is_enabled),
           campaign_name: row.campaign_name ?? null,
         });
       }
+    } else {
+      const { data, error } = await supabase
+        .from("meta_campaign_selections")
+        .select("campaign_id, campaign_name, is_enabled");
+
+      if (!error && Array.isArray(data)) {
+        for (const row of data) {
+          map.set(row.campaign_id, {
+            is_enabled: Boolean(row.is_enabled),
+            campaign_name: row.campaign_name ?? null,
+          });
+        }
+      }
     }
   } catch {
-    // Supabase table query failed — fallback map returned
+    // RDS/Supabase table query failed — fallback map returned
   }
 
   return map;
@@ -144,17 +164,27 @@ async function saveCampaignSelection(
   });
   writeFallbackStore(fallback);
 
-  // Upsert to Supabase database
+  // Upsert to database
   try {
-    await supabase.from("meta_campaign_selections").upsert({
-      campaign_id: campaignId,
-      campaign_name: campaignName ?? null,
-      is_enabled: isEnabled,
-      updated_at: new Date().toISOString(),
-      updated_by: userId ?? null,
-    });
+    if (useRds()) {
+      await getPool().query(
+        `INSERT INTO public.meta_campaign_selections (campaign_id, campaign_name, is_enabled, updated_at, updated_by)
+         VALUES ($1, $2, $3, now(), $4)
+         ON CONFLICT (campaign_id) DO UPDATE SET campaign_name = EXCLUDED.campaign_name, is_enabled = EXCLUDED.is_enabled,
+           updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by`,
+        [campaignId, campaignName ?? null, isEnabled, userId ?? null],
+      );
+    } else {
+      await supabase.from("meta_campaign_selections").upsert({
+        campaign_id: campaignId,
+        campaign_name: campaignName ?? null,
+        is_enabled: isEnabled,
+        updated_at: new Date().toISOString(),
+        updated_by: userId ?? null,
+      });
+    }
   } catch (e) {
-    console.warn("[meta-campaign-storage] Supabase upsert failed, stored in fallback", e);
+    console.warn("[meta-campaign-storage] database upsert failed, stored in fallback", e);
   }
 
   return { ok: true };
@@ -769,12 +799,14 @@ export async function getMetaCplForKpiCard(req: Request, res: Response, _next: N
  */
 export async function toggleMetaCampaignSelection(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
+    const role = useRds()
+      ? await resolveActorRole(getPool(), req.userId)
+      : (await req.supabase!.rpc("get_user_role", { _user_id: req.userId })).data;
     const isAuthorized = role === "super_admin" || role === "kob_manager";
 
     if (!isAuthorized) {
@@ -804,14 +836,20 @@ export async function toggleMetaCampaignSelection(req: Request, res: Response, n
       req.userId,
     );
 
-    await logAudit(
-      req.supabase,
-      req.userId,
-      "toggle_campaign_kob_cpl",
-      "meta_campaign_selections",
-      campaignId,
-      { is_enabled: isEnabled, campaign_name: campaignName },
-    );
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await insertAuditLog(client, req.userId!, "toggle_campaign_kob_cpl", "meta_campaign_selections", campaignId, { is_enabled: isEnabled, campaign_name: campaignName });
+      });
+    } else {
+      await logAudit(
+        req.supabase!,
+        req.userId,
+        "toggle_campaign_kob_cpl",
+        "meta_campaign_selections",
+        campaignId,
+        { is_enabled: isEnabled, campaign_name: campaignName },
+      );
+    }
 
     res.status(200).json({ ok: true, campaignId, isEnabled });
   } catch (err) {

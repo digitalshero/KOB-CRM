@@ -1,5 +1,25 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { supabaseAdmin } from "../integrations/supabase/client.js";
+import { config } from "../config/index.js";
+import { resolveLeadScopeOrDeny } from "../db/authz.js";
+import * as dashboardRepo from "../repositories/dashboard.repository.js";
+import * as referenceRepo from "../repositories/reference.repository.js";
+import * as funnelRepo from "../repositories/funnel.repository.js";
+import { pgClient } from "../db/pgQueryAdapter.js";
+
+/**
+ * STAGE 10I-B: all handlers in this file that use req.supabase directly
+ * (no role resolution in the handler itself — authorization today is
+ * whatever RLS already permits for req.supabase on these tables) are
+ * ALREADY org-wide/unscoped in their query code. Their RDS path therefore
+ * adds no new scoping beyond requireAuth — this preserves current
+ * behavior exactly, it does not broaden it: kob_app_user already bypasses
+ * RLS the same way supabaseAdmin does today for the role-aware handlers.
+ */
+
+// STAGE 10E2: true only when DATA_BACKEND=rds (default remains "supabase").
+// Used only by the specific handler(s) migrated in this file.
+const useRds = () => config.dataBackend === "rds";
 
 export type AutoBucket = {
   leadGenerated: number;
@@ -193,7 +213,7 @@ export async function combinedFirstEntries(
  */
 export async function getAbandonedFunnel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -201,17 +221,19 @@ export async function getAbandonedFunnel(req: Request, res: Response, next: Next
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
     const TO = ["NO", "LATER", "NO_RESPONSE"] as const;
-    const rows = await pageAll(() => {
-      let q = req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, from_stage, to_stage, created_at")
-        .in("to_stage", TO)
-        .not("from_stage", "is", null)
-        .order("created_at", { ascending: true });
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q;
-    });
+    const rows = useRds()
+      ? await dashboardRepo.getAbandonedStageHistory([...TO], { from, to })
+      : await pageAll(() => {
+          let q = req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, from_stage, to_stage, created_at")
+            .in("to_stage", TO)
+            .not("from_stage", "is", null)
+            .order("created_at", { ascending: true });
+          if (from) q = q.gte("created_at", from);
+          if (to) q = q.lte("created_at", to);
+          return q;
+        });
 
     const sets: Record<string, Set<string>> = {
       NO: new Set(),
@@ -237,15 +259,17 @@ export async function getAbandonedFunnel(req: Request, res: Response, next: Next
     const earliest = days[days.length - 1] < monthStart ? days[days.length - 1] : monthStart;
     const windowFrom = new Date(new Date(`${earliest}T00:00:00.000Z`).getTime() - IST_MS).toISOString();
 
-    const tableRows = await pageAll(() =>
-      req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, from_stage, to_stage, created_at")
-        .in("to_stage", TO as any)
-        .not("from_stage", "is", null)
-        .gte("created_at", windowFrom)
-        .order("created_at", { ascending: true }),
-    );
+    const tableRows = useRds()
+      ? await dashboardRepo.getAbandonedStageHistory([...TO], { from: windowFrom })
+      : await pageAll(() =>
+          req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, from_stage, to_stage, created_at")
+            .in("to_stage", TO as any)
+            .not("from_stage", "is", null)
+            .gte("created_at", windowFrom)
+            .order("created_at", { ascending: true }),
+        );
 
     const perDay: Record<string, Record<string, Set<string>>> = {};
     const perMtd: Record<string, Set<string>> = {};
@@ -288,7 +312,7 @@ export async function getAbandonedFunnel(req: Request, res: Response, next: Next
  */
 export async function getAbandonedSplit(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -301,18 +325,22 @@ export async function getAbandonedSplit(req: Request, res: Response, next: NextF
     const day = asOf ?? new Date(Date.now() + IST_MS).toISOString().slice(0, 10);
     const cutoff = new Date(new Date(`${day}T00:00:00.000Z`).getTime() - IST_MS + 86400000 - 1).toISOString();
 
-    const entries = await pageAll(() =>
-      req.supabase!.from("lead_stage_history").select("lead_id")
-        .in("to_stage", TO as any).lte("created_at", cutoff).order("created_at", { ascending: true }),
-    );
+    const entries = useRds()
+      ? await dashboardRepo.getStageHistoryToStagesUntil(TO, cutoff)
+      : await pageAll(() =>
+          req.supabase!.from("lead_stage_history").select("lead_id")
+            .in("to_stage", TO as any).lte("created_at", cutoff).order("created_at", { ascending: true }),
+        );
     const leadIds = Array.from(new Set((entries as any[]).map((x) => x.lead_id).filter(Boolean)));
     const last = new Map<string, any>();
     for (let i = 0; i < leadIds.length; i += 200) {
       const chunk = leadIds.slice(i, i + 200);
-      const rows = await pageAll(() =>
-        req.supabase!.from("lead_stage_history").select("lead_id, from_stage, to_stage, created_at")
-          .in("lead_id", chunk).lte("created_at", cutoff).order("created_at", { ascending: true }),
-      );
+      const rows = useRds()
+        ? await dashboardRepo.getStageHistoryByLeadIdsUntil(chunk, cutoff)
+        : await pageAll(() =>
+            req.supabase!.from("lead_stage_history").select("lead_id, from_stage, to_stage, created_at")
+              .in("lead_id", chunk).lte("created_at", cutoff).order("created_at", { ascending: true }),
+          );
       for (const row of rows as any[]) last.set(row.lead_id, row);
     }
     const sets: Record<string, Set<string>> = { NO: new Set(), LATER: new Set(), NO_RESPONSE: new Set() };
@@ -333,10 +361,6 @@ export async function getAbandonedSplit(req: Request, res: Response, next: NextF
  */
 export async function getAutoFunnel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
@@ -344,6 +368,25 @@ export async function getAutoFunnel(req: Request, res: Response, next: NextFunct
       from: from ?? new Date(0).toISOString(),
       to: to ?? new Date().toISOString(),
     };
+
+    if (useRds()) {
+      const [b] = await computeAutoBuckets(pgClient, [span]);
+      res.status(200).json({
+        leadGenerated: b.leadGenerated,
+        eoi1: b.eoi1,
+        webinarSent: b.webinarSent,
+        webinarAccepted: b.webinarAttended,
+        eoi2: b.eoi2,
+        feePaid: b.feePaid,
+        contractSigned: b.contractSigned,
+      });
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const [b] = await computeAutoBuckets(req.supabase, [span]);
     res.status(200).json({
       leadGenerated: b.leadGenerated,
@@ -365,10 +408,6 @@ export async function getAutoFunnel(req: Request, res: Response, next: NextFunct
  */
 export async function getAutoFunnelBuckets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     let rawSpans: any = [];
     if (typeof req.query.spans === "string") {
       try {
@@ -390,6 +429,16 @@ export async function getAutoFunnelBuckets(req: Request, res: Response, next: Ne
       }))
       .filter((s) => Boolean(s.from && s.to));
 
+    if (useRds()) {
+      const out = await computeAutoBuckets(pgClient, spans);
+      res.status(200).json(out);
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const out = await computeAutoBuckets(req.supabase, spans);
     res.status(200).json(out);
   } catch (err) {
@@ -403,30 +452,37 @@ export async function getAutoFunnelBuckets(req: Request, res: Response, next: Ne
  */
 export async function getBrandPerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
-    const { data: brands, error: bErr } = await req.supabase
-      .from("brands")
-      .select("id, name, code")
-      .eq("active", true)
-      .order("code");
-
-    if (bErr) {
-      res.status(500).json({ error: bErr.message });
-      return;
+    let brands: { id: string; name: string; code: string }[];
+    if (useRds()) {
+      brands = await dashboardRepo.getActiveBrands();
+    } else {
+      const { data, error: bErr } = await req.supabase!
+        .from("brands")
+        .select("id, name, code")
+        .eq("active", true)
+        .order("code");
+      if (bErr) {
+        res.status(500).json({ error: bErr.message });
+        return;
+      }
+      brands = (data ?? []) as any[];
     }
 
-    const leads = await pageAll(() => {
-      let q = req.supabase!.from("kob_leads").select("brand_id, stage");
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q;
-    });
+    const leads = useRds()
+      ? await dashboardRepo.getLeadsBrandStage({ from, to })
+      : await pageAll(() => {
+          let q = req.supabase!.from("kob_leads").select("brand_id, stage");
+          if (from) q = q.gte("created_at", from);
+          if (to) q = q.lte("created_at", to);
+          return q;
+        });
 
     const map = new Map<string, any>();
     const byName = new Map<string, any>();
@@ -480,24 +536,31 @@ export async function getBrandPerformance(req: Request, res: Response, next: Nex
  */
 export async function getCombinedFunnel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
-    const leadRows = await pageAll(() => {
-      let q = req.supabase!.from("kob_leads").select("id, stage");
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q.order("created_at", { ascending: true });
-    });
-
     const pop = new Map<string, string>(); // lead id -> current stage
-    for (const l of leadRows) pop.set(l.id, l.stage);
+    let first: Record<string, Map<string, string>>;
 
-    const first = await combinedFirstEntries(req.supabase);
+    if (useRds()) {
+      const leadRows = await dashboardRepo.getLeadsIdStage({ from, to });
+      for (const l of leadRows) pop.set(l.id, l.stage);
+      first = await combinedFirstEntries(pgClient);
+    } else {
+      if (!req.supabase) {
+        res.status(500).json({ error: "Supabase client not initialized on request" });
+        return;
+      }
+      const leadRows = await pageAll(() => {
+        let q = req.supabase!.from("kob_leads").select("id, stage");
+        if (from) q = q.gte("created_at", from);
+        if (to) q = q.lte("created_at", to);
+        return q.order("created_at", { ascending: true });
+      });
+      for (const l of leadRows) pop.set(l.id, l.stage);
+      first = await combinedFirstEntries(req.supabase);
+    }
+
     const inR = (ts: string) => (!from || ts >= from) && (!to || ts <= to);
     const pick = (stage: string) => {
       const s = new Set<string>();
@@ -517,11 +580,11 @@ export async function getCombinedFunnel(req: Request, res: Response, next: NextF
     for (const s of Object.values(reached)) for (const id of s) if (!current.has(id)) missing.add(id);
     const miss = [...missing];
     for (let i = 0; i < miss.length; i += 200) {
-      const { data: rows } = await req.supabase
-        .from("kob_leads")
-        .select("id, stage")
-        .in("id", miss.slice(i, i + 200));
-      for (const l of rows ?? []) current.set(l.id, l.stage);
+      const chunk = miss.slice(i, i + 200);
+      const rows = useRds()
+        ? await dashboardRepo.getLeadsIdStageByIds(chunk)
+        : (await req.supabase!.from("kob_leads").select("id, stage").in("id", chunk)).data ?? [];
+      for (const l of rows) current.set(l.id, l.stage);
     }
 
     const stuck = (set: Set<string>, stage: string) => {
@@ -617,10 +680,6 @@ export async function computeCombinedBuckets(
  */
 export async function getCombinedFunnelBuckets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     let rawSpans: any = [];
     if (typeof req.query.spans === "string") {
       try {
@@ -642,6 +701,16 @@ export async function getCombinedFunnelBuckets(req: Request, res: Response, next
       }))
       .filter((s) => Boolean(s.from && s.to));
 
+    if (useRds()) {
+      const out = await computeCombinedBuckets(pgClient, spans);
+      res.status(200).json(out);
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const out = await computeCombinedBuckets(req.supabase, spans);
     res.status(200).json(out);
   } catch (err) {
@@ -736,10 +805,6 @@ export async function computeManualBuckets(
  */
 export async function getManualFunnel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
@@ -747,6 +812,17 @@ export async function getManualFunnel(req: Request, res: Response, next: NextFun
       from: from ?? new Date(0).toISOString(),
       to: to ?? new Date().toISOString(),
     };
+
+    if (useRds()) {
+      const [b] = await computeManualBuckets(pgClient, [span]);
+      res.status(200).json(b);
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const [b] = await computeManualBuckets(req.supabase, [span]);
     res.status(200).json(b);
   } catch (err) {
@@ -760,10 +836,6 @@ export async function getManualFunnel(req: Request, res: Response, next: NextFun
  */
 export async function getManualFunnelBuckets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     let rawSpans: any = [];
     if (typeof req.query.spans === "string") {
       try {
@@ -785,6 +857,16 @@ export async function getManualFunnelBuckets(req: Request, res: Response, next: 
       }))
       .filter((s) => Boolean(s.from && s.to));
 
+    if (useRds()) {
+      const out = await computeManualBuckets(pgClient, spans);
+      res.status(200).json(out);
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const out = await computeManualBuckets(req.supabase, spans);
     res.status(200).json(out);
   } catch (err) {
@@ -833,13 +915,13 @@ async function combinedSplitClassify(supabase: any, stageKey: string) {
  */
 export async function getCombinedStageResponseSplit(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const stageKey = req.query.stageKey as string;
     if (!["EOI_1", "WEBINAR", "EOI_2"].includes(stageKey)) {
       res.status(400).json({ error: "Invalid stageKey: must be EOI_1, WEBINAR, or EOI_2" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const IST_MS = 5.5 * 60 * 60 * 1000;
@@ -851,7 +933,7 @@ export async function getCombinedStageResponseSplit(req: Request, res: Response,
     const from = (typeof req.query.from === "string" ? req.query.from : undefined) ?? monthStart;
     const to = (typeof req.query.to === "string" ? req.query.to : undefined) ?? now;
 
-    const { first, cls } = await combinedSplitClassify(req.supabase, stageKey);
+    const { first, cls } = await combinedSplitClassify(useRds() ? pgClient : req.supabase, stageKey);
     const out: Record<string, { mtd: number; lifetime: number }> = {};
     for (const k of SPLIT_KEYS) out[k] = { mtd: 0, lifetime: 0 };
     let eligible = 0;
@@ -872,13 +954,13 @@ export async function getCombinedStageResponseSplit(req: Request, res: Response,
  */
 export async function getCombinedStageResponseSplitTable(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const stageKey = req.query.stageKey as string;
     if (!["EOI_1", "WEBINAR", "EOI_2"].includes(stageKey)) {
       res.status(400).json({ error: "Invalid stageKey: must be EOI_1, WEBINAR, or EOI_2" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
@@ -893,7 +975,7 @@ export async function getCombinedStageResponseSplitTable(req: Request, res: Resp
     const monthStart = todayIst.slice(0, 8) + "01";
     const inRange = (ts: string) => (!from || ts >= from) && (!to || ts <= to);
 
-    const { first, cls } = await combinedSplitClassify(req.supabase, stageKey);
+    const { first, cls } = await combinedSplitClassify(useRds() ? pgClient : req.supabase, stageKey);
     const b: Record<string, Record<string, number>> = {};
     for (const k of SPLIT_KEYS) {
       b[k] = { lifetime: 0, mtd: 0 };
@@ -924,7 +1006,7 @@ export async function getCombinedStageResponseSplitTable(req: Request, res: Resp
  */
 export async function getLeadsTrend(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -938,17 +1020,21 @@ export async function getLeadsTrend(req: Request, res: Response, next: NextFunct
       return `${d.toLocaleString("en-US", { month: "short", timeZone: "UTC" })} ${String(d.getUTCDate()).padStart(2, "0")}`;
     };
 
-    const leadRows = await pageAll(() =>
-      req.supabase!.from("kob_leads").select("id, created_at").gte("created_at", from).lte("created_at", to),
-    );
-    const contractRows = await pageAll(() =>
-      req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, to_stage, created_at")
-        .eq("to_stage", "KTN_CS")
-        .gte("created_at", from)
-        .lte("created_at", to),
-    );
+    const leadRows = useRds()
+      ? await dashboardRepo.getLeadsIdCreatedAt({ from, to })
+      : await pageAll(() =>
+          req.supabase!.from("kob_leads").select("id, created_at").gte("created_at", from).lte("created_at", to),
+        );
+    const contractRows = useRds()
+      ? await dashboardRepo.getStageHistoryKtnCsEntries({ from, to })
+      : await pageAll(() =>
+          req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, to_stage, created_at")
+            .eq("to_stage", "KTN_CS")
+            .gte("created_at", from)
+            .lte("created_at", to),
+        );
 
     const keys: string[] = [];
     const start = new Date(`${dayKey(from)}T00:00:00Z`).getTime();
@@ -1034,13 +1120,13 @@ const MANUAL_SPLIT_SUCCESS: Record<string, string[]> = {
  */
 export async function getManualStageResponseSplit(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const stageKey = req.query.stageKey as string;
     if (!["EOI_1", "WEBINAR", "EOI_2"].includes(stageKey)) {
       res.status(400).json({ error: "Invalid stageKey: must be EOI_1, WEBINAR, or EOI_2" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const IST_MS = 5.5 * 60 * 60 * 1000;
@@ -1057,7 +1143,7 @@ export async function getManualStageResponseSplit(req: Request, res: Response, n
     const to = (typeof req.query.to === "string" ? req.query.to : undefined) ?? rangeEnd;
 
     const { leads, hist } = await autoCohortResponses(
-      req.supabase,
+      useRds() ? pgClient : req.supabase,
       [{ from, to }, { from: rangeStart, to: rangeEnd }],
       [stageKey],
       [...successTargets, ...negatives],
@@ -1098,13 +1184,13 @@ export async function getManualStageResponseSplit(req: Request, res: Response, n
  */
 export async function getStageResponseSplit(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const stageKey = req.query.stageKey as string;
     if (!["AUTO_FIRED", "WEBINAR", "EOI_2"].includes(stageKey)) {
       res.status(400).json({ error: "Invalid stageKey: must be AUTO_FIRED, WEBINAR, or EOI_2" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const IST_MS_A = 5.5 * 60 * 60 * 1000;
@@ -1130,7 +1216,7 @@ export async function getStageResponseSplit(req: Request, res: Response, next: N
     const targets = [...(SUCCESS[stageKey] ?? []), ...negatives];
 
     const { leads, hist } = await autoCohortResponses(
-      req.supabase,
+      useRds() ? pgClient : req.supabase,
       [{ from, to }, { from: monthStart, to: monthEnd }],
       [...(SOURCES[stageKey] ?? [])],
       targets,
@@ -1172,7 +1258,7 @@ export async function getStageResponseSplit(req: Request, res: Response, next: N
  */
 export async function getRetargetingFunnel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -1182,17 +1268,19 @@ export async function getRetargetingFunnel(req: Request, res: Response, next: Ne
     };
     const FROM = ["NO", "LATER", "NO_RESPONSE"] as const;
     const TO = ["LEAD_INBOX", "EOI_1", "WEBINAR"] as const;
-    const rows = await pageAll(() => {
-      let q = req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, from_stage, to_stage, created_at")
-        .in("from_stage", FROM as any)
-        .in("to_stage", TO as any)
-        .order("created_at", { ascending: true });
-      if (r.from) q = q.gte("created_at", r.from);
-      if (r.to) q = q.lte("created_at", r.to);
-      return q;
-    });
+    const rows = useRds()
+      ? await dashboardRepo.getStageHistoryByFromTo([...FROM], [...TO], r)
+      : await pageAll(() => {
+          let q = req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, from_stage, to_stage, created_at")
+            .in("from_stage", FROM as any)
+            .in("to_stage", TO as any)
+            .order("created_at", { ascending: true });
+          if (r.from) q = q.gte("created_at", r.from);
+          if (r.to) q = q.lte("created_at", r.to);
+          return q;
+        });
     const sets: Record<string, Set<string>> = {
       LEAD_INBOX: new Set(),
       EOI_1: new Set(),
@@ -1219,15 +1307,17 @@ export async function getRetargetingFunnel(req: Request, res: Response, next: Ne
     const earliest = days[days.length - 1] < monthStart ? days[days.length - 1] : monthStart;
     const windowFrom = new Date(new Date(`${earliest}T00:00:00.000Z`).getTime() - IST_MS).toISOString();
 
-    const tableRows = await pageAll(() =>
-      req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, from_stage, to_stage, created_at")
-        .in("from_stage", FROM as any)
-        .in("to_stage", TO as any)
-        .gte("created_at", windowFrom)
-        .order("created_at", { ascending: true }),
-    );
+    const tableRows = useRds()
+      ? await dashboardRepo.getStageHistoryByFromTo([...FROM], [...TO], { from: windowFrom })
+      : await pageAll(() =>
+          req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, from_stage, to_stage, created_at")
+            .in("from_stage", FROM as any)
+            .in("to_stage", TO as any)
+            .gte("created_at", windowFrom)
+            .order("created_at", { ascending: true }),
+        );
 
     const perDay: Record<string, Record<string, Set<string>>> = {};
     const perMtd: Record<string, Set<string>> = {};
@@ -1270,7 +1360,7 @@ export async function getRetargetingFunnel(req: Request, res: Response, next: Ne
  */
 export async function getRetargetingSplit(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -1280,15 +1370,17 @@ export async function getRetargetingSplit(req: Request, res: Response, next: Nex
       ? asOfQuery
       : new Date(Date.now() + IST_MS).toISOString().slice(0, 10);
     const cutoff = new Date(new Date(`${day}T00:00:00.000Z`).getTime() - IST_MS + 86400000 - 1).toISOString();
-    const rows = await pageAll(() =>
-      req.supabase!
-        .from("lead_stage_history")
-        .select("lead_id, to_stage")
-        .in("from_stage", ["NO", "LATER", "NO_RESPONSE"] as any)
-        .in("to_stage", ["LEAD_INBOX", "EOI_1", "WEBINAR"] as any)
-        .lte("created_at", cutoff)
-        .order("created_at", { ascending: true }),
-    );
+    const rows = useRds()
+      ? await dashboardRepo.getStageHistoryFromToUntil(["NO", "LATER", "NO_RESPONSE"], ["LEAD_INBOX", "EOI_1", "WEBINAR"], cutoff)
+      : await pageAll(() =>
+          req.supabase!
+            .from("lead_stage_history")
+            .select("lead_id, to_stage")
+            .in("from_stage", ["NO", "LATER", "NO_RESPONSE"] as any)
+            .in("to_stage", ["LEAD_INBOX", "EOI_1", "WEBINAR"] as any)
+            .lte("created_at", cutoff)
+            .order("created_at", { ascending: true }),
+        );
     const sets: Record<string, Set<string>> = { LEAD_INBOX: new Set(), EOI_1: new Set(), WEBINAR: new Set() };
     for (const r of rows as any[]) {
       if (r.lead_id) sets[r.to_stage]?.add(r.lead_id);
@@ -1310,23 +1402,31 @@ export async function getRetargetingSplit(req: Request, res: Response, next: Nex
  */
 export async function getStateSpread(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const supabase = req.supabase;
-    const { data: states } = await supabase.from("india_states").select("id, name");
-    const nameById = new Map(((states ?? []) as any[]).map((s) => [s.id, s.name]));
 
-    const rows: any[] = [];
-    for (let i = 0; ; i += 1000) {
-      const { data: page } = await supabase
-        .from("kob_leads")
-        .select("state_id, stage, notes")
-        .range(i, i + 999);
-      const p = (page ?? []) as any[];
-      rows.push(...p);
-      if (p.length < 1000) break;
+    let nameById: Map<string, string>;
+    let rows: any[];
+    if (useRds()) {
+      const states = await dashboardRepo.getAllStatesIdName();
+      nameById = new Map(states.map((s) => [s.id, s.name]));
+      rows = await dashboardRepo.getAllLeadsStateStageNotes();
+    } else {
+      const { data: states } = await supabase!.from("india_states").select("id, name");
+      nameById = new Map(((states ?? []) as any[]).map((s) => [s.id, s.name]));
+      rows = [];
+      for (let i = 0; ; i += 1000) {
+        const { data: page } = await supabase!
+          .from("kob_leads")
+          .select("state_id, stage, notes")
+          .range(i, i + 999);
+        const p = (page ?? []) as any[];
+        rows.push(...p);
+        if (p.length < 1000) break;
+      }
     }
 
     const pinOf = (notes: string | null) => notes?.match(/(\d{6})/)?.[1] ?? null;
@@ -1335,11 +1435,11 @@ export async function getStateSpread(req: Request, res: Response, next: NextFunc
     );
     const stateByPin = new Map<string, string>();
     for (let i = 0; i < pins.length; i += 500) {
-      const { data: pr } = await supabase
-        .from("india_pincodes")
-        .select("pincode, state")
-        .in("pincode", pins.slice(i, i + 500));
-      for (const p of (pr ?? []) as any[]) if (!stateByPin.has(p.pincode)) stateByPin.set(p.pincode, p.state);
+      const chunk = pins.slice(i, i + 500);
+      const pr = useRds()
+        ? await dashboardRepo.getPincodeStates(chunk)
+        : (await supabase!.from("india_pincodes").select("pincode, state").in("pincode", chunk)).data ?? [];
+      for (const p of pr as any[]) if (!stateByPin.has(p.pincode)) stateByPin.set(p.pincode, p.state);
     }
     const titleCase = (s: string) =>
       s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
@@ -1383,14 +1483,14 @@ export async function getStateSpread(req: Request, res: Response, next: NextFunc
  */
 export async function getVariantStageResponseSplitTable(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const stageKey = req.query.stageKey as string;
     const variant = req.query.variant as string;
     if (!["AUTO_FIRED", "EOI_1", "WEBINAR", "EOI_2"].includes(stageKey)) {
       res.status(400).json({ error: "Invalid stageKey: must be AUTO_FIRED, EOI_1, WEBINAR, or EOI_2" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     if (!["auto", "manual"].includes(variant)) {
@@ -1439,7 +1539,7 @@ export async function getVariantStageResponseSplitTable(req: Request, res: Respo
       successTargets = SUCCESS[stageKey as keyof typeof SUCCESS];
       const monthStartIso = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), 1) - IST_MS).toISOString();
       const fiveAgo = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), nowIst.getUTCDate() - 5) - IST_MS).toISOString();
-      const { leads, hist } = await autoCohortResponses(req.supabase, [
+      const { leads, hist } = await autoCohortResponses(useRds() ? pgClient : req.supabase, [
         { from: from ?? monthStartIso, to: to ?? new Date().toISOString() },
         { from: monthStartIso < fiveAgo ? monthStartIso : fiveAgo, to: new Date().toISOString() },
       ], sources as any, [...successTargets, "NO", "NO_RESPONSE", "LATER"]);
@@ -1466,7 +1566,7 @@ export async function getVariantStageResponseSplitTable(req: Request, res: Respo
       successTargets = SUCCESS[stageKey as keyof typeof SUCCESS];
       const monthStartIso = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), 1) - IST_MS).toISOString();
       const fiveAgo = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), nowIst.getUTCDate() - 5) - IST_MS).toISOString();
-      const { leads, hist } = await autoCohortResponses(req.supabase, [
+      const { leads, hist } = await autoCohortResponses(useRds() ? pgClient : req.supabase, [
         { from: from ?? monthStartIso, to: to ?? new Date().toISOString() },
         { from: monthStartIso < fiveAgo ? monthStartIso : fiveAgo, to: new Date().toISOString() },
       ], [stageKey], [...successTargets, "NO", "NO_RESPONSE", "LATER"], true);
@@ -1651,7 +1751,7 @@ export async function getExecPerformanceSummary(req: Request, res: Response, nex
 export async function getFunnelStageLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const supabase = req.supabase;
-    if (!supabase) {
+    if (!useRds() && !supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -1670,53 +1770,61 @@ export async function getFunnelStageLeads(req: Request, res: Response, next: Nex
     let leadIds: string[] = [];
 
     if (stageKey === "LEAD_GENERATED") {
-      const rows = await pageAll(() => {
-        let q = supabase.from("kob_leads").select("id").order("created_at", { ascending: true });
-        if (from) q = q.gte("created_at", from);
-        if (to) q = q.lte("created_at", to);
-        return q;
-      });
+      const rows = useRds()
+        ? await dashboardRepo.getLeadIdsCreatedInRange({ from, to })
+        : await pageAll(() => {
+            let q = supabase!.from("kob_leads").select("id").order("created_at", { ascending: true });
+            if (from) q = q.gte("created_at", from);
+            if (to) q = q.lte("created_at", to);
+            return q;
+          });
       leadIds = rows.map((l: any) => l.id);
 
       if (mode !== "all") {
-        const mrows = await pageAll(() => {
-          let m = supabase
-            .from("audit_logs")
-            .select("entity_id")
-            .eq("action", "lead_manual_create")
-            .order("created_at", { ascending: true });
-          if (from) m = m.gte("created_at", from);
-          if (to) m = m.lte("created_at", to);
-          return m;
-        });
+        const mrows = useRds()
+          ? await dashboardRepo.getManualCreateAuditEntityIds({ from, to })
+          : await pageAll(() => {
+              let m = supabase!
+                .from("audit_logs")
+                .select("entity_id")
+                .eq("action", "lead_manual_create")
+                .order("created_at", { ascending: true });
+              if (from) m = m.gte("created_at", from);
+              if (to) m = m.lte("created_at", to);
+              return m;
+            });
         const manual = new Set(mrows.map((x: any) => x.entity_id).filter(Boolean));
         leadIds = leadIds.filter((id) => (mode === "manual" ? manual.has(id) : !manual.has(id)));
       }
     } else if (stageKey === "WEBINAR_ATTENDED") {
       const historyDb = (process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase) as any;
-      const batches = await pageAll(() => {
-        let q = historyDb
-          .from("webinar_batches")
-          .select("id, name, scheduled_at, language")
-          .order("scheduled_at", { ascending: false });
-        if (from) q = q.gte("scheduled_at", from);
-        if (to) q = q.lte("scheduled_at", to);
-        return q;
-      });
+      const batches = useRds()
+        ? await dashboardRepo.getWebinarBatchesInRange({ from, to })
+        : await pageAll(() => {
+            let q = historyDb
+              .from("webinar_batches")
+              .select("id, name, scheduled_at, language")
+              .order("scheduled_at", { ascending: false });
+            if (from) q = q.gte("scheduled_at", from);
+            if (to) q = q.lte("scheduled_at", to);
+            return q;
+          });
       const batchMap = new Map<string, any>(batches.map((b: any) => [b.id, b]));
       const batchIds = [...batchMap.keys()];
       const historyRows: any[] = [];
       for (let i = 0; i < batchIds.length; i += 150) {
         const chunk = batchIds.slice(i, i + 150);
         historyRows.push(
-          ...(await pageAll(() =>
-            historyDb
-              .from("webinar_attendance")
-              .select("id, lead_id, batch_id, marked_at")
-              .eq("attended", true)
-              .in("batch_id", chunk)
-              .order("id", { ascending: false }),
-          )),
+          ...(useRds()
+            ? await dashboardRepo.getAttendedWebinarAttendanceByBatchIds(chunk)
+            : await pageAll(() =>
+                historyDb
+                  .from("webinar_attendance")
+                  .select("id, lead_id, batch_id, marked_at")
+                  .eq("attended", true)
+                  .in("batch_id", chunk)
+                  .order("id", { ascending: false }),
+              )),
         );
       }
       if (historyRows.length === 0) {
@@ -1728,24 +1836,32 @@ export async function getFunnelStageLeads(req: Request, res: Response, next: Nex
       const leadMap = new Map<string, any>();
       for (let i = 0; i < uniqueLeadIds.length; i += 150) {
         const chunk = uniqueLeadIds.slice(i, i + 150);
-        const { data: leads, error } = await historyDb
-          .from("kob_leads")
-          .select("id, code, full_name, phone, stage, language, created_at, assigned_to")
-          .in("id", chunk);
-        if (error) throw error;
-        for (const lead of leads ?? []) leadMap.set(lead.id, lead);
+        if (useRds()) {
+          for (const lead of await dashboardRepo.getLeadDetailsForWebinarAttendees(chunk)) leadMap.set(lead.id, lead);
+        } else {
+          const { data: leads, error } = await historyDb
+            .from("kob_leads")
+            .select("id, code, full_name, phone, stage, language, created_at, assigned_to")
+            .in("id", chunk);
+          if (error) throw error;
+          for (const lead of leads ?? []) leadMap.set(lead.id, lead);
+        }
       }
       const assignedIds = [...new Set([...leadMap.values()].map((l: any) => l.assigned_to).filter(Boolean))];
       const executiveMap = new Map<string, string>();
       if (assignedIds.length) {
         for (let i = 0; i < assignedIds.length; i += 150) {
           const chunk = assignedIds.slice(i, i + 150);
-          const { data: profiles, error } = await historyDb
-            .from("profiles")
-            .select("id, full_name")
-            .in("id", chunk);
-          if (error) throw error;
-          for (const profile of profiles ?? []) executiveMap.set(profile.id, profile.full_name);
+          if (useRds()) {
+            for (const profile of await dashboardRepo.getProfileNamesByIds(chunk)) executiveMap.set(profile.id, profile.full_name);
+          } else {
+            const { data: profiles, error } = await historyDb
+              .from("profiles")
+              .select("id, full_name")
+              .in("id", chunk);
+            if (error) throw error;
+            for (const profile of profiles ?? []) executiveMap.set(profile.id, profile.full_name);
+          }
         }
       }
 
@@ -1771,18 +1887,20 @@ export async function getFunnelStageLeads(req: Request, res: Response, next: Nex
       res.status(200).json({ total: webinarRows.length, leads: [], webinarRows });
       return;
     } else {
-      const rows = await pageAll(() => {
-        let q = supabase
-          .from("lead_stage_history")
-          .select("lead_id, to_stage, created_at, changed_by")
-          .eq("to_stage", stageKey as any)
-          .order("created_at", { ascending: true });
-        if (mode === "auto") q = q.is("changed_by", null);
-        if (mode === "manual") q = q.not("changed_by", "is", null);
-        if (from) q = q.gte("created_at", from);
-        if (to) q = q.lte("created_at", to);
-        return q;
-      });
+      const rows = useRds()
+        ? await dashboardRepo.getStageHistoryForFunnelLeads(stageKey, mode, { from, to })
+        : await pageAll(() => {
+            let q = supabase!
+              .from("lead_stage_history")
+              .select("lead_id, to_stage, created_at, changed_by")
+              .eq("to_stage", stageKey as any)
+              .order("created_at", { ascending: true });
+            if (mode === "auto") q = q.is("changed_by", null);
+            if (mode === "manual") q = q.not("changed_by", "is", null);
+            if (from) q = q.gte("created_at", from);
+            if (to) q = q.lte("created_at", to);
+            return q;
+          });
       leadIds = [...new Set(rows.map((h: any) => h.lead_id).filter(Boolean))];
     }
 
@@ -1792,13 +1910,17 @@ export async function getFunnelStageLeads(req: Request, res: Response, next: Nex
     }
     const total = leadIds.length;
 
-    const { data: leads } = await supabase
-      .from("kob_leads")
-      .select("id, code, full_name, phone, stage, language, assigned_to, created_at")
-      .in("id", leadIds.slice(0, 300))
-      .order("created_at", { ascending: false });
+    const leads = useRds()
+      ? await dashboardRepo.getLeadDetailsForFunnelLeads(leadIds.slice(0, 300))
+      : (
+          await supabase!
+            .from("kob_leads")
+            .select("id, code, full_name, phone, stage, language, assigned_to, created_at")
+            .in("id", leadIds.slice(0, 300))
+            .order("created_at", { ascending: false })
+        ).data ?? [];
 
-    res.status(200).json({ total, leads: (leads ?? []) as any[] });
+    res.status(200).json({ total, leads: leads as any[] });
   } catch (err) {
     next(err);
   }
@@ -1808,8 +1930,65 @@ export async function getFunnelStageLeads(req: Request, res: Response, next: Nex
  * Controller for getChannelConversion.
  * Migrated 1:1 from src/lib/kob-dashboard.functions.ts (line 110).
  */
+/** Shared aggregation used by getChannelConversion() for both backends. */
+function aggregateChannelConversion(
+  sources: { id: string; name: string; cost_per_lead: number | null }[],
+  rows: { id: string; stage: string; source_id: string | null }[],
+) {
+  const byId = new Map<string, any>(sources.map((s) => [s.id, s]));
+  const costOf = (name: string) =>
+    Math.round(Number(sources.find((s) => String(s.name).toLowerCase() === name.toLowerCase())?.cost_per_lead ?? 0));
+
+  const buckets: Record<string, { leads: number; converted: number }> = {
+    marketing: { leads: 0, converted: 0 },
+    website: { leads: 0, converted: 0 },
+    whatsapp: { leads: 0, converted: 0 },
+    organic: { leads: 0, converted: 0 },
+    other: { leads: 0, converted: 0 },
+  };
+  for (const l of rows) {
+    const name = String(byId.get(l.source_id as string)?.name ?? "").toLowerCase();
+    const key =
+      name === "meta ads" ? "marketing"
+      : name === "website form" ? "website"
+      : name === "whatsapp broadcast" ? "whatsapp"
+      : name === "manual" || name === "support" ? "organic"
+      : "other";
+    buckets[key].leads += 1;
+    if (l.stage === "KTN_LIVE") buckets[key].converted += 1;
+  }
+
+  const shape = (k: string, cpl: number) => ({
+    leads: buckets[k].leads,
+    conv: buckets[k].leads > 0 ? (buckets[k].converted / buckets[k].leads) * 100 : 0,
+    cpl,
+  });
+
+  return {
+    marketing: shape("marketing", costOf("Meta Ads")),
+    website: shape("website", costOf("Website Form")),
+    whatsapp: shape("whatsapp", costOf("WhatsApp Broadcast")),
+    organic: shape("organic", 0),
+    other: shape("other", 0),
+    total: rows.length,
+  };
+}
+
 export async function getChannelConversion(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const from = typeof req.query.from === "string" ? req.query.from : undefined;
+    const to = typeof req.query.to === "string" ? req.query.to : undefined;
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const sources = await referenceRepo.listSources();
+      const rows = await dashboardRepo.getLeadsIdStageSource(scope, { from, to });
+      res.status(200).json(aggregateChannelConversion(sources, rows));
+      return;
+    }
+
     const supabase = req.supabase;
     if (!supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
@@ -1823,18 +2002,6 @@ export async function getChannelConversion(req: Request, res: Response, next: Ne
         : supabaseAdmin;
 
     const { data: sources } = await db.from("lead_sources").select("id, name, cost_per_lead");
-    const byId = new Map<string, any>(((sources ?? []) as any[]).map((s: any) => [s.id, s]));
-    const costOf = (name: string) =>
-      Math.round(
-        Number(
-          ((sources ?? []) as any[]).find(
-            (s: any) => String(s.name).toLowerCase() === name.toLowerCase(),
-          )?.cost_per_lead ?? 0,
-        ),
-      );
-
-    const from = typeof req.query.from === "string" ? req.query.from : undefined;
-    const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
     // Every lead in range, bucketed by channel — nothing is dropped.
     const rows = await pageAll(() => {
@@ -1844,43 +2011,7 @@ export async function getChannelConversion(req: Request, res: Response, next: Ne
       return q;
     });
 
-    const buckets: Record<string, { leads: number; converted: number }> = {
-      marketing: { leads: 0, converted: 0 },
-      website: { leads: 0, converted: 0 },
-      whatsapp: { leads: 0, converted: 0 },
-      organic: { leads: 0, converted: 0 },
-      other: { leads: 0, converted: 0 },
-    };
-    for (const l of rows as any[]) {
-      const name = String(byId.get(l.source_id)?.name ?? "").toLowerCase();
-      const key =
-        name === "meta ads"
-          ? "marketing"
-          : name === "website form"
-            ? "website"
-            : name === "whatsapp broadcast"
-              ? "whatsapp"
-              : name === "manual" || name === "support"
-                ? "organic"
-                : "other";
-      buckets[key].leads += 1;
-      if (l.stage === "KTN_LIVE") buckets[key].converted += 1;
-    }
-
-    const shape = (k: string, cpl: number) => ({
-      leads: buckets[k].leads,
-      conv: buckets[k].leads > 0 ? (buckets[k].converted / buckets[k].leads) * 100 : 0,
-      cpl,
-    });
-
-    res.status(200).json({
-      marketing: shape("marketing", costOf("Meta Ads")),
-      website: shape("website", costOf("Website Form")),
-      whatsapp: shape("whatsapp", costOf("WhatsApp Broadcast")),
-      organic: shape("organic", 0),
-      other: shape("other", 0),
-      total: rows.length,
-    });
+    res.status(200).json(aggregateChannelConversion((sources ?? []) as any[], rows as any[]));
   } catch (err) {
     next(err);
   }

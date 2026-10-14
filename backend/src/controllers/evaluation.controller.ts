@@ -1,6 +1,14 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { randomUUID } from "node:crypto";
 import { logAudit } from "../utils/audit.js";
+import { config } from "../config/index.js";
+import * as evaluationRepo from "../repositories/evaluation.repository.js";
+import { getPool } from "../db/pool.js";
+import { withTransaction } from "../db/transaction.js";
+import { insertAuditLog } from "../repositories/admin.repository.js";
+
+// STAGE 10I-C/D: RDS path for all handlers in this file.
+const useRds = () => config.dataBackend === "rds";
 
 /**
  * Controller for listEvaluationQuestions.
@@ -10,6 +18,10 @@ import { logAudit } from "../utils/audit.js";
  */
 export async function listEvaluationQuestions(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await evaluationRepo.listQuestions());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -39,7 +51,7 @@ export async function listEvaluationQuestions(req: Request, res: Response, next:
  */
 export async function getLeadEvaluation(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -51,9 +63,14 @@ export async function getLeadEvaluation(req: Request, res: Response, next: NextF
       return;
     }
 
+    if (useRds()) {
+      res.status(200).json(await evaluationRepo.getResponsesAndScore(leadId));
+      return;
+    }
+
     const [{ data: responses, error: rErr }, { data: score, error: sErr }] = await Promise.all([
-      req.supabase.from("evaluation_responses").select("*").eq("lead_id", leadId),
-      req.supabase.from("v_lead_evaluation_score").select("*").eq("lead_id", leadId).maybeSingle(),
+      req.supabase!.from("evaluation_responses").select("*").eq("lead_id", leadId),
+      req.supabase!.from("v_lead_evaluation_score").select("*").eq("lead_id", leadId).maybeSingle(),
     ]);
 
     if (rErr) {
@@ -77,7 +94,7 @@ export async function getLeadEvaluation(req: Request, res: Response, next: NextF
  */
 export async function listLeadEvaluationHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -87,7 +104,11 @@ export async function listLeadEvaluationHistory(req: Request, res: Response, nex
       res.status(400).json({ error: "lead_id is required" });
       return;
     }
-    const { data: rows, error } = await req.supabase
+    if (useRds()) {
+      res.status(200).json(await evaluationRepo.listHistoryForLead(leadId));
+      return;
+    }
+    const { data: rows, error } = await req.supabase!
       .from("v_lead_evaluation_history")
       .select("*")
       .eq("lead_id", leadId)
@@ -108,12 +129,23 @@ export async function listLeadEvaluationHistory(req: Request, res: Response, nex
  */
 export async function listLeadsForEvaluation(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
     const userId = req.userId;
-    const { data: roles, error: rErr } = await req.supabase
+
+    if (useRds()) {
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const { rows: roleRows } = await getPool().query(`SELECT role FROM public.user_roles WHERE user_id = $1`, [userId]);
+      const rs = roleRows.map((r: any) => r.role);
+      const isMgr = rs.includes("super_admin") || rs.includes("kob_manager");
+      const isTL = rs.includes("team_leader");
+      res.status(200).json(await evaluationRepo.listLeadsForEvaluation({ isMgr, isTL, userId }));
+      return;
+    }
+
+    const { data: roles, error: rErr } = await req.supabase!
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
@@ -125,7 +157,7 @@ export async function listLeadsForEvaluation(req: Request, res: Response, next: 
     const isMgr = rs.includes("super_admin") || rs.includes("kob_manager");
     const isTL = rs.includes("team_leader");
 
-    let q = req.supabase
+    let q = req.supabase!
       .from("kob_leads")
       .select("id, code, full_name, phone, stage, language, assigned_to, team_leader_id, created_at")
       .order("created_at", { ascending: false })
@@ -153,7 +185,7 @@ export async function listLeadsForEvaluation(req: Request, res: Response, next: 
  */
 export async function upsertEvaluationQuestion(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -184,8 +216,19 @@ export async function upsertEvaluationQuestion(req: Request, res: Response, next
     };
 
     let targetId = id;
-    if (targetId) {
-      const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        if (targetId) {
+          await evaluationRepo.updateQuestion(client, targetId, payload);
+          await insertAuditLog(client, req.userId!, "eval_question_updated", "evaluation_questions", targetId, payload);
+        } else {
+          const ins = await evaluationRepo.insertQuestion(client, payload);
+          targetId = ins.id;
+          await insertAuditLog(client, req.userId!, "eval_question_created", "evaluation_questions", targetId, payload);
+        }
+      });
+    } else if (targetId) {
+      const { error } = await req.supabase!
         .from("evaluation_questions")
         .update(payload)
         .eq("id", targetId);
@@ -193,9 +236,9 @@ export async function upsertEvaluationQuestion(req: Request, res: Response, next
         res.status(500).json({ error: error.message });
         return;
       }
-      await logAudit(req.supabase, req.userId, "eval_question_updated", "evaluation_questions", targetId, payload);
+      await logAudit(req.supabase!, req.userId, "eval_question_updated", "evaluation_questions", targetId, payload);
     } else {
-      const { data: ins, error } = await req.supabase
+      const { data: ins, error } = await req.supabase!
         .from("evaluation_questions")
         .insert(payload)
         .select("id")
@@ -205,7 +248,7 @@ export async function upsertEvaluationQuestion(req: Request, res: Response, next
         return;
       }
       targetId = (ins as any).id;
-      await logAudit(req.supabase, req.userId, "eval_question_created", "evaluation_questions", targetId!, payload);
+      await logAudit(req.supabase!, req.userId, "eval_question_created", "evaluation_questions", targetId!, payload);
     }
 
     res.status(200).json({ ok: true, id: targetId });
@@ -220,7 +263,7 @@ export async function upsertEvaluationQuestion(req: Request, res: Response, next
  */
 export async function deleteEvaluationQuestion(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -231,7 +274,16 @@ export async function deleteEvaluationQuestion(req: Request, res: Response, next
       return;
     }
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await evaluationRepo.deleteQuestion(client, id);
+        await insertAuditLog(client, req.userId!, "eval_question_deleted", "evaluation_questions", id, null);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("evaluation_questions")
       .delete()
       .eq("id", id);
@@ -241,7 +293,7 @@ export async function deleteEvaluationQuestion(req: Request, res: Response, next
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "eval_question_deleted", "evaluation_questions", id, null);
+    await logAudit(req.supabase!, req.userId, "eval_question_deleted", "evaluation_questions", id, null);
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -254,7 +306,7 @@ export async function deleteEvaluationQuestion(req: Request, res: Response, next
  */
 export async function saveEvaluationResponses(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -277,9 +329,34 @@ export async function saveEvaluationResponses(req: Request, res: Response, next:
       return;
     }
 
-    // Fetch current weights so we can lock weight_at_time per response
+    // One evaluation_id per submission batch
+    const evalId = randomUUID();
+    const filledAt = new Date().toISOString();
     const qids = answers.map((a) => a.question_id);
-    const { data: qs, error: qErr } = await req.supabase
+
+    if (useRds()) {
+      const score = await withTransaction(req.userId, async (client) => {
+        const qs = await evaluationRepo.getQuestionWeights(client, qids);
+        const wMap = new Map<string, number>(qs.map((q) => [q.id, Number(q.weight)]));
+        const rows = answers.map((a) => ({
+          evaluation_id: evalId,
+          lead_id: leadId.trim(),
+          question_id: a.question_id,
+          answer_value: a.answer_value ?? null,
+          answer_text: a.answer_text ?? null,
+          weight_at_time: wMap.get(a.question_id) ?? null,
+          filled_by: req.userId!,
+          filled_at: filledAt,
+        }));
+        await evaluationRepo.insertResponses(client, rows);
+        return evaluationRepo.getHistoryByEvaluationId(client, evalId);
+      });
+      res.status(200).json({ ok: true, evaluation_id: evalId, score: score ?? null });
+      return;
+    }
+
+    // Fetch current weights so we can lock weight_at_time per response
+    const { data: qs, error: qErr } = await req.supabase!
       .from("evaluation_questions")
       .select("id, weight")
       .in("id", qids);
@@ -290,10 +367,6 @@ export async function saveEvaluationResponses(req: Request, res: Response, next:
     }
 
     const wMap = new Map<string, number>((qs ?? []).map((q: any) => [q.id, Number(q.weight)]));
-
-    // One evaluation_id per submission batch
-    const evalId = randomUUID();
-    const filledAt = new Date().toISOString();
 
     const rows = answers.map((a) => ({
       evaluation_id: evalId,
@@ -306,7 +379,7 @@ export async function saveEvaluationResponses(req: Request, res: Response, next:
       filled_at: filledAt,
     }));
 
-    const { error: insErr } = await req.supabase
+    const { error: insErr } = await req.supabase!
       .from("evaluation_responses")
       .insert(rows);
 
@@ -315,7 +388,7 @@ export async function saveEvaluationResponses(req: Request, res: Response, next:
       return;
     }
 
-    const { data: score, error: sErr } = await req.supabase
+    const { data: score, error: sErr } = await req.supabase!
       .from("v_lead_evaluation_history")
       .select("*")
       .eq("evaluation_id", evalId)

@@ -1,6 +1,25 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { supabaseAdmin } from "../integrations/supabase/client.js";
 import { logAudit } from "../utils/audit.js";
+import { config } from "../config/index.js";
+import * as referenceRepo from "../repositories/reference.repository.js";
+import * as configRepo from "../repositories/config.repository.js";
+import * as leadRepo from "../repositories/lead.repository.js";
+import * as funnelRepo from "../repositories/funnel.repository.js";
+import * as dashboardRepo from "../repositories/dashboard.repository.js";
+import * as adminRepo from "../repositories/admin.repository.js";
+import * as analyticsRepo from "../repositories/analytics.repository.js";
+import { resolveLeadScopeOrDeny, requireRoleOrDeny, actorHasRole, resolveActorRole } from "../db/authz.js";
+import { withTransaction } from "../db/transaction.js";
+import { getPool } from "../db/pool.js";
+import { pgClient } from "../db/pgQueryAdapter.js";
+import * as scvRepo from "../repositories/scv.repository.js";
+
+// STAGE 10C: true only when DATA_BACKEND=rds (default remains "supabase").
+// Used only by the specific low-risk read-only handlers migrated in this
+// stage (see each function below) — every other handler is untouched and
+// keeps using req.supabase/supabaseAdmin exactly as before.
+const useRds = () => config.dataBackend === "rds";
 
 type DateRangeInput = { from?: string; to?: string };
 
@@ -70,6 +89,46 @@ async function budgetedSpendForRange(
   return Math.round(total);
 }
 
+/** STAGE 10E3: the month list budgetedSpendForRange above fetches from marketing_kpi_targets. */
+function budgetPeriodsForRange(r: { from?: string; to?: string }): string[] {
+  const start = r.from ? new Date(r.from) : null;
+  const end = r.to ? new Date(r.to) : null;
+  if (!start || !end) return [];
+  const months: string[] = [];
+  const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+  const last = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
+  while (cursor <= last) {
+    months.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+  return months;
+}
+
+/** STAGE 10E3: pure reimplementation of budgetedSpendForRange's day-prorating math, operating on already-fetched rows. */
+function budgetedSpendFromTargets(rows: { period: string; target_value: number }[], r: { from?: string; to?: string }): number | null {
+  const start = r.from ? new Date(r.from) : null;
+  const end = r.to ? new Date(r.to) : null;
+  if (!start || !end) return null;
+
+  const byMonth = new Map<string, number>();
+  for (const row of rows) byMonth.set(String(row.period).slice(0, 10), Number(row.target_value ?? 0));
+  if (byMonth.size === 0) return null;
+
+  let total = 0;
+  const day = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  const endDay = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+  while (day <= endDay) {
+    const key = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1)).toISOString().slice(0, 10);
+    const budget = byMonth.get(key);
+    if (budget) {
+      const daysInMonth = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth() + 1, 0)).getUTCDate();
+      total += budget / daysInMonth;
+    }
+    day.setUTCDate(day.getUTCDate() + 1);
+  }
+  return Math.round(total);
+}
+
 /**
  * Controller for listBrands.
  * Migrated 1:1 from src/lib/kob.functions.ts (line 700).
@@ -78,6 +137,11 @@ async function budgetedSpendForRange(
  */
 export async function listBrands(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listBrands());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -107,6 +171,11 @@ export async function listBrands(req: Request, res: Response, next: NextFunction
  */
 export async function listSources(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listSources());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -136,6 +205,11 @@ export async function listSources(req: Request, res: Response, next: NextFunctio
  */
 export async function listStates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listStates());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -166,8 +240,54 @@ export async function listStates(req: Request, res: Response, next: NextFunction
  *   - india_states: select("id, name, code, active")
  * Uses request-scoped RLS client: req.supabase
  */
+/** Shared aggregation used by listStatePincodeTotals() for both backends. */
+function aggregateStatePincodeTotals(
+  totals: { state: string; total_pincodes: number | null }[],
+  scope: { state_name: string | null; native_kitchen_scope: number | null; other_kitchen_scope: number | null }[],
+  states: { id: string; name: string; code: string | null; active: boolean }[],
+) {
+  const agg = new Map<string, { native: number; other: number; cities: number }>();
+  for (const r of scope) {
+    const key = String(r.state_name ?? "").toUpperCase().trim();
+    if (!key) continue;
+    const cur = agg.get(key) ?? { native: 0, other: 0, cities: 0 };
+    cur.native += Number(r.native_kitchen_scope ?? 0);
+    cur.other += Number(r.other_kitchen_scope ?? 0);
+    cur.cities += 1;
+    agg.set(key, cur);
+  }
+
+  const stateMeta = new Map<string, { id: string; code: string | null; active: boolean }>();
+  for (const s of states) {
+    stateMeta.set(String(s.name ?? "").toUpperCase().trim(), {
+      id: s.id, code: s.code ?? null, active: !!s.active,
+    });
+  }
+
+  return totals.map((r) => {
+    const a = agg.get(r.state) ?? { native: 0, other: 0, cities: 0 };
+    const m = stateMeta.get(r.state);
+    return {
+      state: r.state,
+      total_pincodes: Number(r.total_pincodes ?? 0),
+      cities_configured: a.cities,
+      native_kitchen_scope: a.native,
+      other_kitchen_scope: a.other,
+      state_id: m?.id ?? null,
+      state_code: m?.code ?? null,
+      active: m ? m.active : null,
+    };
+  });
+}
+
 export async function listStatePincodeTotals(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const { totals, scope, states } = await referenceRepo.listStatePincodeTotalsRaw();
+      res.status(200).json(aggregateStatePincodeTotals(totals, scope, states));
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -191,38 +311,11 @@ export async function listStatePincodeTotals(req: Request, res: Response, next: 
       return;
     }
 
-    const agg = new Map<string, { native: number; other: number; cities: number }>();
-    for (const r of ((scopeRes.data ?? []) as any[])) {
-      const key = String(r.state_name ?? "").toUpperCase().trim();
-      if (!key) continue;
-      const cur = agg.get(key) ?? { native: 0, other: 0, cities: 0 };
-      cur.native += Number(r.native_kitchen_scope ?? 0);
-      cur.other += Number(r.other_kitchen_scope ?? 0);
-      cur.cities += 1;
-      agg.set(key, cur);
-    }
-
-    const stateMeta = new Map<string, { id: string; code: string | null; active: boolean }>();
-    for (const s of ((statesRes.data ?? []) as any[])) {
-      stateMeta.set(String(s.name ?? "").toUpperCase().trim(), {
-        id: s.id, code: s.code ?? null, active: !!s.active,
-      });
-    }
-
-    const result = ((totalsRes.data ?? []) as any[]).map((r) => {
-      const a = agg.get(r.state) ?? { native: 0, other: 0, cities: 0 };
-      const m = stateMeta.get(r.state);
-      return {
-        state: r.state as string,
-        total_pincodes: Number(r.total_pincodes ?? 0),
-        cities_configured: a.cities,
-        native_kitchen_scope: a.native,
-        other_kitchen_scope: a.other,
-        state_id: m?.id ?? null,
-        state_code: m?.code ?? null,
-        active: m ? m.active : null,
-      };
-    });
+    const result = aggregateStatePincodeTotals(
+      (totalsRes.data ?? []) as any[],
+      (scopeRes.data ?? []) as any[],
+      (statesRes.data ?? []) as any[],
+    );
 
     res.status(200).json(result);
   } catch (err) {
@@ -240,6 +333,17 @@ export async function listStatePincodeTotals(req: Request, res: Response, next: 
  */
 export async function listCitiesWithScope(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const { scope, aliases } = await referenceRepo.listCitiesWithScopeRaw();
+      const result = scope.map((c) => ({
+        ...c,
+        district_aliases: aliases.get(c.city_id)?.district_aliases ?? [],
+        state_aliases: aliases.get(c.city_id)?.state_aliases ?? [],
+      }));
+      res.status(200).json(result);
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -283,6 +387,11 @@ export async function listCitiesWithScope(req: Request, res: Response, next: Nex
  */
 export async function listStateNativeBrands(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listStateNativeBrands());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -311,6 +420,11 @@ export async function listStateNativeBrands(req: Request, res: Response, next: N
  */
 export async function getConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await configRepo.getConfig());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -341,6 +455,11 @@ export async function getConfig(req: Request, res: Response, next: NextFunction)
  */
 export async function listKpiTargets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await configRepo.listKpiTargets());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -370,6 +489,10 @@ export async function listKpiTargets(req: Request, res: Response, next: NextFunc
  */
 export async function listAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listRecentAuditLogs());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -399,8 +522,21 @@ export async function listAuditLogs(req: Request, res: Response, next: NextFunct
  * Fallback: { weight_conversion: 35, weight_tat: 25, weight_eoi1_webinar: 15, weight_eoi2_payment: 15, weight_crm_discipline: 10 }
  * Uses request-scoped RLS client: req.supabase
  */
+const SCV_RULES_FALLBACK = {
+  weight_conversion: 35,
+  weight_tat: 25,
+  weight_eoi1_webinar: 15,
+  weight_eoi2_payment: 15,
+  weight_crm_discipline: 10,
+};
+
 export async function getScvRules(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json((await configRepo.getScvRules()) ?? SCV_RULES_FALLBACK);
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -417,15 +553,7 @@ export async function getScvRules(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const fallback = {
-      weight_conversion: 35,
-      weight_tat: 25,
-      weight_eoi1_webinar: 15,
-      weight_eoi2_payment: 15,
-      weight_crm_discipline: 10,
-    };
-
-    res.status(200).json(data ?? fallback);
+    res.status(200).json(data ?? SCV_RULES_FALLBACK);
   } catch (err) {
     next(err);
   }
@@ -439,6 +567,11 @@ export async function getScvRules(req: Request, res: Response, next: NextFunctio
  */
 export async function getIncentiveRules(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await configRepo.getIncentiveRules());
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -468,6 +601,11 @@ export async function getIncentiveRules(req: Request, res: Response, next: NextF
  */
 export async function listRateableUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const rows = await referenceRepo.listRateableUsers();
+      res.status(200).json(rows.map((r) => ({ user_id: r.user_id, role: r.role, full_name: r.full_name ?? "—", email: r.email ?? null })));
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -504,6 +642,10 @@ export async function listRateableUsers(req: Request, res: Response, next: NextF
  */
 export async function listRoleWeights(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listRoleWeights());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -534,6 +676,10 @@ export async function listRoleWeights(req: Request, res: Response, next: NextFun
  */
 export async function listAllProfiles(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listAllProfilesWithRoles());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -582,21 +728,30 @@ export async function listAllProfiles(req: Request, res: Response, next: NextFun
  */
 export async function getKpiSnapshot(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-    if (!supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
     const r = parseDateRange(req);
 
     if (!r.from && !r.to) {
+      if (useRds()) {
+        res.status(200).json(await analyticsRepo.getKpiSnapshotView());
+        return;
+      }
+      const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
+      if (!supabase) {
+        res.status(500).json({ error: "Supabase client not initialized" });
+        return;
+      }
       const { data: rows, error } = await supabase.from("v_kpi_snapshot").select("*");
       if (error) {
         res.status(500).json({ error: error.message });
         return;
       }
       res.status(200).json(rows ?? []);
+      return;
+    }
+
+    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
+    if (!useRds() && !supabase) {
+      res.status(500).json({ error: "Supabase client not initialized" });
       return;
     }
 
@@ -613,37 +768,45 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
       return out;
     };
 
-    const rows = await fetchAll(() =>
-      applyCreatedRange(
-        supabase.from("kob_leads").select("id, stage, created_at, updated_at").order("created_at", { ascending: true }),
-        r,
-        "created_at",
-      ),
-    );
+    const rows = useRds()
+      ? await analyticsRepo.getLeadsForKpiSnapshot(r)
+      : await fetchAll(() =>
+          applyCreatedRange(
+            supabase!.from("kob_leads").select("id, stage, created_at, updated_at").order("created_at", { ascending: true }),
+            r,
+            "created_at",
+          ),
+        );
 
     const fromMs = r.from ? new Date(r.from).getTime() : 0;
     const toMs = r.to ? new Date(r.to).getTime() : Date.now();
     const span = Math.max(1, toMs - fromMs);
     const prevFrom = new Date(fromMs - span).toISOString();
     const prevTo = new Date(fromMs).toISOString();
-    const prev = await fetchAll(() =>
-      supabase.from("kob_leads").select("id, stage, created_at")
-        .gte("created_at", prevFrom).lt("created_at", prevTo)
-        .order("created_at", { ascending: true }),
-    );
+    const prev = useRds()
+      ? await analyticsRepo.getLeadsForKpiSnapshot({ from: prevFrom, to: prevTo })
+      : await fetchAll(() =>
+          supabase!.from("kob_leads").select("id, stage, created_at")
+            .gte("created_at", prevFrom).lt("created_at", prevTo)
+            .order("created_at", { ascending: true }),
+        );
 
     const allIds = [...rows, ...prev].map((l) => l.id).filter(Boolean);
     const firedIds = new Set<string>();
     const failedIds = new Set<string>();
     for (let i = 0; i < allIds.length; i += 100) {
       const chunk = allIds.slice(i, i + 100);
-      const { data: hist } = await supabase
-        .from("lead_stage_history")
-        .select("lead_id, to_stage")
-        .in("lead_id", chunk)
-        .in("to_stage", ["AUTO_FIRED", "FAILED_FIRE"])
-        .limit(2000);
-      for (const h of (hist ?? []) as any[]) {
+      const hist = useRds()
+        ? await analyticsRepo.getLeadIdStageFireHistory(chunk)
+        : (
+            await supabase!
+              .from("lead_stage_history")
+              .select("lead_id, to_stage")
+              .in("lead_id", chunk)
+              .in("to_stage", ["AUTO_FIRED", "FAILED_FIRE"])
+              .limit(2000)
+          ).data ?? [];
+      for (const h of hist as any[]) {
         if (h.to_stage === "AUTO_FIRED") firedIds.add(h.lead_id);
         else failedIds.add(h.lead_id);
       }
@@ -657,14 +820,18 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
     };
     const fromMonth = monthStart(fromMs || toMs);
     const toMonth = monthStart(toMs);
-    const { data: targets } = await supabase
-      .from("kpi_targets")
-      .select("metric, target_value, effective_from")
-      .gte("effective_from", fromMonth)
-      .lte("effective_from", toMonth)
-      .order("effective_from", { ascending: false });
+    const targets = useRds()
+      ? await analyticsRepo.getKpiTargetsInRange(fromMonth, toMonth)
+      : (
+          await supabase!
+            .from("kpi_targets")
+            .select("metric, target_value, effective_from")
+            .gte("effective_from", fromMonth)
+            .lte("effective_from", toMonth)
+            .order("effective_from", { ascending: false })
+        ).data ?? [];
     const tmap = new Map<string, number>();
-    for (const t of (targets ?? []) as any[]) {
+    for (const t of targets as any[]) {
       if (!tmap.has(t.metric)) tmap.set(t.metric, Number(t.target_value ?? 0));
     }
 
@@ -712,6 +879,20 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
  */
 export async function getContractsCount(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const r = parseDateRange(req);
+      const current = await analyticsRepo.countContracts(r.from, r.to);
+      let previous = 0;
+      if (r.from && r.to) {
+        const fromMs = new Date(r.from).getTime();
+        const toMs = new Date(r.to).getTime();
+        const span = Math.max(1, toMs - fromMs);
+        previous = await analyticsRepo.countContracts(new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
+      }
+      res.status(200).json({ count: current, prev_period: previous });
+      return;
+    }
+
     const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
     if (!supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
@@ -752,6 +933,38 @@ export async function getContractsCount(req: Request, res: Response, next: NextF
  */
 export async function getDashboardKpis(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const r = parseDateRange(req);
+      const leads = await analyticsRepo.getAllLeadsForDashboardKpis(r);
+      const count = (pred: (l: analyticsRepo.DashboardKpiLeadRow) => boolean) => leads.filter(pred).length;
+      const totalLeads = leads.length;
+      const feePaid = count((l) => l.stage === "FEE_PAID");
+      const agreementSigned = count((l) => l.stage === "AGREEMENT_SIGNED");
+      const ktnCs = count((l) => l.stage === "KTN_CS");
+      const ktnLive = count((l) => l.stage === "KTN_LIVE");
+      const parked = count((l) => ["NO_RESPONSE", "LATER", "NO", "RETARGETING"].includes(l.stage));
+      const autoLeads = count((l) => l.mode === "AUTO");
+      const manualLeads = count((l) => l.mode === "MANUAL");
+      const activeStates = await analyticsRepo.countActiveStates();
+      const activeCities = await analyticsRepo.countActiveCities();
+      const kitchenScope = await analyticsRepo.getKitchenScopeTotal();
+
+      const periods = budgetPeriodsForRange(r);
+      const spendTargets = await analyticsRepo.getMarketingSpendByPeriods(periods);
+      const budgeted = budgetedSpendFromTargets(spendTargets, r);
+      const totalSpend = budgeted ?? leads.reduce((s, l) => s + Number(l.cost_per_lead ?? 0), 0);
+
+      const cpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
+      const cac = ktnLive > 0 ? totalSpend / ktnLive : 0;
+
+      res.status(200).json({
+        totalLeads, feePaid, agreementSigned, ktnCs, ktnLive, parked, autoLeads, manualLeads,
+        activeStates: activeStates ?? 0, activeCities: activeCities ?? 0, kitchenScope,
+        totalSpend, cac: Math.round(cac), cpl: Math.round(cpl),
+      });
+      return;
+    }
+
     const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
     if (!supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
@@ -814,8 +1027,56 @@ export async function getDashboardKpis(req: Request, res: Response, next: NextFu
  * Migrated 1:1 from src/lib/kob.functions.ts (line 346).
  * Uses orgRead for leads and req.supabase for lead_sources.
  */
+/** Shared aggregation used by getFunnelBySource() for both backends. */
+function aggregateFunnelBySource(
+  sources: { id: string; name: string; cost_per_lead: number | null }[],
+  leads: { source_id: string | null; stage: string }[],
+) {
+  const map = new Map<string, any>();
+  for (const s of sources) {
+    map.set(s.id, {
+      source_id: s.id, source_name: s.name, cost_per_lead: s.cost_per_lead,
+      total_leads: 0, inbox_count: 0, eoi1_count: 0, webinar_count: 0, eoi2_count: 0,
+      form_filled_count: 0, fee_paid_count: 0, agreement_count: 0, ktn_cs_count: 0,
+      ktn_live_count: 0, total_spend: 0,
+    });
+  }
+
+  for (const l of leads) {
+    const row = map.get(l.source_id as string);
+    if (!row) continue;
+    row.total_leads++;
+    if (l.stage === "LEAD_INBOX") row.inbox_count++;
+    else if (l.stage === "EOI_1") row.eoi1_count++;
+    else if (l.stage === "WEBINAR") row.webinar_count++;
+    else if (l.stage === "EOI_2") row.eoi2_count++;
+    else if (l.stage === "FORM_FILLED") row.form_filled_count++;
+    else if (l.stage === "FEE_PAID") row.fee_paid_count++;
+    else if (l.stage === "AGREEMENT_SIGNED") row.agreement_count++;
+    else if (l.stage === "KTN_CS") row.ktn_cs_count++;
+    else if (l.stage === "KTN_LIVE") row.ktn_live_count++;
+  }
+
+  for (const row of map.values()) {
+    row.total_spend = row.total_leads * Number(row.cost_per_lead ?? 0);
+  }
+  return Array.from(map.values());
+}
+
 export async function getFunnelBySource(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const r = parseDateRange(req);
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const sources = await referenceRepo.listSources();
+      const leads = await funnelRepo.getLeadsSourceStage(scope, r);
+      res.status(200).json(aggregateFunnelBySource(sources, leads));
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -828,7 +1089,6 @@ export async function getFunnelBySource(req: Request, res: Response, next: NextF
     }
 
     const orgClient = await getOrgReadClient(req);
-    const r = parseDateRange(req);
 
     let q = orgClient.from("kob_leads").select("source_id, stage");
     q = applyCreatedRange(q, r);
@@ -838,36 +1098,7 @@ export async function getFunnelBySource(req: Request, res: Response, next: NextF
       return;
     }
 
-    const map = new Map<string, any>();
-    for (const s of (sources ?? []) as any[]) {
-      map.set(s.id, {
-        source_id: s.id, source_name: s.name, cost_per_lead: s.cost_per_lead,
-        total_leads: 0, inbox_count: 0, eoi1_count: 0, webinar_count: 0, eoi2_count: 0,
-        form_filled_count: 0, fee_paid_count: 0, agreement_count: 0, ktn_cs_count: 0,
-        ktn_live_count: 0, total_spend: 0,
-      });
-    }
-
-    for (const l of (leads ?? []) as any[]) {
-      const row = map.get(l.source_id);
-      if (!row) continue;
-      row.total_leads++;
-      if (l.stage === "LEAD_INBOX") row.inbox_count++;
-      else if (l.stage === "EOI_1") row.eoi1_count++;
-      else if (l.stage === "WEBINAR") row.webinar_count++;
-      else if (l.stage === "EOI_2") row.eoi2_count++;
-      else if (l.stage === "FORM_FILLED") row.form_filled_count++;
-      else if (l.stage === "FEE_PAID") row.fee_paid_count++;
-      else if (l.stage === "AGREEMENT_SIGNED") row.agreement_count++;
-      else if (l.stage === "KTN_CS") row.ktn_cs_count++;
-      else if (l.stage === "KTN_LIVE") row.ktn_live_count++;
-    }
-
-    for (const row of map.values()) {
-      row.total_spend = row.total_leads * Number(row.cost_per_lead ?? 0);
-    }
-
-    res.status(200).json(Array.from(map.values()));
+    res.status(200).json(aggregateFunnelBySource((sources ?? []) as any[], (leads ?? []) as any[]));
   } catch (err) {
     next(err);
   }
@@ -878,10 +1109,38 @@ export async function getFunnelBySource(req: Request, res: Response, next: NextF
  * Migrated 1:1 from src/lib/kob.functions.ts (line 381).
  * Uses orgRead for leads.
  */
+/** Shared aggregation used by getFunnelByLanguage() for both backends. */
+function aggregateFunnelByLanguage(leads: { language: string | null; stage: string }[]) {
+  const map = new Map<string, any>();
+  for (const l of leads) {
+    const k = l.language ?? "Others";
+    if (!map.has(k)) {
+      map.set(k, { language: k, total_leads: 0, fee_paid: 0, agreement: 0, ktn_cs: 0, ktn_live: 0 });
+    }
+    const row = map.get(k);
+    row.total_leads++;
+    if (l.stage === "FEE_PAID") row.fee_paid++;
+    else if (l.stage === "AGREEMENT_SIGNED") row.agreement++;
+    else if (l.stage === "KTN_CS") row.ktn_cs++;
+    else if (l.stage === "KTN_LIVE") row.ktn_live++;
+  }
+  return Array.from(map.values());
+}
+
 export async function getFunnelByLanguage(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
     const r = parseDateRange(req);
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const leads = await funnelRepo.getLeadsLanguageStage(scope, r);
+      res.status(200).json(aggregateFunnelByLanguage(leads));
+      return;
+    }
+
+    const orgClient = await getOrgReadClient(req);
 
     let q = orgClient.from("kob_leads").select("language, stage");
     q = applyCreatedRange(q, r);
@@ -891,21 +1150,7 @@ export async function getFunnelByLanguage(req: Request, res: Response, next: Nex
       return;
     }
 
-    const map = new Map<string, any>();
-    for (const l of (leads ?? []) as any[]) {
-      const k = l.language ?? "Others";
-      if (!map.has(k)) {
-        map.set(k, { language: k, total_leads: 0, fee_paid: 0, agreement: 0, ktn_cs: 0, ktn_live: 0 });
-      }
-      const row = map.get(k);
-      row.total_leads++;
-      if (l.stage === "FEE_PAID") row.fee_paid++;
-      else if (l.stage === "AGREEMENT_SIGNED") row.agreement++;
-      else if (l.stage === "KTN_CS") row.ktn_cs++;
-      else if (l.stage === "KTN_LIVE") row.ktn_live++;
-    }
-
-    res.status(200).json(Array.from(map.values()));
+    res.status(200).json(aggregateFunnelByLanguage((leads ?? []) as any[]));
   } catch (err) {
     next(err);
   }
@@ -916,8 +1161,45 @@ export async function getFunnelByLanguage(req: Request, res: Response, next: Nex
  * Migrated 1:1 from src/lib/kob.functions.ts (line 402).
  * Uses orgRead for leads and req.supabase for brands.
  */
+/** Shared aggregation used by getFunnelByBrand() for both backends. */
+function aggregateFunnelByBrand(
+  brands: { id: string; name: string; code: string }[],
+  leads: { brand_id: string | null; stage: string }[],
+) {
+  const map = new Map<string, any>();
+  for (const b of brands) {
+    map.set(b.id, {
+      brand_id: b.id, brand_name: b.name, brand_code: b.code,
+      total_leads: 0, fee_paid: 0, agreement: 0, ktn_cs: 0, ktn_live: 0,
+    });
+  }
+
+  for (const l of leads) {
+    const row = map.get(l.brand_id as string);
+    if (!row) continue;
+    row.total_leads++;
+    if (l.stage === "FEE_PAID") row.fee_paid++;
+    else if (l.stage === "AGREEMENT_SIGNED") row.agreement++;
+    else if (l.stage === "KTN_CS") row.ktn_cs++;
+    else if (l.stage === "KTN_LIVE") row.ktn_live++;
+  }
+  return Array.from(map.values());
+}
+
 export async function getFunnelByBrand(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const r = parseDateRange(req);
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const brands = await referenceRepo.listBrands();
+      const leads = await funnelRepo.getLeadsBrandStage(scope, r);
+      res.status(200).json(aggregateFunnelByBrand(brands, leads));
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -930,7 +1212,6 @@ export async function getFunnelByBrand(req: Request, res: Response, next: NextFu
     }
 
     const orgClient = await getOrgReadClient(req);
-    const r = parseDateRange(req);
 
     let q = orgClient.from("kob_leads").select("brand_id, stage");
     q = applyCreatedRange(q, r);
@@ -940,25 +1221,7 @@ export async function getFunnelByBrand(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const map = new Map<string, any>();
-    for (const b of (brands ?? []) as any[]) {
-      map.set(b.id, {
-        brand_id: b.id, brand_name: b.name, brand_code: b.code,
-        total_leads: 0, fee_paid: 0, agreement: 0, ktn_cs: 0, ktn_live: 0,
-      });
-    }
-
-    for (const l of (leads ?? []) as any[]) {
-      const row = map.get(l.brand_id);
-      if (!row) continue;
-      row.total_leads++;
-      if (l.stage === "FEE_PAID") row.fee_paid++;
-      else if (l.stage === "AGREEMENT_SIGNED") row.agreement++;
-      else if (l.stage === "KTN_CS") row.ktn_cs++;
-      else if (l.stage === "KTN_LIVE") row.ktn_live++;
-    }
-
-    res.status(200).json(Array.from(map.values()));
+    res.status(200).json(aggregateFunnelByBrand((brands ?? []) as any[], (leads ?? []) as any[]));
   } catch (err) {
     next(err);
   }
@@ -972,8 +1235,20 @@ export async function getFunnelByBrand(req: Request, res: Response, next: NextFu
  */
 export async function getStageDistribution(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
     const r = parseDateRange(req);
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const rows = await funnelRepo.getLeadsIdStageCreated(scope, r);
+      const counts: Record<string, number> = {};
+      for (const row of rows) counts[row.stage] = (counts[row.stage] ?? 0) + 1;
+      res.status(200).json(Object.entries(counts).map(([stage, count]) => ({ stage, count })));
+      return;
+    }
+
+    const orgClient = await getOrgReadClient(req);
 
     const seen = new Set<string>();
     const counts: Record<string, number> = {};
@@ -1008,6 +1283,38 @@ export async function getStageDistribution(req: Request, res: Response, next: Ne
  */
 export async function getStateSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const r = parseDateRange(req);
+      const [states, leads, scopeRows] = await Promise.all([
+        analyticsRepo.listStatesForSummary(),
+        analyticsRepo.getScopedLeadsStateStageCreated(scope, r),
+        analyticsRepo.getCityScopeForStateSummary(),
+      ]);
+
+      const byState: Record<string, any> = {};
+      for (const s of states) byState[s.id] = { ...s, leads: 0, ktn_live: 0, fee_paid: 0, scope: 0 };
+      for (const l of leads) {
+        const b = byState[l.state_id as string];
+        if (!b) continue;
+        b.leads++;
+        if (l.stage === "KTN_LIVE") b.ktn_live++;
+        if (l.stage === "FEE_PAID") b.fee_paid++;
+      }
+      for (const c of scopeRows) {
+        if (!c.city_active || !c.state_active || !c.district_active) continue;
+        const b = byState[c.state_id];
+        if (b) b.scope += (Number(c.native_kitchen_scope) || 0) + (Number(c.other_kitchen_scope) || 0);
+      }
+
+      res.status(200).json(Object.values(byState));
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -1071,14 +1378,19 @@ export async function getStateSummary(req: Request, res: Response, next: NextFun
  */
 export async function listMarketingTargets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const period = typeof req.query.period === "string" && req.query.period.trim()
+      ? req.query.period.trim()
+      : new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
+
+    if (useRds()) {
+      res.status(200).json(await configRepo.listMarketingTargets(period));
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
-
-    const period = typeof req.query.period === "string" && req.query.period.trim()
-      ? req.query.period.trim()
-      : new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
 
     const { data, error } = await req.supabase
       .from("marketing_kpi_targets")
@@ -1104,6 +1416,10 @@ export async function listMarketingTargets(req: Request, res: Response, next: Ne
  */
 export async function listManualRatings(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listManualRatings());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -1135,6 +1451,10 @@ export async function listManualRatings(req: Request, res: Response, next: NextF
  */
 export async function listScvComposite(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await scvRepo.getScvComposite());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -1164,12 +1484,18 @@ export async function listScvComposite(req: Request, res: Response, next: NextFu
  */
 export async function getMyAllocationMode(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    const { data, error } = await req.supabase
+    if (useRds()) {
+      const mode = await referenceRepo.getMyAllocationMode(req.userId);
+      res.status(200).json({ mode: (mode ?? "MANUAL") as "MANUAL" | "ROUND_ROBIN" });
+      return;
+    }
+
+    const { data, error } = await req.supabase!
       .from("profiles")
       .select("allocation_mode")
       .eq("id", req.userId)
@@ -1196,6 +1522,10 @@ export async function getMyAllocationMode(req: Request, res: Response, next: Nex
  */
 export async function listGallaboxTemplates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.status(200).json(await referenceRepo.listGallaboxTemplates());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
@@ -1229,32 +1559,45 @@ const ABANDONED_STAGES = [
  */
 export async function getAbandonedLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
-    const r = (role as string | null) ?? "executive";
 
-    let q = req.supabase.from("v_abandoned_leads")
-      .select("lead_id, code, full_name, stage, assigned_to, team_leader_id, brand_id, brand_name, language, stage_entered_at, days_in_stage, is_abandoned")
-      .eq("is_abandoned", true);
+    let rows: any[];
+    if (useRds()) {
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) {
+        res.status(403).json({ error: "Forbidden: no role assigned" });
+        return;
+      }
+      rows = await analyticsRepo.getAbandonedLeadsView(scope);
+    } else {
+      const { data: role } = await req.supabase!.rpc("get_user_role", { _user_id: req.userId });
+      const r = (role as string | null) ?? "executive";
 
-    if (r === "executive") q = q.eq("assigned_to", req.userId);
+      let q = req.supabase!.from("v_abandoned_leads")
+        .select("lead_id, code, full_name, stage, assigned_to, team_leader_id, brand_id, brand_name, language, stage_entered_at, days_in_stage, is_abandoned")
+        .eq("is_abandoned", true);
 
-    const { data, error } = await q.order("days_in_stage", { ascending: false }).limit(1000);
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
+      if (r === "executive") q = q.eq("assigned_to", req.userId);
+
+      const { data, error } = await q.order("days_in_stage", { ascending: false }).limit(1000);
+      if (error) {
+        res.status(500).json({ error: error.message });
+        return;
+      }
+      rows = (data ?? []) as any[];
     }
-    const rows = (data ?? []) as any[];
 
     // Enrich with assignee / TL names
-    const ids = Array.from(new Set(rows.flatMap((x) => [x.assigned_to, x.team_leader_id]).filter(Boolean)));
+    const ids = Array.from(new Set(rows.flatMap((x) => [x.assigned_to, x.team_leader_id]).filter(Boolean))) as string[];
     let names: Record<string, string> = {};
     if (ids.length) {
-      const { data: profs } = await req.supabase.from("profiles").select("id, full_name").in("id", ids);
-      for (const p of profs ?? []) names[(p as any).id] = (p as any).full_name;
+      const profs = useRds()
+        ? await analyticsRepo.getProfileFullNamesByIds(ids)
+        : (await req.supabase!.from("profiles").select("id, full_name").in("id", ids)).data ?? [];
+      for (const p of profs) names[(p as any).id] = (p as any).full_name;
     }
 
     const summary: Record<string, number> = {};
@@ -1352,10 +1695,62 @@ const EXECUTIVE_SUMMARY_STAGES = [
  */
 export async function getExecutiveStageSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const db = await getOrgReadClient(req);
     const executiveId = typeof req.query.executiveId === "string" ? req.query.executiveId : undefined;
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const execIds = await analyticsRepo.getExecutiveRoleUserIdsScoped(scope);
+      if (!execIds.length) {
+        res.status(200).json({ executives: [] as any[], stages: EXECUTIVE_SUMMARY_STAGES });
+        return;
+      }
+
+      const profiles = await analyticsRepo.getProfilesForExecSummary(execIds);
+      const scopedExecIds = profiles.map((p) => p.id);
+      const targetExecIds = executiveId && scopedExecIds.includes(executiveId) ? [executiveId] : scopedExecIds;
+
+      const leads = await analyticsRepo.getLeadsByAssignedToStageEntered(targetExecIds, from, to);
+
+      const countsByExec: Record<string, Record<string, number>> = {};
+      for (const l of leads) {
+        (countsByExec[l.assigned_to] ??= {})[l.stage] = ((countsByExec[l.assigned_to]?.[l.stage]) ?? 0) + 1;
+      }
+
+      const executives = profiles.map((p) => {
+        const ec = countsByExec[p.id] ?? {};
+        return {
+          id: p.id,
+          name: p.full_name,
+          email: p.email,
+          team_leader_id: p.team_leader_id,
+          counts: Object.fromEntries(EXECUTIVE_SUMMARY_STAGES.map((stage) => [stage, ec[stage] ?? 0])),
+          total: Object.values(ec).reduce((a: number, b: number) => a + b, 0),
+        };
+      });
+
+      const combined: Record<string, number> = {};
+      for (const e of executives) {
+        for (const stage of EXECUTIVE_SUMMARY_STAGES) {
+          combined[stage] = (combined[stage] ?? 0) + ((e.counts as Record<string, number>)[stage] ?? 0);
+        }
+      }
+      const combinedTotal = Object.values(combined).reduce((a, b) => a + b, 0);
+
+      res.status(200).json({
+        executives,
+        stages: EXECUTIVE_SUMMARY_STAGES,
+        combined: { id: "all", name: "All Executives", counts: combined, total: combinedTotal },
+      });
+      return;
+    }
+
+    const db = await getOrgReadClient(req);
 
     const { data: roles } = await db.from("user_roles").select("user_id, role").eq("role", "executive");
     const execIds = (roles ?? []).map((r: any) => r.user_id);
@@ -1505,10 +1900,6 @@ function seriesFor(rows: any[], metric: string, buckets: Date[], unit: "month" |
  */
 export async function getKpiTrend(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
     const metric = typeof req.query.metric === "string" ? req.query.metric : "TOTAL_LEADS";
 
     const now = new Date();
@@ -1519,6 +1910,23 @@ export async function getKpiTrend(req: Request, res: Response, next: NextFunctio
     const weekBuckets: Date[] = [];
     for (let i = 23; i >= 0; i--) weekBuckets.push(addBuckets(weekStart, -i, "week"));
     const earliest = monthBuckets[0] < weekBuckets[0] ? monthBuckets[0] : weekBuckets[0];
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      const src = await dashboardRepo.getLeadsStageModeCreatedSince(scope, earliest.toISOString());
+      res.status(200).json({
+        monthly: seriesFor(src, metric, monthBuckets, "month"),
+        weekly: seriesFor(src, metric, weekBuckets, "week"),
+      });
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
     const { data: rows, error } = await req.supabase
       .from("kob_leads")
       .select("stage, mode, created_at")
@@ -1555,18 +1963,22 @@ async function computeMarketingTotals(
   toIso: string,
   spendOverride?: number,
 ) {
-  const { data: leads, error } = await supabase
-    .from("kob_leads")
-    .select("stage, lead_sources(cost_per_lead)")
-    .gte("created_at", fromIso)
-    .lt("created_at", toIso);
-  if (error) throw error;
-  const rows = (leads ?? []) as any[];
+  const rows = useRds()
+    ? await analyticsRepo.getLeadsStageWithSourceCost(fromIso, toIso)
+    : await (async () => {
+        const { data: leads, error } = await supabase
+          .from("kob_leads")
+          .select("stage, lead_sources(cost_per_lead)")
+          .gte("created_at", fromIso)
+          .lt("created_at", toIso);
+        if (error) throw error;
+        return ((leads ?? []) as any[]).map((l) => ({ stage: l.stage, cost_per_lead: l.lead_sources?.cost_per_lead ?? null }));
+      })();
   const totalLeads = rows.length;
   const totalSpend =
     spendOverride !== undefined
       ? spendOverride
-      : rows.reduce((s, l) => s + Number(l.lead_sources?.cost_per_lead ?? 0), 0);
+      : rows.reduce((s, l: any) => s + Number(l.cost_per_lead ?? 0), 0);
   const ktnLive = rows.filter((l) => l.stage === "KTN_LIVE").length;
   const cpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
   const cac = ktnLive > 0 ? totalSpend / ktnLive : 0;
@@ -1579,7 +1991,7 @@ async function computeMarketingTotals(
  */
 export async function getMarketingKpis(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -1594,23 +2006,31 @@ export async function getMarketingKpis(req: Request, res: Response, next: NextFu
 
     const runRate = (v: number) => (v / daysElapsed) * daysInMonth;
 
-    const { data: targets, error: tErr } = await req.supabase
-      .from("marketing_kpi_targets")
-      .select("metric, target_value")
-      .eq("period", curStart.toISOString().slice(0, 10));
-    if (tErr) throw tErr;
+    const targets = useRds()
+      ? await configRepo.listMarketingTargets(curStart.toISOString().slice(0, 10))
+      : await (async () => {
+          const { data, error: tErr } = await req.supabase!
+            .from("marketing_kpi_targets")
+            .select("metric, target_value")
+            .eq("period", curStart.toISOString().slice(0, 10));
+          if (tErr) throw tErr;
+          return (data ?? []) as any[];
+        })();
 
     const tmap = new Map<string, number>();
-    for (const t of (targets ?? []) as any[]) tmap.set(t.metric, Number(t.target_value));
+    for (const t of targets as any[]) tmap.set(t.metric, Number(t.target_value));
 
-    const { data: prevTargets, error: ptErr } = await req.supabase
-      .from("marketing_kpi_targets")
-      .select("metric, target_value")
-      .eq("period", prevStart.toISOString().slice(0, 10))
-      .eq("metric", "SPEND");
-    if (ptErr) throw ptErr;
-
-    const prevBudget = Number((prevTargets ?? [])[0]?.target_value ?? 0);
+    const prevBudget = useRds()
+      ? Number((await configRepo.listMarketingTargets(prevStart.toISOString().slice(0, 10))).find((t) => t.metric === "SPEND")?.target_value ?? 0)
+      : await (async () => {
+          const { data: prevTargets, error: ptErr } = await req.supabase!
+            .from("marketing_kpi_targets")
+            .select("metric, target_value")
+            .eq("period", prevStart.toISOString().slice(0, 10))
+            .eq("metric", "SPEND");
+          if (ptErr) throw ptErr;
+          return Number((prevTargets ?? [])[0]?.target_value ?? 0);
+        })();
 
     const budget = tmap.get("SPEND");
     const curSpend = budget !== undefined ? (budget / daysInMonth) * daysElapsed : undefined;
@@ -1645,13 +2065,43 @@ export async function getMarketingKpis(req: Request, res: Response, next: NextFu
  */
 export async function getMetricDrilldown(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const metric = typeof req.query.metric === "string" ? req.query.metric : "";
+    const from = typeof req.query.from === "string" ? req.query.from : undefined;
+    const to = typeof req.query.to === "string" ? req.query.to : undefined;
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.getScopedLeadsStageLangCityCreated(scope, { from, to });
+      const pred = metricPred(metric);
+      const rows = leads.filter(pred as any);
+      const cityIds = Array.from(new Set(rows.map((r) => r.city_id).filter(Boolean))) as string[];
+      let cityMap = new Map<string, string>();
+      if (cityIds.length) {
+        const cities = await analyticsRepo.getCityNamesByIds(cityIds);
+        for (const c of cities) cityMap.set(c.id, c.name);
+      }
+      const byCity = new Map<string, number>();
+      const byLang = new Map<string, number>();
+      for (const r of rows) {
+        const cname = r.city_id ? (cityMap.get(r.city_id) ?? "Unknown") : "Unassigned";
+        byCity.set(cname, (byCity.get(cname) ?? 0) + 1);
+        const lang = r.language ?? "Others";
+        byLang.set(lang, (byLang.get(lang) ?? 0) + 1);
+      }
+      const sortDesc = (m: Map<string, number>) =>
+        Array.from(m.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      res.status(200).json({ byCity: sortDesc(byCity).slice(0, 25), byLanguage: sortDesc(byLang) });
+      return;
+    }
+
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
-    const metric = typeof req.query.metric === "string" ? req.query.metric : "";
-    const from = typeof req.query.from === "string" ? req.query.from : undefined;
-    const to = typeof req.query.to === "string" ? req.query.to : undefined;
 
     const orgClient = await getOrgReadClient(req);
     let q = orgClient.from("kob_leads").select("stage, language, city_id, created_at");
@@ -1979,7 +2429,7 @@ async function computeScvForExecs(supabase: any, execIds: string[], range?: { st
  */
 export async function getMyScvScore(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -1988,7 +2438,7 @@ export async function getMyScvScore(req: Request, res: Response, next: NextFunct
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const { byExec } = await computeScvForExecs(req.supabase, [userId]);
+    const { byExec } = await computeScvForExecs(useRds() ? pgClient : req.supabase, [userId]);
     const s = byExec.get(userId);
     res.status(200).json({ score: (s?.finalScore ?? null) as number | null });
   } catch (err) {
@@ -2063,7 +2513,7 @@ export async function getRetargetingQueue(req: Request, res: Response, next: Nex
  */
 export async function getScvComponentWeights(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const client = req.supabase ?? supabaseAdmin;
+    const client = useRds() ? pgClient : (req.supabase ?? supabaseAdmin);
     if (!client) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -2110,7 +2560,7 @@ async function scvAvailableMonths(supabase: any): Promise<string[]> {
  */
 export async function getScvLeaderboard(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const supabase = req.supabase ?? supabaseAdmin;
+    const supabase = useRds() ? pgClient : (req.supabase ?? supabaseAdmin);
     if (!supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -2355,7 +2805,7 @@ export async function getScvModeIncentives(req: Request, res: Response, next: Ne
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const reader = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase;
+    const reader = useRds() ? pgClient : (process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase);
     const { data: conf } = await (reader as any).from("kob_configuration").select("default_mode, incentive_amount").eq("id", 1).maybeSingle();
     const activeMode: ScvMode = conf?.default_mode === "MANUAL" ? "MANUAL" : "AUTO";
     const incentiveAmount = Number(conf?.incentive_amount ?? 10000);
@@ -2371,17 +2821,23 @@ export async function getScvModeIncentives(req: Request, res: Response, next: Ne
       const amount = wt ? weekly.reduce((sum, c) => sum + (c >= wt ? c * incentiveAmount : 0), 0) : 0;
       return { id: e.id, name: e.full_name, ...s, amount: Math.round(amount) };
     });
-    const [{ data: isMgr }, { data: isAdmin }, { data: isTL }] = await Promise.all([
-      supabase.rpc("has_role", { _user_id: userId, _role: "kob_manager" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "team_leader" }),
-    ]);
+    const [isMgr, isAdmin, isTL] = useRds()
+      ? await Promise.all([
+          actorHasRole(getPool(), userId, "kob_manager"),
+          actorHasRole(getPool(), userId, "super_admin"),
+          actorHasRole(getPool(), userId, "team_leader"),
+        ])
+      : await Promise.all([
+          supabase.rpc("has_role", { _user_id: userId, _role: "kob_manager" }).then((r: any) => r.data),
+          supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }).then((r: any) => r.data),
+          supabase.rpc("has_role", { _user_id: userId, _role: "team_leader" }).then((r: any) => r.data),
+        ]);
     const { data: slabRows } = await (reader as any).from("incentive_rules").select("label, min_score, max_score, incentive_pct, incentive_amount").order("sort_order");
     res.status(200).json({
       mode, activeMode, rows,
       components: cfg.components.filter((c: any) => c.enabled),
       slabs: (slabRows ?? []).map((r: any) => ({ label: r.label, minScore: Number(r.min_score), maxScore: Number(r.max_score), pct: Number(r.incentive_pct), amount: Number(r.incentive_amount) })),
-      months: await scvAvailableMonths(supabase),
+      months: await scvAvailableMonths(useRds() ? pgClient : supabase),
       canEditTargets: !!(isMgr || isAdmin || isTL),
       canEditConfig: !!(isMgr || isAdmin),
     });
@@ -2420,9 +2876,61 @@ async function fetchScopedLeads(supabase: any, r: DateRangeInput = {}) {
  */
 export async function getTLOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    const range = parseDateRange(req);
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope, range);
+      const team = await analyticsRepo.fetchExecRosterScoped(scope, ["id"]);
+      const stageCount = (s: string) => leads.filter((l) => l.stage === s).length;
+      const allocated = leads.filter((l) => l.assigned_to).length;
+      const unallocated = leads.length - allocated;
+      const periods = budgetPeriodsForRange(range);
+      const spendTargets = await analyticsRepo.getMarketingSpendByPeriods(periods);
+      const budgetedTL = budgetedSpendFromTargets(spendTargets, range);
+      const totalSpend = budgetedTL ?? leads.reduce((s, l) => s + Number(l.lead_sources?.cost_per_lead ?? 0), 0);
+
+      const ktnLive = stageCount("KTN_LIVE");
+      const scvAvg = leads.length ? Math.round(leads.reduce((s, l) => s + (l.scv_score ?? 0), 0) / leads.length) : 0;
+      const parked = leads.filter((l) => ["NO_RESPONSE", "LATER", "NO", "RETARGETING"].includes(l.stage)).length;
+      const autoLeads = leads.filter((l) => l.mode === "AUTO").length;
+      const manualLeads = leads.filter((l) => l.mode === "MANUAL").length;
+      const activeStates = await analyticsRepo.countActiveStates();
+      const activeCities = await analyticsRepo.countActiveCities();
+      const kitchenScope = await analyticsRepo.getKitchenScopeTotalBuggyAsIs();
+
+      res.status(200).json({
+        totalAssigned: leads.length,
+        allocated, unallocated,
+        teamSize: team.length,
+        eoi1: stageCount("EOI_1"),
+        webinar: stageCount("WEBINAR"),
+        eoi2: stageCount("EOI_2"),
+        feePaid: stageCount("FEE_PAID"),
+        agreement: stageCount("AGREEMENT_SIGNED"),
+        ktnCs: stageCount("KTN_CS"),
+        ktnLive,
+        totalLeads: leads.length,
+        totalSpend,
+        cpl: leads.length ? Math.round(totalSpend / leads.length) : 0,
+        cac: ktnLive ? Math.round(totalSpend / ktnLive) : 0,
+        teamScv: scvAvg,
+        parked,
+        autoLeads,
+        manualLeads,
+        activeStates: activeStates ?? 0,
+        activeCities: activeCities ?? 0,
+        kitchenScope,
+      });
+      return;
+    }
+
     const supabase = req.supabase ?? supabaseAdmin;
     const orgClient = await getOrgReadClient(req);
-    const range = parseDateRange(req);
     const leads = await fetchScopedLeads(orgClient, range);
     const team = await fetchExecRoster(orgClient, "id");
     const stageCount = (s: string) => leads.filter((l: any) => l.stage === s).length;
@@ -2474,8 +2982,48 @@ export async function getTLOverview(req: Request, res: Response, next: NextFunct
  */
 export async function getTLExecutivePerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
     const range = parseDateRange(req);
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope, range);
+      const team = await analyticsRepo.fetchExecRosterScoped(scope, ["id", "full_name", "email"]);
+      const out = (team as any[]).map((e: any) => {
+        const el = leads.filter((l) => l.assigned_to === e.id);
+        const c = (s: string) => el.filter((l) => l.stage === s).length;
+        const ktnLive = c("KTN_LIVE");
+        const langs: Record<string, number> = {};
+        el.forEach((l) => { if (l.language) langs[l.language] = (langs[l.language] ?? 0) + 1; });
+        const language = Object.entries(langs).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+        const now = Date.now();
+        const active = el.filter((l) => !["DEAD_LEAD", "KTN_LIVE", "NO"].includes(l.stage));
+        const compliant = active.filter((l) => {
+          const created = new Date(l.created_at).getTime();
+          const last = new Date(l.last_activity_at ?? l.updated_at).getTime();
+          return (last - created) <= 48 * 3600 * 1000 || (now - last) <= 48 * 3600 * 1000;
+        }).length;
+        const tat = active.length ? Math.round((compliant / active.length) * 100) : 100;
+        const scv = el.length ? Math.round(el.reduce((s, l) => s + (l.scv_score ?? 0), 0) / el.length) : 0;
+        const conv = el.length ? Math.round((ktnLive / el.length) * 100) : 0;
+        const incentive = scv >= 70 && ktnLive >= 1 ? "Eligible" : "Not eligible";
+        return {
+          id: e.id, name: e.full_name, email: e.email, language,
+          leads: el.length,
+          eoi1: c("EOI_1"), webinar: c("WEBINAR"), eoi2: c("EOI_2"),
+          feePaid: c("FEE_PAID"), agreement: c("AGREEMENT_SIGNED"),
+          ktnCs: c("KTN_CS"), ktnLive,
+          conversion: conv, tat, scv, incentive,
+        };
+      });
+      res.status(200).json(out);
+      return;
+    }
+
+    const orgClient = await getOrgReadClient(req);
     const leads = await fetchScopedLeads(orgClient, range);
     const team = await fetchExecRoster(orgClient, "id, full_name, email");
     const out = team.map((e: any) => {
@@ -2517,8 +3065,39 @@ export async function getTLExecutivePerformance(req: Request, res: Response, nex
  */
 export async function getTLBrandPerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
     const range = parseDateRange(req);
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope, range);
+      const bmap: Record<string, any> = {};
+      for (const l of leads) {
+        const b = l.brands?.name ?? "Unassigned";
+        if (!bmap[b]) bmap[b] = { brand: b, leads: 0, eoi1: 0, webinar: 0, eoi2: 0, feePaid: 0, agreement: 0, ktnCs: 0, ktnLive: 0, spend: 0 };
+        bmap[b].leads++;
+        bmap[b].spend += Number(l.lead_sources?.cost_per_lead ?? 0);
+        if (l.stage === "EOI_1") bmap[b].eoi1++;
+        if (l.stage === "WEBINAR") bmap[b].webinar++;
+        if (l.stage === "EOI_2") bmap[b].eoi2++;
+        if (l.stage === "FEE_PAID") bmap[b].feePaid++;
+        if (l.stage === "AGREEMENT_SIGNED") bmap[b].agreement++;
+        if (l.stage === "KTN_CS") bmap[b].ktnCs++;
+        if (l.stage === "KTN_LIVE") bmap[b].ktnLive++;
+      }
+      const out = Object.values(bmap).map((b: any) => ({
+        ...b,
+        cac: b.ktnLive ? Math.round(b.spend / b.ktnLive) : 0,
+        conversion: b.leads ? Math.round((b.ktnLive / b.leads) * 100) : 0,
+      }));
+      res.status(200).json(out);
+      return;
+    }
+
+    const orgClient = await getOrgReadClient(req);
     const leads = await fetchScopedLeads(orgClient, range);
     const bmap: Record<string, any> = {};
     for (const l of leads as any[]) {
@@ -2551,8 +3130,43 @@ export async function getTLBrandPerformance(req: Request, res: Response, next: N
  */
 export async function getTLLanguagePerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
     const range = parseDateRange(req);
+
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope, range);
+      const team = await analyticsRepo.fetchExecRosterScoped(scope, ["id", "full_name"]) as any[];
+      const lmap: Record<string, any> = {};
+      for (const l of leads) {
+        const lang = l.language ?? "Others";
+        if (!lmap[lang]) lmap[lang] = { language: lang, leads: 0, execs: new Set(), eoi1: 0, webinar: 0, eoi2: 0, ktnCs: 0, ktnLive: 0, tatSum: 0, tatN: 0 };
+        lmap[lang].leads++;
+        if (l.assigned_to) lmap[lang].execs.add(l.assigned_to);
+        if (l.stage === "EOI_1") lmap[lang].eoi1++;
+        if (l.stage === "WEBINAR") lmap[lang].webinar++;
+        if (l.stage === "EOI_2") lmap[lang].eoi2++;
+        if (l.stage === "KTN_CS") lmap[lang].ktnCs++;
+        if (l.stage === "KTN_LIVE") lmap[lang].ktnLive++;
+        const t = new Date(l.last_activity_at ?? l.updated_at).getTime() - new Date(l.created_at).getTime();
+        lmap[lang].tatSum += t; lmap[lang].tatN++;
+      }
+      const out = Object.values(lmap).map((v: any) => ({
+        language: v.language, leads: v.leads,
+        executives: [...v.execs].map((id: any) => team.find((t: any) => t.id === id)?.full_name).filter(Boolean).join(", "),
+        execCount: v.execs.size,
+        eoi1: v.eoi1, webinar: v.webinar, eoi2: v.eoi2, ktnCs: v.ktnCs, ktnLive: v.ktnLive,
+        tatHours: v.tatN ? Math.round(v.tatSum / v.tatN / 3600000) : 0,
+        conversion: v.leads ? Math.round((v.ktnLive / v.leads) * 100) : 0,
+      }));
+      res.status(200).json(out);
+      return;
+    }
+
+    const orgClient = await getOrgReadClient(req);
     const leads = await fetchScopedLeads(orgClient, range);
     const team = await fetchExecRoster(orgClient, "id, full_name");
     const lmap: Record<string, any> = {};
@@ -2589,6 +3203,61 @@ export async function getTLLanguagePerformance(req: Request, res: Response, next
  */
 export async function getTLTATBreach(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope);
+      const leadIds = leads.map((l) => l.id);
+      if (!leadIds.length) {
+        res.status(200).json({ transitions: [], firstContact: [] });
+        return;
+      }
+      const hist = await analyticsRepo.getLeadStageHistoryByLeadIds(leadIds);
+      const acts = await analyticsRepo.getLeadActivitiesByLeadIds(leadIds);
+
+      const SLA_HOURS: Record<string, number> = {
+        "LEAD_INBOX->EOI_1": 24, "EOI_1->WEBINAR": 72, "WEBINAR->EOI_2": 48,
+        "EOI_2->FEE_PAID": 96, "FEE_PAID->AGREEMENT_SIGNED": 72,
+        "AGREEMENT_SIGNED->KTN_CS": 168, "KTN_CS->KTN_LIVE": 336,
+      };
+      const byLead: Record<string, any[]> = {};
+      for (const h of hist) (byLead[h.lead_id] ??= []).push(h);
+      const transitions: any[] = [];
+      for (const l of leads) {
+        const rows = byLead[l.id] ?? [];
+        for (const r of rows) {
+          const key = `${r.from_stage ?? "NEW"}->${r.to_stage}`;
+          const sla = SLA_HOURS[key];
+          if (!sla) continue;
+          const prev = rows.filter((x) => new Date(x.changed_at) < new Date(r.changed_at)).slice(-1)[0];
+          const start = prev ? new Date(prev.changed_at) : new Date(l.created_at);
+          const elapsedH = (new Date(r.changed_at).getTime() - start.getTime()) / 3600000;
+          if (elapsedH > sla) {
+            transitions.push({
+              lead: l.code, name: l.full_name, transition: key.replace(/_/g, " "),
+              slaHours: sla, elapsedHours: Math.round(elapsedH), breach: Math.round(elapsedH - sla),
+            });
+          }
+        }
+      }
+      const actsByLead: Record<string, any[]> = {};
+      for (const a of acts) (actsByLead[a.lead_id] ??= []).push(a);
+      const firstContact: any[] = [];
+      for (const l of leads) {
+        const first = actsByLead[l.id]?.[0];
+        const elapsed = ((first ? new Date(first.created_at) : new Date()).getTime() - new Date(l.created_at).getTime()) / 3600000;
+        if (elapsed > 24) firstContact.push({ lead: l.code, name: l.full_name, elapsedHours: Math.round(elapsed), contacted: !!first });
+      }
+      res.status(200).json({
+        transitions: transitions.slice(0, 100),
+        firstContact: firstContact.slice(0, 100),
+      });
+      return;
+    }
+
     const supabase = req.supabase ?? supabaseAdmin;
     const orgClient = await getOrgReadClient(req);
     const leads = await fetchScopedLeads(orgClient);
@@ -2660,6 +3329,24 @@ export async function getTLTATBreach(req: Request, res: Response, next: NextFunc
  */
 export async function getTLRetargeting(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      const userId = req.userId;
+      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+
+      const leads = await analyticsRepo.fetchScopedLeadsRich(scope);
+      const leadIds = leads.map((l) => l.id);
+      if (!leadIds.length) {
+        res.status(200).json([]);
+        return;
+      }
+      const schedule = await analyticsRepo.getRetargetingScheduleByLeadIds(leadIds);
+      const map = new Map(leads.map((l) => [l.id, l]));
+      res.status(200).json(schedule.map((r: any) => ({ ...r, lead: map.get(r.lead_id) })));
+      return;
+    }
+
     const supabase = req.supabase ?? supabaseAdmin;
     const orgClient = await getOrgReadClient(req);
     const leads = await fetchScopedLeads(orgClient);
@@ -2694,7 +3381,7 @@ export async function getTLScvIncentives(req: Request, res: Response, next: Next
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const scvReader = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase;
+    const scvReader = useRds() ? pgClient : (process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : supabase);
     const month = typeof req.query.month === "string" ? req.query.month : undefined;
     const { data: execRoles } = await scvReader.from("user_roles").select("user_id").eq("role", "executive");
     const execSet = new Set((execRoles ?? []).map((r: any) => r.user_id));
@@ -2727,14 +3414,20 @@ export async function getTLScvIncentives(req: Request, res: Response, next: Next
         },
       };
     });
-    const [{ data: isMgr }, { data: isAdmin }, { data: isTL }] = await Promise.all([
-      supabase.rpc("has_role", { _user_id: userId, _role: "kob_manager" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "team_leader" }),
-    ]);
+    const [isMgr, isAdmin, isTL] = useRds()
+      ? await Promise.all([
+          actorHasRole(getPool(), userId, "kob_manager"),
+          actorHasRole(getPool(), userId, "super_admin"),
+          actorHasRole(getPool(), userId, "team_leader"),
+        ])
+      : await Promise.all([
+          supabase.rpc("has_role", { _user_id: userId, _role: "kob_manager" }).then((r: any) => r.data),
+          supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }).then((r: any) => r.data),
+          supabase.rpc("has_role", { _user_id: userId, _role: "team_leader" }).then((r: any) => r.data),
+        ]);
     res.status(200).json({
       rows,
-      months: await scvAvailableMonths(supabase),
+      months: await scvAvailableMonths(scvReader as any),
       canEdit: !!(isMgr || isAdmin || isTL),
       canEditTargets: !!(isMgr || isAdmin || isTL),
       weights,
@@ -2751,6 +3444,14 @@ export async function getTLScvIncentives(req: Request, res: Response, next: Next
  */
 export async function getUnallocatedLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      res.status(200).json(await funnelRepo.getUnallocatedLeadsRaw(scope));
+      return;
+    }
+
     const client = await getOrgReadClient(req);
     const PAGE = 1000;
     const out: any[] = [];
@@ -2999,6 +3700,62 @@ export async function getLeadDetail(req: Request, res: Response, next: NextFunct
       return;
     }
 
+    if (useRds()) {
+      if (!req.userId) {
+        res.status(500).json({ error: "Database client not initialized on request" });
+        return;
+      }
+      // STAGE 10E1 SECURITY FIX: the Supabase path below always uses the
+      // service-role client with NO ownership check (Stage 10A gap). Here,
+      // scope is resolved server-side and enforced in the SQL WHERE clause
+      // (see lead.repository.ts#getLeadById) — an inaccessible lead comes
+      // back as "no row", collapsing into the SAME 404 as "doesn't exist",
+      // so this endpoint never reveals whether another user's lead exists.
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) {
+        res.status(403).json({ error: "Forbidden: no role assigned" });
+        return;
+      }
+
+      let lead;
+      try {
+        lead = await leadRepo.getLeadById(leadId, scope);
+      } catch (e: any) {
+        res.status(500).json({ error: `Lead fetch failed: ${e?.message ?? "unknown error"}` });
+        return;
+      }
+      if (!lead) {
+        res.status(404).json({ error: `Lead not found (id=${leadId})` });
+        return;
+      }
+
+      const [history, activities] = await Promise.all([
+        leadRepo.getLeadStageHistory(leadId),
+        leadRepo.getLeadActivities(leadId),
+      ]);
+
+      const actorIds = Array.from(new Set([
+        ...history.map((h) => h.changed_by).filter((x): x is string => Boolean(x)),
+        ...activities.map((a) => a.actor_id).filter((x): x is string => Boolean(x)),
+      ]));
+      const profileIds = Array.from(new Set([
+        ...actorIds,
+        lead.assigned_to,
+        lead.team_leader_id,
+      ].filter((x): x is string => Boolean(x))));
+
+      const profiles = await leadRepo.getProfilesByIds(profileIds);
+      const actors: Record<string, string> = {};
+      const people: Record<string, { full_name: string; email: string | null }> = {};
+      for (const p of profiles) {
+        actors[p.id] = p.full_name;
+        people[p.id] = { full_name: p.full_name, email: p.email };
+      }
+
+      res.status(200).json({ lead, history, activities, actors, people });
+      return;
+    }
+
     const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
     if (!db) {
       res.status(500).json({ error: "Database client not initialized on request" });
@@ -3193,7 +3950,8 @@ export async function getMyExecOverview(req: Request, res: Response, next: NextF
  */
 export async function getScvModeConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    const client = useRds() ? pgClient : req.supabase;
+    if (!client) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -3204,15 +3962,15 @@ export async function getScvModeConfig(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const cfg = await loadScvModeConfig(req.supabase, mode);
-    const { data: glob } = await (req.supabase as any)
+    const cfg = await loadScvModeConfig(client, mode);
+    const { data: glob } = await (client as any)
       .from("kob_configuration")
       .select("incentive_amount")
       .eq("id", 1)
       .maybeSingle();
 
-    const { data: history } = await req.supabase
-      .from("scv_mode_config_changes" as any)
+    const { data: history } = await (client as any)
+      .from("scv_mode_config_changes")
       .select("id, changed_by, component, previous_value, new_value, changed_at")
       .eq("mode", mode)
       .order("changed_at", { ascending: false })
@@ -3223,12 +3981,12 @@ export async function getScvModeConfig(req: Request, res: Response, next: NextFu
     if (ids.length) {
       for (let i = 0; i < ids.length; i += 150) {
         const chunk = ids.slice(i, i + 150);
-        const { data: profs } = await req.supabase.from("profiles").select("id, full_name").in("id", chunk);
+        const { data: profs } = await (client as any).from("profiles").select("id, full_name").in("id", chunk);
         (profs ?? []).forEach((p: any) => names.set(p.id, p.full_name));
       }
     }
 
-    const { data: slabs } = await req.supabase
+    const { data: slabs } = await (client as any)
       .from("incentive_rules")
       .select("id, label, min_score, max_score, incentive_pct, incentive_amount, sort_order")
       .order("sort_order");
@@ -3254,41 +4012,45 @@ export async function getScvModeConfig(req: Request, res: Response, next: NextFu
  */
 export async function getTATBreachDetailed(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
 
-    const { data: leads, error: lErr } = await req.supabase
-      .from("kob_leads")
-      .select("id, code, full_name, stage, created_at, updated_at, last_activity_at, assigned_to");
-    if (lErr) {
-      res.status(500).json({ error: lErr.message });
-      return;
-    }
+    const leads = useRds()
+      ? await analyticsRepo.getAllLeadsForTatBreach()
+      : await (async () => {
+          const { data, error: lErr } = await req.supabase!
+            .from("kob_leads")
+            .select("id, code, full_name, stage, created_at, updated_at, last_activity_at, assigned_to");
+          if (lErr) throw lErr;
+          return (data ?? []) as any[];
+        })();
 
-    const leadIds = (leads ?? []).map((l: any) => l.id);
+    const leadIds = leads.map((l: any) => l.id);
     if (!leadIds.length) {
       res.status(200).json({ first: [], transitions: {}, retargeting: [] });
       return;
     }
 
-    const assigneeIds = Array.from(new Set((leads ?? []).map((l: any) => l.assigned_to).filter(Boolean)));
+    const assigneeIds = Array.from(new Set(leads.map((l: any) => l.assigned_to).filter(Boolean))) as string[];
     const execMap = new Map<string, string>();
     if (assigneeIds.length) {
       const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
       for (let i = 0; i < assigneeIds.length; i += 150) {
         const chunk = assigneeIds.slice(i, i + 150);
-        const { data: profs } = await db.from("profiles").select("id, full_name").in("id", chunk);
-        for (const p of profs ?? []) execMap.set((p as any).id, (p as any).full_name);
+        const profs = useRds()
+          ? await analyticsRepo.getProfileFullNamesByIds(chunk)
+          : (await db!.from("profiles").select("id, full_name").in("id", chunk)).data ?? [];
+        for (const p of profs) execMap.set((p as any).id, (p as any).full_name);
       }
     }
 
     const execName = (l: any) => (l?.assigned_to ? execMap.get(l.assigned_to) ?? "—" : "—");
 
-    const { data: hist } = await req.supabase.from("lead_stage_history").select("lead_id, from_stage, to_stage, changed_at").in("lead_id", leadIds).order("changed_at");
-    const { data: acts } = await req.supabase.from("lead_activities").select("lead_id, created_at").in("lead_id", leadIds).order("created_at");
-    const { data: rt } = await req.supabase.from("retargeting_schedule").select("lead_id, next_touch_at, attempts_done, bucket, is_dead").in("lead_id", leadIds);
+    const hist = useRds() ? await analyticsRepo.getStageHistoryForLeads(leadIds) : (await req.supabase!.from("lead_stage_history").select("lead_id, from_stage, to_stage, changed_at").in("lead_id", leadIds).order("changed_at")).data ?? [];
+    const acts = useRds() ? await analyticsRepo.getActivitiesForLeads(leadIds) : (await req.supabase!.from("lead_activities").select("lead_id, created_at").in("lead_id", leadIds).order("created_at")).data ?? [];
+    const rt = useRds() ? await analyticsRepo.getRetargetingScheduleForLeads(leadIds) : (await req.supabase!.from("retargeting_schedule").select("lead_id, next_touch_at, attempts_done, bucket, is_dead").in("lead_id", leadIds)).data ?? [];
 
 
     const SLA: Record<string, number> = {
@@ -3351,12 +4113,18 @@ export async function getTATBreachDetailed(req: Request, res: Response, next: Ne
  */
 export async function getMyRole(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
-    const { data: profile } = await req.supabase.from("profiles").select("*").eq("id", req.userId).maybeSingle();
+    if (useRds()) {
+      const role = await resolveActorRole(getPool(), req.userId);
+      const profile = await referenceRepo.getProfileById(req.userId);
+      res.json({ role: role ?? "executive", profile });
+      return;
+    }
+    const { data: role } = await req.supabase!.rpc("get_user_role", { _user_id: req.userId });
+    const { data: profile } = await req.supabase!.from("profiles").select("*").eq("id", req.userId).maybeSingle();
     res.json({ role: (role as string | null) ?? "executive", profile });
   } catch (err) {
     next(err);
@@ -3394,7 +4162,7 @@ export async function listGallaboxFireQueue(req: Request, res: Response, next: N
  */
 export async function listLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -3403,6 +4171,30 @@ export async function listLeads(req: Request, res: Response, next: NextFunction)
     const limit = req.query.limit ? Math.max(1, parseInt(String(req.query.limit), 10) || 200) : 200;
     const from = typeof req.query.from === "string" ? req.query.from : undefined;
     const to = typeof req.query.to === "string" ? req.query.to : undefined;
+
+    if (useRds()) {
+      // STAGE 10E1: scope is resolved server-side from user_roles — never
+      // from any client-supplied field (query/body cannot influence it).
+      const scope = await resolveLeadScopeOrDeny(req.userId);
+      if (scope === null) {
+        res.status(403).json({ error: "Forbidden: no role assigned" });
+        return;
+      }
+      const out = await leadRepo.listLeadRows(scope, { stage, limit, from, to });
+      const assigneeIds = Array.from(new Set(out.map((l) => l.assigned_to).filter((x): x is string => Boolean(x))));
+      const nameById = await leadRepo.getAssigneeNames(assigneeIds);
+      const result = out.map((l) => ({
+        ...l,
+        assigned_profile: l.assigned_to ? { full_name: nameById.get(l.assigned_to) ?? null } : null,
+      }));
+      res.json(result);
+      return;
+    }
+
+    if (!req.supabase) {
+      res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
+      return;
+    }
 
     const cols =
       "id, code, full_name, phone, stage, mode, language, tags, auto_fired_status, gallabox_template_sent, av_link_sent, form_link_sent, scv_score, investment_capacity, next_action, assigned_to, created_at, last_activity_at, stage_entered_at, last_message, last_message_at, unread_message_count, has_unread_messages, brand_id, state_id, city_id, source_id, brands(name), india_states(name, code), india_cities(name, tier), lead_sources(name)";
@@ -3549,6 +4341,7 @@ export async function upsertKpiTarget(req: Request, res: Response, next: NextFun
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const { metric, period = "monthly", target_value, effective_from } = req.body ?? {};
 
@@ -3569,6 +4362,17 @@ export async function upsertKpiTarget(req: Request, res: Response, next: NextFun
       target_value: Number(target_value),
       effective_from: eff,
     };
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.upsertKpiTarget(client, payload);
+        await adminRepo.insertAuditLog(client, userId, "kpi_target_update", "kpi_targets", null, payload);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     const { error } = await req.supabase
       .from("kpi_targets")
@@ -3596,10 +4400,22 @@ export async function deleteKpiTarget(req: Request, res: Response, next: NextFun
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const id = req.params.id || req.body?.id;
     if (!id || typeof id !== "string") {
       res.status(400).json({ error: "id is required" });
+      return;
+    }
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.deleteKpiTarget(client, id);
+        await adminRepo.insertAuditLog(client, userId, "kpi_target_delete", "kpi_targets", id, {});
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -3630,6 +4446,7 @@ export async function upsertMarketingTarget(req: Request, res: Response, next: N
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const { metric, target_value, period: inputPeriod } = req.body ?? {};
 
@@ -3645,6 +4462,17 @@ export async function upsertMarketingTarget(req: Request, res: Response, next: N
 
     const period = inputPeriod ?? new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
     const row = { metric, target_value: Number(target_value), period };
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.upsertMarketingTarget(client, row);
+        await adminRepo.insertAuditLog(client, userId, "marketing_target_upsert", "marketing_kpi_targets", null, row);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     const { error } = await req.supabase
       .from("marketing_kpi_targets")
@@ -3734,6 +4562,7 @@ export async function createBrand(req: Request, res: Response, next: NextFunctio
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const { code, name, is_shero = true, active = true } = req.body ?? {};
 
@@ -3747,14 +4576,28 @@ export async function createBrand(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    const payload = {
+      code: code.trim().toUpperCase(),
+      name: name.trim(),
+      is_shero: Boolean(is_shero),
+      active: Boolean(active),
+    };
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+      const id = await withTransaction(userId, async (client) => {
+        const created = await adminRepo.createBrand(client, payload);
+        await adminRepo.insertAuditLog(client, userId, "create", "brands", created.id, payload);
+        return created.id;
+      });
+      res.status(200).json({ ok: true, id });
+      return;
+    }
+
     const { data: row, error } = await req.supabase
       .from("brands")
-      .insert({
-        code: code.trim().toUpperCase(),
-        name: name.trim(),
-        is_shero: Boolean(is_shero),
-        active: Boolean(active),
-      })
+      .insert(payload)
       .select("id")
       .single();
 
@@ -3763,12 +4606,7 @@ export async function createBrand(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "create", "brands", row.id, {
-      code: code.trim().toUpperCase(),
-      name: name.trim(),
-      is_shero: Boolean(is_shero),
-      active: Boolean(active),
-    });
+    await logAudit(req.supabase, req.userId, "create", "brands", row.id, payload);
 
     res.status(200).json({ ok: true, id: row.id });
   } catch (err) {
@@ -3786,6 +4624,7 @@ export async function updateSourceCost(req: Request, res: Response, next: NextFu
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const id = req.params.id || req.body?.id;
     const { cost_per_lead } = req.body ?? {};
@@ -3801,6 +4640,17 @@ export async function updateSourceCost(req: Request, res: Response, next: NextFu
     }
 
     const costNum = Number(cost_per_lead);
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.updateSourceCost(client, id, costNum);
+        await adminRepo.insertAuditLog(client, userId, "source_cost_update", "lead_sources", id, { cost_per_lead: costNum });
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     const { error } = await req.supabase
       .from("lead_sources")
@@ -3829,11 +4679,23 @@ export async function upsertStateNativeBrand(req: Request, res: Response, next: 
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const { state_id, brand_id } = req.body ?? {};
 
     if (!state_id || typeof state_id !== "string" || !brand_id || typeof brand_id !== "string") {
       res.status(400).json({ error: "state_id and brand_id are required" });
+      return;
+    }
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.upsertStateNativeBrand(client, state_id, brand_id);
+        await adminRepo.insertAuditLog(client, userId, "native_brand_map", "state_native_brand", state_id, { state_id, brand_id });
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -3864,6 +4726,7 @@ export async function upsertGallaboxTemplate(req: Request, res: Response, next: 
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const {
       id,
@@ -3921,6 +4784,26 @@ export async function upsertGallaboxTemplate(req: Request, res: Response, next: 
     };
     if (id) payload.id = id;
 
+    const auditMeta = {
+      name: payload.name,
+      language: payload.language,
+      category: payload.category,
+      bucket: payload.bucket,
+      active: payload.active,
+      email_ready: !!(payload.email_subject && payload.email_body),
+    };
+
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.upsertGallaboxTemplate(client, payload);
+        await adminRepo.insertAuditLog(client, userId, id ? "gallabox_update" : "gallabox_create", "gallabox_templates", id ?? null, auditMeta);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { error } = await req.supabase.from("gallabox_templates").upsert(payload);
     if (error) {
       res.status(500).json({ error: error.message });
@@ -3933,14 +4816,7 @@ export async function upsertGallaboxTemplate(req: Request, res: Response, next: 
       id ? "gallabox_update" : "gallabox_create",
       "gallabox_templates",
       id ?? null,
-      {
-        name: payload.name,
-        language: payload.language,
-        category: payload.category,
-        bucket: payload.bucket,
-        active: payload.active,
-        email_ready: !!(payload.email_subject && payload.email_body),
-      }
+      auditMeta,
     );
 
     res.status(200).json({ ok: true });
@@ -3959,6 +4835,7 @@ export async function updateIncentiveRule(req: Request, res: Response, next: Nex
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const id = req.params.id || req.body?.id;
     const { label, min_score, max_score, incentive_pct } = req.body ?? {};
@@ -4004,6 +4881,17 @@ export async function updateIncentiveRule(req: Request, res: Response, next: Nex
       incentive_pct: incPctNum,
     };
 
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.updateIncentiveRule(client, id, patch);
+        await adminRepo.insertAuditLog(client, userId, "incentive_rule_update", "incentive_rules", id, patch);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { error } = await req.supabase.from("incentive_rules").update(patch).eq("id", id);
     if (error) {
       res.status(500).json({ error: error.message });
@@ -4027,6 +4915,7 @@ export async function updateScvRules(req: Request, res: Response, next: NextFunc
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const {
       weight_conversion,
@@ -4065,6 +4954,17 @@ export async function updateScvRules(req: Request, res: Response, next: NextFunc
       weight_crm_discipline: weights[4].val,
     };
 
+    if (useRds()) {
+      const role = await requireRoleOrDeny(userId, ["super_admin"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.updateScvRules(client, patch);
+        await adminRepo.insertAuditLog(client, userId, "scv_rules_update", "scv_rules", null, patch);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { error } = await req.supabase.from("scv_rules").update(patch).eq("id", 1);
     if (error) {
       res.status(500).json({ error: error.message });
@@ -4088,10 +4988,29 @@ export async function updateConfig(req: Request, res: Response, next: NextFuncti
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
+    const userId = req.userId;
 
     const patch = req.body;
     if (!patch || typeof patch !== "object" || Object.keys(patch).length === 0) {
       res.status(400).json({ error: "Config payload must be a non-empty object" });
+      return;
+    }
+
+    if (useRds()) {
+      // Role gate mirrors kob_configuration's RLS policy (super_admin OR
+      // kob_manager). The FURTHER per-field restriction for kob_manager
+      // (only default_mode/auto_mode_killswitch) is NOT re-implemented
+      // here — it is enforced by the unmodified
+      // enforce_kob_configuration_manager_scope trigger on RDS, exactly as
+      // on the Supabase path, using the request.jwt.claim.sub this
+      // transaction sets.
+      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+      await withTransaction(userId, async (client) => {
+        await adminRepo.updateConfig(client, patch);
+        await adminRepo.insertAuditLog(client, userId, "config_update", "kob_configuration", null, patch);
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -4283,15 +5202,17 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
  */
 export async function updateScvComponentWeights(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
 
-    const [{ data: isMgr }, { data: isAdmin }] = await Promise.all([
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }),
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }),
-    ]);
+    const [isMgr, isAdmin] = useRds()
+      ? await Promise.all([actorHasRole(getPool(), req.userId, "kob_manager"), actorHasRole(getPool(), req.userId, "super_admin")])
+      : await Promise.all([
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }).then((r: any) => r.data),
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }).then((r: any) => r.data),
+        ]);
 
     if (!isMgr && !isAdmin) {
       res.status(403).json({ error: "Only CEO or Manager can change SCV weights" });
@@ -4326,7 +5247,15 @@ export async function updateScvComponentWeights(req: Request, res: Response, nex
       weight_crm_discipline: values[3].val,
     };
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await scvRepo.updateComponentWeights(client, patch);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("scv_component_weights")
       .update(patch)
       .eq("id", 1);
@@ -4348,7 +5277,7 @@ export async function updateScvComponentWeights(req: Request, res: Response, nex
  */
 export async function saveScvMonthlyInput(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4381,7 +5310,9 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
       }
     }
 
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
+    const role = useRds()
+      ? await resolveActorRole(getPool(), req.userId)
+      : (await req.supabase!.rpc("get_user_role", { _user_id: req.userId })).data;
     const isMgr = role === "kob_manager" || role === "super_admin";
     const isTL = role === "team_leader";
 
@@ -4391,7 +5322,7 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
     }
 
     const period = `${month}-01`;
-    const payload: Record<string, any> = {
+    const payload = {
       user_id: userId,
       period,
       updated_by: req.userId,
@@ -4399,7 +5330,15 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
       crm_discipline: crmDiscipline !== undefined && crmDiscipline !== null ? Number(crmDiscipline) : null,
     };
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await scvRepo.upsertMonthlyInput(client, payload);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("scv_monthly_inputs")
       .upsert(payload, { onConflict: "user_id,period" });
 
@@ -4480,7 +5419,7 @@ export async function toggleEntity(req: Request, res: Response, next: NextFuncti
  */
 export async function saveIncentiveAmount(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -4498,17 +5437,34 @@ export async function saveIncentiveAmount(req: Request, res: Response, next: Nex
       return;
     }
 
-    const [{ data: isMgr }, { data: isAdmin }] = await Promise.all([
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }),
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }),
-    ]);
+    if (useRds() && !req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const [isMgr, isAdmin] = useRds()
+      ? await Promise.all([actorHasRole(getPool(), req.userId!, "kob_manager"), actorHasRole(getPool(), req.userId!, "super_admin")])
+      : await Promise.all([
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }).then((r: any) => r.data),
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }).then((r: any) => r.data),
+        ]);
 
     if (!isMgr && !isAdmin) {
       res.status(403).json({ error: "Only CEO or Manager can change incentive configuration" });
       return;
     }
 
-    const { data: prev } = await req.supabase.from("kob_configuration").select("incentive_amount").eq("id", 1).maybeSingle();
+    if (useRds()) {
+      await withTransaction(req.userId!, async (client) => {
+        const prevAmount = Number((await scvRepo.getConfigIncentiveAmount(client)) ?? 10000);
+        if (prevAmount === incentiveAmount) return;
+        await scvRepo.updateConfigIncentiveAmount(client, incentiveAmount);
+        await scvRepo.insertModeConfigChanges(client, [{
+          mode, changed_by: req.userId!, component: "Incentive Amount (per contract)",
+          previous_value: `₹${prevAmount}`, new_value: `₹${incentiveAmount}`,
+        }]);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { data: prev } = await req.supabase!.from("kob_configuration").select("incentive_amount").eq("id", 1).maybeSingle();
     const prevAmount = Number(prev?.incentive_amount ?? 10000);
 
     if (prevAmount === incentiveAmount) {
@@ -4516,7 +5472,7 @@ export async function saveIncentiveAmount(req: Request, res: Response, next: Nex
       return;
     }
 
-    const { error } = await req.supabase
+    const { error } = await req.supabase!
       .from("kob_configuration")
       .update({ incentive_amount: incentiveAmount, updated_at: new Date().toISOString() })
       .eq("id", 1);
@@ -4526,7 +5482,7 @@ export async function saveIncentiveAmount(req: Request, res: Response, next: Nex
       return;
     }
 
-    await req.supabase.from("scv_mode_config_changes").insert({
+    await req.supabase!.from("scv_mode_config_changes").insert({
       mode,
       changed_by: req.userId,
       component: "Incentive Amount (per contract)",
@@ -4547,7 +5503,7 @@ export async function saveIncentiveAmount(req: Request, res: Response, next: Nex
  */
 export async function saveIncentiveSlabs(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -4581,17 +5537,43 @@ export async function saveIncentiveSlabs(req: Request, res: Response, next: Next
       }
     }
 
-    const [{ data: isMgr }, { data: isAdmin }] = await Promise.all([
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }),
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }),
-    ]);
+    if (useRds() && !req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const [isMgr, isAdmin] = useRds()
+      ? await Promise.all([actorHasRole(getPool(), req.userId!, "kob_manager"), actorHasRole(getPool(), req.userId!, "super_admin")])
+      : await Promise.all([
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }).then((r: any) => r.data),
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }).then((r: any) => r.data),
+        ]);
 
     if (!isMgr && !isAdmin) {
       res.status(403).json({ error: "Only CEO or Manager can change incentive configuration" });
       return;
     }
 
-    const { data: prev, error: prevErr } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId!, async (client) => {
+        const prev = await scvRepo.getIncentiveRulesForUpdate(client);
+        const prevMap = new Map(prev.map((r) => [r.id, r]));
+        const changes: scvRepo.ScvModeConfigChangeInsert[] = [];
+        for (const s of slabs) {
+          const p = prevMap.get(s.id);
+          if (!p) continue;
+          if (Number(p.incentive_pct) === s.incentive_pct && Number(p.incentive_amount) === s.incentive_amount) continue;
+          await scvRepo.updateIncentiveRuleAmounts(client, s.id, s.incentive_pct, s.incentive_amount);
+          if (Number(p.incentive_amount) !== s.incentive_amount) {
+            changes.push({ mode, changed_by: req.userId!, component: `Incentive: ${p.label} amount`, previous_value: `₹${Number(p.incentive_amount)}`, new_value: `₹${s.incentive_amount}` });
+          }
+          if (Number(p.incentive_pct) !== s.incentive_pct) {
+            changes.push({ mode, changed_by: req.userId!, component: `Incentive: ${p.label} payout`, previous_value: `${p.incentive_pct}%`, new_value: `${s.incentive_pct}%` });
+          }
+        }
+        await scvRepo.insertModeConfigChanges(client, changes);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { data: prev, error: prevErr } = await req.supabase!
       .from("incentive_rules")
       .select("id, label, incentive_pct, incentive_amount");
 
@@ -4640,7 +5622,7 @@ export async function saveIncentiveSlabs(req: Request, res: Response, next: Next
     }
 
     if (changes.length) {
-      const { error: chgErr } = await req.supabase.from("scv_mode_config_changes").insert(
+      const { error: chgErr } = await req.supabase!.from("scv_mode_config_changes").insert(
         changes.map((c) => ({ ...c, mode, changed_by: req.userId }))
       );
       if (chgErr) {
@@ -4662,7 +5644,7 @@ export async function saveIncentiveSlabs(req: Request, res: Response, next: Next
  */
 export async function saveScvModeConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -4689,10 +5671,13 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
       return;
     }
 
-    const [{ data: isMgr }, { data: isAdmin }] = await Promise.all([
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }),
-      req.supabase.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }),
-    ]);
+    if (useRds() && !req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const [isMgr, isAdmin] = useRds()
+      ? await Promise.all([actorHasRole(getPool(), req.userId!, "kob_manager"), actorHasRole(getPool(), req.userId!, "super_admin")])
+      : await Promise.all([
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }).then((r: any) => r.data),
+          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }).then((r: any) => r.data),
+        ]);
 
     if (!isMgr && !isAdmin) {
       res.status(403).json({ error: "Only CEO or Manager can change SCV configuration" });
@@ -4737,10 +5722,49 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
       return;
     }
 
-    const prev = await loadScvModeConfig(req.supabase, mode);
-    const { data: globPrev } = await req.supabase.from("kob_configuration").select("incentive_amount").eq("id", 1).maybeSingle();
+    const desc = (c: any) => (c ? `${c.label} ${c.weight}%${c.enabled ? "" : " (off)"}` : null);
+    const tdesc = (t: any) => (t ? `${t.days} days${t.enabled ? "" : " (off)"}` : null);
 
-    const { error: updErr } = await req.supabase.from("scv_mode_config").update({
+    if (useRds()) {
+      await withTransaction(req.userId!, async (client) => {
+        const prev = await loadScvModeConfig(pgClient, mode);
+        const globPrev = await (pgClient as any).from("kob_configuration").select("incentive_amount").eq("id", 1).maybeSingle();
+
+        await scvRepo.updateModeConfig(client, { mode, components, tat_movements: tatMovements, updated_by: req.userId! });
+
+        const changes: scvRepo.ScvModeConfigChangeInsert[] = [];
+        const prevMap = new Map(prev.components.map((c: any) => [c.key, c]));
+        for (const c of components) {
+          const p = prevMap.get(c.key);
+          if (desc(p) !== desc(c)) changes.push({ mode, changed_by: req.userId!, component: c.label, previous_value: desc(p), new_value: desc(c) });
+          prevMap.delete(c.key);
+        }
+        for (const p of prevMap.values()) {
+          changes.push({ mode, changed_by: req.userId!, component: (p as any).label, previous_value: desc(p), new_value: "deleted" });
+        }
+
+        const prevT = new Map(prev.tatMovements.map((t: any) => [t.key, t]));
+        for (const t of tatMovements) {
+          const p = prevT.get(t.key);
+          if (tdesc(p) !== tdesc(t)) changes.push({ mode, changed_by: req.userId!, component: `TAT: ${t.label}`, previous_value: tdesc(p), new_value: tdesc(t) });
+        }
+
+        const prevAmount = Number((globPrev.data as any)?.incentive_amount ?? 10000);
+        if (prevAmount !== incentiveAmount) {
+          await scvRepo.updateConfigIncentiveAmount(client, incentiveAmount);
+          changes.push({ mode, changed_by: req.userId!, component: "Incentive Amount (global)", previous_value: `₹${prevAmount}`, new_value: `₹${incentiveAmount}` });
+        }
+
+        await scvRepo.insertModeConfigChanges(client, changes);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const prev = await loadScvModeConfig(req.supabase!, mode);
+    const { data: globPrev } = await req.supabase!.from("kob_configuration").select("incentive_amount").eq("id", 1).maybeSingle();
+
+    const { error: updErr } = await req.supabase!.from("scv_mode_config").update({
       components,
       tat_movements: tatMovements,
       updated_by: req.userId,
@@ -4752,7 +5776,6 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
       return;
     }
 
-    const desc = (c: any) => (c ? `${c.label} ${c.weight}%${c.enabled ? "" : " (off)"}` : null);
     const changes: any[] = [];
     const prevMap = new Map(prev.components.map((c: any) => [c.key, c]));
     for (const c of components) {
@@ -4767,7 +5790,6 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
     }
 
     const prevT = new Map(prev.tatMovements.map((t: any) => [t.key, t]));
-    const tdesc = (t: any) => (t ? `${t.days} days${t.enabled ? "" : " (off)"}` : null);
     for (const t of tatMovements) {
       const p = prevT.get(t.key);
       if (tdesc(p) !== tdesc(t)) {
@@ -4777,7 +5799,7 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
 
     const prevAmount = Number(globPrev?.incentive_amount ?? 10000);
     if (prevAmount !== incentiveAmount) {
-      const { error: amtErr } = await req.supabase.from("kob_configuration").update({
+      const { error: amtErr } = await req.supabase!.from("kob_configuration").update({
         incentive_amount: incentiveAmount,
         updated_at: new Date().toISOString(),
       }).eq("id", 1);
@@ -4793,7 +5815,7 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
     }
 
     if (changes.length) {
-      const { error: insErr } = await req.supabase.from("scv_mode_config_changes").insert(
+      const { error: insErr } = await req.supabase!.from("scv_mode_config_changes").insert(
         changes.map((c) => ({ ...c, mode, changed_by: req.userId }))
       );
       if (insErr) {
@@ -4815,7 +5837,7 @@ export async function saveScvModeConfig(req: Request, res: Response, next: NextF
  */
 export async function saveScvModeInput(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -4856,21 +5878,34 @@ export async function saveScvModeInput(req: Request, res: Response, next: NextFu
 
     const marksObj = (marks && typeof marks === "object" && !Array.isArray(marks)) ? marks : {};
 
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
+    if (useRds() && !req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const role = useRds()
+      ? await resolveActorRole(getPool(), req.userId!)
+      : (await req.supabase!.rpc("get_user_role", { _user_id: req.userId })).data;
     if (!["kob_manager", "super_admin", "team_leader"].includes(role as any)) {
       res.status(403).json({ error: "Only CEO, Manager or Team Leader can set monthly inputs" });
       return;
     }
 
-    const { error } = await req.supabase.from("scv_mode_inputs").upsert({
+    const payload = {
       user_id: userId,
       period: `${month}-01`,
       mode,
       ktn_cs_target: ktnCsTarget !== undefined && ktnCsTarget !== null ? Number(ktnCsTarget) : null,
       discipline: discipline !== undefined && discipline !== null ? Number(discipline) : null,
       marks: marksObj,
-      updated_by: req.userId,
-    }, { onConflict: "user_id,period,mode" });
+      updated_by: req.userId!,
+    };
+
+    if (useRds()) {
+      await withTransaction(req.userId!, async (client) => {
+        await scvRepo.upsertModeInput(client, payload);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!.from("scv_mode_inputs").upsert(payload, { onConflict: "user_id,period,mode" });
 
     if (error) {
       res.status(500).json({ error: error.message });
@@ -4910,6 +5945,26 @@ export async function setLeadCuisine(req: Request, res: Response, next: NextFunc
     }
 
     const trimmedCuisine = cuisine.trim();
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const userId = req.userId;
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      let brandRejected = false;
+      await withTransaction(userId, async (client) => {
+        const active = await leadRepo.isActiveBrandName(client, trimmedCuisine);
+        if (!active) { brandRejected = true; return; }
+        // Non-stage field update: no stage/history/retargeting trigger fires
+        // (verified from trigger WHEN-clauses — see Stage 10G audit). Only
+        // touch_updated_at runs, same as every other kob_leads UPDATE.
+        await leadRepo.setLeadCuisine(client, leadId, trimmedCuisine, scope);
+        await adminRepo.insertAuditLog(client, userId, "lead_cuisine_update", "kob_leads", leadId, { cuisine: trimmedCuisine });
+      });
+      if (brandRejected) { res.status(400).json({ error: "Selected brand is not active in Brand Management" }); return; }
+      res.status(200).json({ ok: true });
+      return;
+    }
 
     // Options come from Brand Management: only ACTIVE brands can be newly selected.
     const { data: brand, error: brandErr } = await req.supabase
@@ -4988,6 +6043,19 @@ export async function updateLeadNextAction(req: Request, res: Response, next: Ne
 
     const value = typeof nextAction === "string" && nextAction.trim().length > 0 ? nextAction.trim() : null;
 
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const userId = req.userId;
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      await withTransaction(userId, async (client) => {
+        await leadRepo.updateLeadNextAction(client, leadId, value, scope);
+        await adminRepo.insertAuditLog(client, userId, "lead_next_action_update", "kob_leads", leadId, { next_action: value });
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { error } = await req.supabase
       .from("kob_leads")
       .update({ next_action: value })
@@ -5036,6 +6104,28 @@ export async function setLeadRnrTag(req: Request, res: Response, next: NextFunct
 
     if (typeof rnr !== "boolean") {
       res.status(400).json({ error: "rnr must be a boolean" });
+      return;
+    }
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const userId = req.userId;
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      let notFound = false;
+      let resultTags: string[] = [];
+      await withTransaction(userId, async (client) => {
+        // Scoped read: an inaccessible lead returns null here, exactly like
+        // the Supabase path's RLS-filtered SELECT finding no row.
+        const current = await leadRepo.getLeadTagsScoped(client, leadId, scope);
+        if (current === null) { notFound = true; return; }
+        const nextTags = rnr ? Array.from(new Set([...current, "RNR"])) : current.filter((t) => t !== "RNR");
+        await leadRepo.setLeadTags(client, leadId, nextTags, scope);
+        await adminRepo.insertAuditLog(client, userId, rnr ? "lead_tag_rnr_added" : "lead_tag_rnr_removed", "kob_leads", leadId, { tags: nextTags });
+        resultTags = nextTags;
+      });
+      if (notFound) { res.status(404).json({ error: "Lead not found" }); return; }
+      res.status(200).json({ ok: true, tags: resultTags });
       return;
     }
 
@@ -5105,6 +6195,19 @@ export async function markLeadMessagesRead(req: Request, res: Response, next: Ne
       return;
     }
 
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const userId = req.userId;
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      await withTransaction(userId, async (client) => {
+        await leadRepo.markLeadMessagesRead(client, leadId, scope);
+        await adminRepo.insertAuditLog(client, userId, "lead_messages_marked_read", "kob_leads", leadId, null);
+      });
+      res.status(200).json({ ok: true, unread_message_count: 0, has_unread_messages: false });
+      return;
+    }
+
     const { error } = await req.supabase
       .from("kob_leads")
       .update({ unread_message_count: 0, has_unread_messages: false })
@@ -5137,7 +6240,7 @@ export async function markLeadMessagesRead(req: Request, res: Response, next: Ne
  */
 export async function createExecutive(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -5154,13 +6257,13 @@ export async function createExecutive(req: Request, res: Response, next: NextFun
       return;
     }
 
-    const { data: roles } = await req.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", req.userId);
+    if (useRds() && !req.userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const callerRoles = useRds()
+      ? await adminRepo.getRolesForUser(req.userId!)
+      : ((await req.supabase!.from("user_roles").select("role").eq("user_id", req.userId)).data ?? []).map((r: any) => r.role);
 
-    const isAdmin = (roles ?? []).some((r: any) => r.role === "super_admin" || r.role === "kob_manager");
-    const isTL = (roles ?? []).some((r: any) => r.role === "team_leader");
+    const isAdmin = callerRoles.includes("super_admin") || callerRoles.includes("kob_manager");
+    const isTL = callerRoles.includes("team_leader");
 
     if (!isAdmin && !isTL) {
       res.status(403).json({ error: "Forbidden" });
@@ -5199,6 +6302,36 @@ export async function createExecutive(req: Request, res: Response, next: NextFun
       return u || null;
     };
 
+    const auditMeta = {
+      email: cleanEmail,
+      full_name: full_name.trim(),
+      primary_language,
+      secondary_language,
+      team_leader_id: teamLeaderId,
+    };
+
+    if (useRds()) {
+      // Supabase Auth remains the system of record for login (unchanged
+      // above). RDS's auth.users is a local FK-compatibility mirror only
+      // (see supabase/local-migration-compatibility.sql) — profiles.id and
+      // user_roles.user_id reference it, so it must be populated first.
+      await withTransaction(req.userId!, async (client) => {
+        await adminRepo.upsertAuthUserMirror(client, user.id, cleanEmail);
+        await adminRepo.upsertExecutiveProfile(client, {
+          id: user.id,
+          full_name: full_name.trim(),
+          email: cleanEmail,
+          primary_language: normLang(primary_language),
+          secondary_language: normLang(secondary_language),
+          team_leader_id: teamLeaderId,
+        });
+        await adminRepo.upsertExecutiveRole(client, user.id);
+        await adminRepo.insertAuditLog(client, req.userId ?? null, "executive_created", "profiles", user.id, auditMeta);
+      });
+      res.status(200).json({ ok: true, id: user.id });
+      return;
+    }
+
     const { error: profErr } = await (supabaseAdmin.from("profiles") as any).upsert({
       id: user.id,
       full_name: full_name.trim(),
@@ -5223,13 +6356,7 @@ export async function createExecutive(req: Request, res: Response, next: NextFun
       return;
     }
 
-    await logAudit(req.supabase, req.userId ?? null, "executive_created", "profiles", user.id, {
-      email: cleanEmail,
-      full_name: full_name.trim(),
-      primary_language,
-      secondary_language,
-      team_leader_id: teamLeaderId,
-    });
+    await logAudit(req.supabase!, req.userId ?? null, "executive_created", "profiles", user.id, auditMeta);
 
     res.status(200).json({ ok: true, id: user.id });
   } catch (err) {
@@ -5260,6 +6387,22 @@ export async function reassignLead(req: Request, res: Response, next: NextFuncti
 
     if (!executiveId || !uuidRegex.test(executiveId)) {
       res.status(400).json({ error: "executiveId must be a valid UUID" });
+      return;
+    }
+
+    if (useRds()) {
+      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+      const userId = req.userId;
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      await withTransaction(userId, async (client) => {
+        // Scoped WHERE evaluates against the lead's CURRENT (pre-update) row,
+        // same as RLS's own USING clause — an executive may only reassign a
+        // lead currently assigned to themselves.
+        await leadRepo.reassignLead(client, leadId, executiveId, scope);
+        await adminRepo.insertAuditLog(client, userId, "lead_reassign", "kob_leads", leadId, { executiveId });
+      });
+      res.status(200).json({ ok: true });
       return;
     }
 
@@ -5295,7 +6438,7 @@ export async function reassignLead(req: Request, res: Response, next: NextFuncti
  */
 export async function createManualLead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -5336,7 +6479,46 @@ export async function createManualLead(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const { data: dupes, error: dupeErr } = await req.supabase.from("kob_leads").select("id, phone, code");
+    if (useRds()) {
+      const clash = await leadRepo.findPhoneClash(digits);
+      if (clash) {
+        res.status(400).json({ error: `Phone already exists in CRM (lead ${clash.code})` });
+        return;
+      }
+
+      const last = await leadRepo.getLastManualLeadCode();
+      let nextNum = 1;
+      const m = /^IND-(\d+)$/.exec(last ?? "");
+      if (m) nextNum = parseInt(m[1], 10) + 1;
+      const code = `IND-${String(nextNum).padStart(5, "0")}`;
+
+      // Team Leaders may only insert leads owned by their own team (same rule as the Supabase RLS policy).
+      const isTL = await actorHasRole(getPool(), req.userId, "team_leader");
+
+      const inserted = await withTransaction(req.userId, async (client) => {
+        const row = await leadRepo.insertManualLead(client, {
+          code,
+          full_name: full_name.trim(),
+          phone: `+91${digits}`,
+          language,
+          source_id: source_id || null,
+          team_leader_id: isTL ? req.userId! : null,
+          notes: cleanPincode ? `Pincode: ${cleanPincode}` : null,
+        });
+        await adminRepo.insertAuditLog(client, req.userId!, "lead_manual_create", "kob_leads", row.id, {
+          code: row.code,
+          phone: `+91${digits}`,
+          language,
+          pincode: cleanPincode || null,
+        });
+        return row;
+      });
+
+      res.status(200).json({ id: inserted.id, code: inserted.code });
+      return;
+    }
+
+    const { data: dupes, error: dupeErr } = await req.supabase!.from("kob_leads").select("id, phone, code");
     if (dupeErr) {
       res.status(500).json({ error: dupeErr.message });
       return;
@@ -5348,7 +6530,7 @@ export async function createManualLead(req: Request, res: Response, next: NextFu
       return;
     }
 
-    const { data: last } = await req.supabase
+    const { data: last } = await req.supabase!
       .from("kob_leads")
       .select("code")
       .like("code", "IND-%")
@@ -5362,9 +6544,9 @@ export async function createManualLead(req: Request, res: Response, next: NextFu
     const code = `IND-${String(nextNum).padStart(5, "0")}`;
 
     // Team Leaders may only insert leads owned by their own team (RLS).
-    const { data: isTL } = await req.supabase.rpc("has_role", { _user_id: req.userId, _role: "team_leader" });
+    const { data: isTL } = await req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "team_leader" });
 
-    const { data: inserted, error } = await req.supabase
+    const { data: inserted, error } = await req.supabase!
       .from("kob_leads")
       .insert({
         code,
@@ -5409,6 +6591,7 @@ export async function updateLeadStage(req: Request, res: Response, next: NextFun
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
+    const userId = req.userId;
 
     const leadId = (req.params.id ?? req.body?.leadId) as string | undefined;
     const stage = req.body?.stage as string | undefined;
@@ -5424,6 +6607,28 @@ export async function updateLeadStage(req: Request, res: Response, next: NextFun
       return;
     }
 
+    if (useRds()) {
+      // STAGE 10G: scope resolved server-side; unknown role denied, matching
+      // the Stage 10E1/10E2 policy for every other RDS lead endpoint.
+      const scope = await resolveLeadScopeOrDeny(userId);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      try {
+        await withTransaction(userId, async (client) => {
+          // validate_stage_transition/on_lead_stage_change/log_lead_activity/
+          // auto_enroll_retargeting/cancel_retargeting_on_exit fire unmodified,
+          // with auth.uid() = userId for the duration of this transaction.
+          await leadRepo.updateLeadStage(client, leadId.trim(), stage.trim(), scope);
+          await adminRepo.insertAuditLog(client, userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: stage.trim() });
+        });
+      } catch (e: any) {
+        // Matches this endpoint's existing 400 (not 500) error status.
+        res.status(400).json({ error: e?.message ?? "Stage update failed" });
+        return;
+      }
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { error } = await req.supabase
       .from("kob_leads")
       .update({ stage: stage.trim() as any })
@@ -5434,7 +6639,7 @@ export async function updateLeadStage(req: Request, res: Response, next: NextFun
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: stage.trim() });
+    await logAudit(req.supabase, userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: stage.trim() });
 
     res.status(200).json({ ok: true });
   } catch (err) {
@@ -5455,12 +6660,144 @@ function normalizeImportPhone(raw: string | null | undefined): string {
 }
 
 /**
+ * STAGE 10I-E — RDS path for importLeads, factored out so the row-processing
+ * loop mirrors the Supabase path's per-row resilience (one row's insert
+ * failure doesn't roll back previously imported rows). Each row's INSERT
+ * runs in its own withTransaction() so validate/duplicate/initial-template
+ * triggers see the correct auth.uid() for that row, exactly like a normal
+ * caller-JWT PostgREST insert would.
+ */
+async function importLeadsRds(req: Request, res: Response, rows: any[], userId: string): Promise<void> {
+  const ref = await leadRepo.getImportReferenceData();
+  const defaultMode = ref.defaultMode;
+
+  const brandByCode = new Map<string, any>();
+  for (const b of ref.brands) brandByCode.set(String(b.code).trim().toLowerCase(), b);
+  const stateByName = new Map<string, any>();
+  for (const s of ref.states) stateByName.set(String(s.name).trim().toLowerCase(), s);
+  const citiesByName = new Map<string, any[]>();
+  for (const c of ref.cities) {
+    const k = String(c.name).trim().toLowerCase();
+    citiesByName.set(k, [...(citiesByName.get(k) ?? []), c]);
+  }
+  const sourceByName = new Map<string, any>();
+  for (const s of ref.sources) sourceByName.set(String(s.name).replace(/\s+/g, " ").trim().toLowerCase(), s);
+
+  const existingPhones = new Set<string>();
+  for (const phone of ref.existingPhones) {
+    const n = normalizeImportPhone(phone);
+    if (n) existingPhones.add(n);
+  }
+
+  // Team Leaders may only insert leads owned by their own team (same rule as the Supabase RLS with-check).
+  const isTL = await actorHasRole(getPool(), userId, "team_leader");
+
+  const results: Array<{ row: number; name: string; phone: string; status: "IMPORTED" | "DUPLICATE" | "INVALID"; reason?: string }> = [];
+  const seenInFile = new Set<string>();
+
+  const lastCode = await leadRepo.getLastImportCode();
+  let nextNum = 1;
+  const mCode = /^IMP-(\d+)$/.exec(lastCode ?? "");
+  if (mCode) nextNum = parseInt(mCode[1], 10) + 1;
+
+  let imported = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const rowNo = i + 2;
+    const name = String(r.full_name ?? "").trim() || "Unknown";
+    const rawPhone = String(r.phone ?? "").trim();
+    const phoneNorm = normalizeImportPhone(rawPhone);
+
+    if (phoneNorm && (existingPhones.has(phoneNorm) || seenInFile.has(phoneNorm))) {
+      results.push({ row: rowNo, name, phone: rawPhone, status: "DUPLICATE", reason: "Phone already exists in CRM" });
+      continue;
+    }
+
+    const channel = String(r.channel ?? "").trim().toUpperCase();
+    const explicitSource = String(r.lead_source ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+    const sourceName = explicitSource || (channel === "APP" ? "mobile app" : channel === "WEBSITE" ? "website form" : "");
+    const source = (sourceName ? sourceByName.get(sourceName) : null) ?? null;
+
+    const brandCode = String(r.brand_code ?? "").trim().toLowerCase();
+    const brand = brandByCode.get(brandCode) ?? null;
+
+    const stateName = String(r.state_name ?? "").trim().toLowerCase();
+    const state = stateByName.get(stateName) ?? null;
+
+    const cityName = String(r.city_name ?? "").trim().toLowerCase();
+    const cityMatches = citiesByName.get(cityName) ?? [];
+    const city = (state ? cityMatches.find((c) => c.state_id === state.id) : cityMatches[0]) ?? cityMatches[0] ?? null;
+
+    const langRaw = String(r.language ?? "").replace(/\s+/g, " ").trim().toUpperCase();
+    const language = (IMPORT_LANGUAGES as readonly string[]).includes(langRaw) ? langRaw : "OTHERS";
+
+    let investment: number | null = null;
+    const invRaw = r.investment_capacity;
+    if (invRaw !== undefined && String(invRaw).trim() !== "") {
+      const n = Number(String(invRaw).replace(/[^\d.]/g, ""));
+      investment = Number.isFinite(n) ? n : null;
+    }
+
+    const email = String(r.email ?? "").trim() || null;
+    const code = `IMP-${String(nextNum).padStart(5, "0")}`;
+
+    let insertedLead: { id: string; stage: string } | null = null;
+    try {
+      insertedLead = await withTransaction(userId, async (client) => {
+        return leadRepo.insertImportLead(client, {
+          code,
+          full_name: name,
+          phone: rawPhone || null,
+          email,
+          mode: defaultMode,
+          language,
+          brand_id: brand?.id ?? null,
+          state_id: state?.id ?? (city?.state_id ?? null),
+          district_id: city?.district_id ?? null,
+          city_id: city?.id ?? null,
+          source_id: source?.id ?? null,
+          investment_capacity: investment,
+          team_leader_id: isTL ? userId : null,
+        });
+      });
+    } catch (e: any) {
+      const message = e?.message ?? String(e);
+      const reason = /duplicate key/i.test(message) ? "Duplicate lead (already exists in CRM)" : message;
+      results.push({ row: rowNo, name, phone: rawPhone, status: "INVALID", reason });
+      continue;
+    }
+
+    nextNum++;
+    imported++;
+    if (source && String(source.name).trim().toLowerCase() === "meta ads" && insertedLead.stage !== "DUPLICATE_LEAD") {
+      await withTransaction(userId, async (client) => {
+        await leadRepo.callCsvImportMetaAdsInitial(client, insertedLead!.id);
+      }).catch(() => { /* lead stays imported */ });
+    }
+    if (phoneNorm) { seenInFile.add(phoneNorm); existingPhones.add(phoneNorm); }
+    results.push({ row: rowNo, name, phone: rawPhone, status: "IMPORTED" });
+  }
+
+  const duplicates = results.filter((r) => r.status === "DUPLICATE").length;
+  const invalid = results.filter((r) => r.status === "INVALID").length;
+
+  await withTransaction(userId, async (client) => {
+    await adminRepo.insertAuditLog(client, userId, "leads_import", "kob_leads", null, {
+      total: rows.length, imported, duplicates, invalid, default_mode: defaultMode,
+    });
+  });
+
+  res.status(200).json({ total: rows.length, imported, duplicates, invalid, defaultMode, results });
+}
+
+/**
  * Controller for importLeads
  * Migrated 1:1 from src/lib/import-leads.functions.ts (line 6).
  */
 export async function importLeads(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -5476,8 +6813,14 @@ export async function importLeads(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const supabase = req.supabase;
     const userId = req.userId;
+
+    if (useRds()) {
+      await importLeadsRds(req, res, rows, userId);
+      return;
+    }
+
+    const supabase = req.supabase!;
 
     const [cfgRes, brandsRes, statesRes, citiesRes, sourcesRes, existingRes] = await Promise.all([
       supabase.from("kob_configuration").select("default_mode").eq("id", 1).maybeSingle(),

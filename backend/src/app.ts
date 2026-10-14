@@ -53,7 +53,12 @@ app.get("/auth-test", requireAuth, (req: Request, res: Response) => {
 app.use("/api/kob", kobRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/evaluation", evaluationRouter);
-app.use("/api/qa", qaRouter);
+// STAGE 10I-F: QA mutation routes (lifecycle/cleanup/move-stage/etc.) must be
+// unavailable in production/staging — they're guarded by requireAuth only,
+// with no role check, and qaCleanup deletes rows. Development-only.
+if (config.nodeEnv === "development") {
+  app.use("/api/qa", qaRouter);
+}
 app.use("/api/webinar", webinarRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/meta", metaRouter);

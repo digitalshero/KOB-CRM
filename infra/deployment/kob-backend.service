@@ -1,0 +1,19 @@
+[Unit]
+Description=KOB CRM Backend (Node/Express)
+After=network.target
+
+[Service]
+Type=simple
+User=kob
+WorkingDirectory=/opt/kob-backend
+ExecStart=/usr/bin/node dist/server.js
+Restart=on-failure
+RestartSec=5
+
+# Secrets/config live OUTSIDE the repo and OUTSIDE git entirely. This file is
+# never committed with real values — only /etc/kob-backend/backend.env on the
+# EC2 host, created once by hand (chmod 600, owned by the `kob` service user).
+EnvironmentFile=/etc/kob-backend/backend.env
+
+[Install]
+WantedBy=multi-user.target
