@@ -1,0 +1,303 @@
+
+-- 1) First-touch scheduler: also handle LEAD_INBOX / FAILED_FIRE origins.
+CREATE OR REPLACE FUNCTION public.send_retargeting_first_touch()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public', 'extensions'
+AS $function$
+DECLARE
+  r public.retargeting_schedule%ROWTYPE;
+  v_source text;
+BEGIN
+  -- Only LATER / NO_RESPONSE get a deferred first touch; NO is excluded.
+  IF NEW.stage NOT IN ('LATER'::lead_stage,'NO_RESPONSE'::lead_stage) THEN RETURN NEW; END IF;
+
+  IF OLD.stage = 'EOI_1'::lead_stage THEN
+    v_source := 'EOI_1';
+  ELSIF OLD.stage IN ('LEAD_INBOX'::lead_stage,'FAILED_FIRE'::lead_stage) THEN
+    v_source := 'LEAD_INBOX';
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  SELECT * INTO r FROM public.retargeting_schedule
+   WHERE lead_id = NEW.id AND is_dead = false AND bucket = NEW.stage
+   ORDER BY created_at DESC LIMIT 1;
+  IF NOT FOUND THEN RETURN NEW; END IF;
+  IF r.attempts_done > 0 THEN RETURN NEW; END IF;
+
+  -- First touch is 24 hours after entering NO_RESPONSE / LATER.
+  UPDATE public.retargeting_schedule
+    SET first_touch_source = v_source,
+        next_touch_at = r.first_touch_at + interval '24 hours',
+        updated_at = now()
+    WHERE id = r.id;
+
+  INSERT INTO public.audit_logs(actor_id, action, entity, entity_id, meta)
+  VALUES (auth.uid(), 'RETARGETING_FIRST_TOUCH_SCHEDULED', 'kob_leads', NEW.id,
+    jsonb_build_object('bucket', NEW.stage::text, 'from', OLD.stage::text,
+                       'first_touch_source', v_source,
+                       'due_at', (r.first_touch_at + interval '24 hours')));
+
+  RETURN NEW;
+END;
+$function$;
+
+-- 2) Widen the trigger condition to include LEAD_INBOX / FAILED_FIRE origins.
+DROP TRIGGER IF EXISTS trg_retargeting_first_touch ON public.kob_leads;
+CREATE TRIGGER trg_retargeting_first_touch
+AFTER UPDATE OF stage ON public.kob_leads
+FOR EACH ROW
+WHEN ((old.stage IN ('EOI_1'::lead_stage,'LEAD_INBOX'::lead_stage,'FAILED_FIRE'::lead_stage))
+      AND (new.stage = ANY (ARRAY['LATER'::lead_stage,'NO_RESPONSE'::lead_stage])))
+EXECUTE FUNCTION send_retargeting_first_touch();
+
+-- 3) Processor: first touch originating from LEAD_INBOX / FAILED_FIRE uses
+--    leadinbox_stage_retargeting_clone (all languages, default account).
+CREATE OR REPLACE FUNCTION public.process_retargeting_sends()
+RETURNS TABLE(processed integer, sent integer, killed integer, skipped integer)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public', 'extensions'
+AS $function$
+DECLARE
+  cfg public.kob_configuration%ROWTYPE;
+  r RECORD;
+  v_api_key text; v_api_secret text; v_channel text; v_template text; v_media_url text; v_media_name text;
+  v_te_api_key text; v_te_api_secret text; v_te_channel text; v_te_template text;
+  v_ml_api_key text; v_ml_api_secret text; v_ml_channel text; v_ml_template text;
+  v_use_key text; v_use_secret text; v_use_channel text; v_use_template text;
+  v_button text;
+  v_suffix text;
+  v_wb_key text; v_wb_secret text; v_wb_channel text; v_wb_template text;
+  v_li_template text;
+  v_phone text; v_digits text;
+  v_processed int := 0; v_sent int := 0; v_killed int := 0; v_skipped int := 0;
+  v_age_days numeric;
+  v_dead boolean;
+  v_new_phase int; v_new_attempts int; v_next_days int;
+  v_attempt_id uuid; v_request_id bigint;
+  v_max_days constant int := 180;
+BEGIN
+  SELECT * INTO cfg FROM public.kob_configuration WHERE id = 1;
+  SELECT value INTO v_api_key FROM public.integration_settings WHERE key = 'gallabox_api_key';
+  SELECT value INTO v_api_secret FROM public.integration_settings WHERE key = 'gallabox_api_secret';
+  SELECT value INTO v_channel FROM public.integration_settings WHERE key = 'gallabox_channel_id';
+  SELECT value INTO v_template FROM public.integration_settings WHERE key = 'retargeting_template_name';
+  SELECT value INTO v_media_url FROM public.integration_settings WHERE key = 'retargeting_media_url';
+  SELECT value INTO v_media_name FROM public.integration_settings WHERE key = 'retargeting_media_name';
+
+  SELECT value INTO v_te_api_key FROM public.integration_settings WHERE key = 'gallabox_api_key_telugu';
+  SELECT value INTO v_te_api_secret FROM public.integration_settings WHERE key = 'gallabox_api_secret_telugu';
+  SELECT value INTO v_te_channel FROM public.integration_settings WHERE key = 'gallabox_channel_id_telugu';
+  SELECT value INTO v_te_template FROM public.integration_settings WHERE key = 'retargeting_template_name_telugu';
+
+  SELECT value INTO v_ml_api_key FROM public.integration_settings WHERE key = 'gallabox_api_key_malayalam';
+  SELECT value INTO v_ml_api_secret FROM public.integration_settings WHERE key = 'gallabox_api_secret_malayalam';
+  SELECT value INTO v_ml_channel FROM public.integration_settings WHERE key = 'gallabox_channel_id_malayalam';
+  SELECT value INTO v_ml_template FROM public.integration_settings WHERE key = 'retargeting_template_name_malayalam';
+
+  SELECT COALESCE(value, 'leadinbox_stage_retargeting_clone') INTO v_li_template
+  FROM public.integration_settings WHERE key = 'leadinbox_rt_template_name';
+  IF v_li_template IS NULL THEN v_li_template := 'leadinbox_stage_retargeting_clone'; END IF;
+
+  IF v_api_key IS NULL OR v_api_secret IS NULL THEN
+    RETURN QUERY SELECT 0,0,0,0; RETURN;
+  END IF;
+
+  FOR r IN
+    SELECT rs.*, l.full_name, l.phone, l.stage AS lead_stage, l.language AS lead_language
+    FROM public.retargeting_schedule rs
+    JOIN public.kob_leads l ON l.id = rs.lead_id
+    WHERE rs.is_dead = false
+      AND rs.next_touch_at <= now()
+      AND (rs.attempts_done > 0 OR rs.first_touch_at + interval '24 hours' <= now())
+      AND l.stage IN ('NO'::lead_stage,'LATER'::lead_stage,'NO_RESPONSE'::lead_stage,'RETARGETING'::lead_stage)
+    ORDER BY rs.next_touch_at
+    LIMIT 200
+  LOOP
+    v_processed := v_processed + 1;
+    v_dead := false;
+    v_age_days := EXTRACT(EPOCH FROM (now() - r.first_touch_at)) / 86400.0;
+
+    IF r.bucket = 'NO'::lead_stage THEN
+      IF r.attempts_done >= COALESCE(cfg.rt_no_attempts, 6) THEN v_dead := true; END IF;
+    ELSE
+      IF v_age_days > v_max_days THEN v_dead := true; END IF;
+    END IF;
+
+    IF v_dead THEN
+      UPDATE public.retargeting_schedule SET is_dead = true, updated_at = now() WHERE id = r.id;
+      UPDATE public.kob_leads SET stage = 'DEAD_LEAD'::lead_stage WHERE id = r.lead_id;
+      INSERT INTO public.audit_logs(actor_id, action, entity, entity_id, meta)
+      VALUES (NULL, 'RETARGETING_COMPLETED', 'kob_leads', r.lead_id,
+        jsonb_build_object('bucket', r.bucket::text, 'attempts_done', r.attempts_done, 'age_days', round(v_age_days)));
+      v_killed := v_killed + 1;
+      CONTINUE;
+    END IF;
+
+    v_button := 'Know More';
+
+    IF r.lead_language = 'TELUGU'::lead_language AND v_te_template IS NOT NULL THEN
+      v_use_template := v_te_template;
+      v_use_key := COALESCE(v_te_api_key, v_api_key);
+      v_use_secret := COALESCE(v_te_api_secret, v_api_secret);
+      v_use_channel := COALESCE(v_te_channel, v_channel);
+    ELSIF r.lead_language = 'MALAYALAM'::lead_language AND v_ml_template IS NOT NULL THEN
+      v_use_template := v_ml_template;
+      v_use_key := COALESCE(v_ml_api_key, v_api_key);
+      v_use_secret := COALESCE(v_ml_api_secret, v_api_secret);
+      v_use_channel := COALESCE(v_ml_channel, v_channel);
+    ELSE
+      v_use_template := v_template;
+      v_use_key := v_api_key;
+      v_use_secret := v_api_secret;
+      v_use_channel := v_channel;
+    END IF;
+
+    -- deferred first touch that originated from WEBINAR keeps the
+    -- webinar-abandoned template / account, exactly as before.
+    IF r.attempts_done = 0 AND r.first_touch_source = 'WEBINAR' THEN
+      v_suffix := CASE r.lead_language
+        WHEN 'TAMIL'::lead_language THEN 'tamil'
+        WHEN 'TELUGU'::lead_language THEN 'telugu'
+        WHEN 'MALAYALAM'::lead_language THEN 'malayalam'
+        ELSE NULL
+      END;
+      IF v_suffix IS NOT NULL THEN
+        SELECT value INTO v_wb_key FROM public.integration_settings WHERE key = 'webinar_rt_api_key_' || v_suffix;
+        SELECT value INTO v_wb_secret FROM public.integration_settings WHERE key = 'webinar_rt_api_secret_' || v_suffix;
+        SELECT value INTO v_wb_channel FROM public.integration_settings WHERE key = 'webinar_rt_channel_id_' || v_suffix;
+        SELECT value INTO v_wb_template FROM public.integration_settings WHERE key = 'webinar_rt_template_name_' || v_suffix;
+        IF v_wb_key IS NOT NULL AND v_wb_secret IS NOT NULL AND v_wb_template IS NOT NULL THEN
+          v_use_key := v_wb_key; v_use_secret := v_wb_secret;
+          v_use_channel := COALESCE(v_wb_channel, v_use_channel);
+          v_use_template := v_wb_template;
+          v_button := 'Book Free Webinar';
+        END IF;
+      END IF;
+    END IF;
+
+    -- deferred first touch that originated from LEAD_INBOX / FAILED_FIRE uses
+    -- leadinbox_stage_retargeting_clone for every language, once only.
+    IF r.attempts_done = 0 AND r.first_touch_source = 'LEAD_INBOX' THEN
+      v_use_template := v_li_template;
+      v_use_key := v_api_key;
+      v_use_secret := v_api_secret;
+      v_use_channel := v_channel;
+      v_button := 'Know More';
+    END IF;
+
+    -- The EOI 1 abandoned family must never go out for the NO bucket.
+    IF r.bucket = 'NO'::lead_stage AND v_use_template LIKE 'eoi_1_abandoned%' THEN
+      UPDATE public.retargeting_schedule
+        SET next_touch_at = now() + make_interval(days => GREATEST(COALESCE(cfg.rt_no_days, 30), 1)),
+            updated_at = now()
+        WHERE id = r.id;
+      v_skipped := v_skipped + 1;
+      CONTINUE;
+    END IF;
+
+    v_digits := regexp_replace(COALESCE(r.phone,''), '\D', '', 'g');
+    IF length(v_digits) = 10 THEN v_phone := '91' || v_digits;
+    ELSIF length(v_digits) >= 11 THEN v_phone := v_digits;
+    ELSE v_phone := NULL; END IF;
+
+    INSERT INTO public.retargeting_attempts(lead_id, schedule_id, bucket, attempt_no, template_name, scheduled_for, status)
+    VALUES (r.lead_id, r.id, r.bucket, r.attempts_done + 1, v_use_template, r.next_touch_at, 'PENDING')
+    RETURNING id INTO v_attempt_id;
+
+    IF v_phone IS NULL THEN
+      UPDATE public.retargeting_attempts SET status = 'FAILED', error = 'invalid phone', updated_at = now() WHERE id = v_attempt_id;
+      INSERT INTO public.audit_logs(actor_id, action, entity, entity_id, meta)
+      VALUES (NULL, 'RETARGETING_SEND_FAILED', 'kob_leads', r.lead_id,
+        jsonb_build_object('bucket', r.bucket::text, 'reason', 'invalid phone', 'attempt_no', r.attempts_done + 1));
+      v_skipped := v_skipped + 1;
+    ELSE
+      SELECT net.http_post(
+        url := 'https://server.gallabox.com/devapi/messages/whatsapp',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'apiKey', v_use_key,
+          'apiSecret', v_use_secret
+        ),
+        body := jsonb_build_object(
+          'channelId', v_use_channel,
+          'channelType', 'whatsapp',
+          'recipient', jsonb_build_object('name', COALESCE(r.full_name, 'Customer'), 'phone', v_phone),
+          'whatsapp', jsonb_build_object(
+            'type', 'template',
+            'template', jsonb_build_object(
+              'templateName', v_use_template,
+              'buttonValues', jsonb_build_array(jsonb_build_object(
+                'index', 0, 'sub_type', 'quick_reply',
+                'parameters', jsonb_build_object('type','payload','payload', v_button))),
+              'headerValues', jsonb_build_object('mediaUrl', v_media_url, 'mediaName', v_media_name)
+            )
+          )
+        )
+      ) INTO v_request_id;
+
+      UPDATE public.retargeting_attempts
+        SET status = 'SENT', sent_at = now(), request_id = v_request_id, updated_at = now()
+        WHERE id = v_attempt_id;
+
+      INSERT INTO public.audit_logs(actor_id, action, entity, entity_id, meta)
+      VALUES (NULL, 'RETARGETING_SENT', 'kob_leads', r.lead_id,
+        jsonb_build_object('bucket', r.bucket::text, 'attempt_no', r.attempts_done + 1,
+                           'template', v_use_template, 'language', r.lead_language::text,
+                           'first_touch_source', r.first_touch_source,
+                           'phone', v_phone, 'request_id', v_request_id));
+      v_sent := v_sent + 1;
+    END IF;
+
+    v_new_attempts := r.attempts_done + 1;
+    v_new_phase := r.phase;
+
+    IF r.bucket = 'NO'::lead_stage THEN
+      v_next_days := COALESCE(cfg.rt_no_days, 30);
+
+    ELSIF r.bucket = 'LATER'::lead_stage THEN
+      IF r.phase <= 1 THEN
+        IF v_new_attempts >= COALESCE(cfg.rt_later_first_attempts, 3) THEN
+          v_new_phase := 2; v_new_attempts := 0;
+          v_next_days := COALESCE(cfg.rt_later_then_days, 30);
+        ELSE
+          v_next_days := COALESCE(cfg.rt_later_first_days, 10);
+        END IF;
+      ELSE
+        v_next_days := COALESCE(cfg.rt_later_then_days, 30);
+      END IF;
+
+    ELSE
+      IF r.phase <= 1 THEN
+        IF v_new_attempts >= COALESCE(cfg.rt_noresp_first_attempts, 3) THEN
+          v_new_phase := 2; v_new_attempts := 0;
+          v_next_days := COALESCE(cfg.rt_noresp_second_days, 10);
+        ELSE
+          v_next_days := COALESCE(cfg.rt_noresp_first_days, 3);
+        END IF;
+      ELSIF r.phase = 2 THEN
+        IF v_new_attempts >= COALESCE(cfg.rt_noresp_second_attempts, 3) THEN
+          v_new_phase := 3; v_new_attempts := 0;
+          v_next_days := COALESCE(cfg.rt_noresp_final_days, 30);
+        ELSE
+          v_next_days := COALESCE(cfg.rt_noresp_second_days, 10);
+        END IF;
+      ELSE
+        v_next_days := COALESCE(cfg.rt_noresp_final_days, 30);
+      END IF;
+    END IF;
+
+    UPDATE public.retargeting_schedule
+      SET attempts_done = v_new_attempts,
+          phase = v_new_phase,
+          next_touch_at = now() + make_interval(days => GREATEST(v_next_days, 1)),
+          updated_at = now()
+      WHERE id = r.id;
+  END LOOP;
+
+  RETURN QUERY SELECT v_processed, v_sent, v_killed, v_skipped;
+END;
+$function$;

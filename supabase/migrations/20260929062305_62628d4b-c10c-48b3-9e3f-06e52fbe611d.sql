@@ -1,0 +1,1 @@
+ALTER TABLE public.kob_leads DROP CONSTRAINT IF EXISTS kob_leads_cuisine_check;

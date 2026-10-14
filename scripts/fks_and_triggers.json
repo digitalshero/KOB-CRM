@@ -1,0 +1,388 @@
+{
+  "fks": [
+    {
+      "table_name": "brand_state_availability",
+      "column_name": "state_id",
+      "foreign_table_name": "india_states",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "brand_state_availability",
+      "column_name": "brand_id",
+      "foreign_table_name": "brands",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "email_fire_queue",
+      "column_name": "template_id",
+      "foreign_table_name": "gallabox_templates",
+      "foreign_column_name": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "email_fire_queue",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "evaluation_responses",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "evaluation_responses",
+      "column_name": "question_id",
+      "foreign_table_name": "evaluation_questions",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "gallabox_fire_queue",
+      "column_name": "template_id",
+      "foreign_table_name": "gallabox_templates",
+      "foreign_column_name": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "gallabox_fire_queue",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "india_cities",
+      "column_name": "state_id",
+      "foreign_table_name": "india_states",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "india_cities",
+      "column_name": "native_brand_id",
+      "foreign_table_name": "brands",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "india_cities",
+      "column_name": "district_id",
+      "foreign_table_name": "india_districts",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "india_districts",
+      "column_name": "state_id",
+      "foreign_table_name": "india_states",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "kob_leads",
+      "column_name": "district_id",
+      "foreign_table_name": "india_districts",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "kob_leads",
+      "column_name": "brand_id",
+      "foreign_table_name": "brands",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "kob_leads",
+      "column_name": "state_id",
+      "foreign_table_name": "india_states",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "kob_leads",
+      "column_name": "city_id",
+      "foreign_table_name": "india_cities",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "kob_leads",
+      "column_name": "source_id",
+      "foreign_table_name": "lead_sources",
+      "foreign_column_name": "id",
+      "delete_rule": "NO ACTION"
+    },
+    {
+      "table_name": "lead_activities",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_eoi1_retarget_malayalam_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_eoi1_retarget_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_eoi1_retarget_telugu_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_events",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "lead_inbox_retarget_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_stage_history",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_webinar_retarget_malayalam_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_webinar_retarget_tamil_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "lead_webinar_retarget_telugu_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "meta_ads_initial_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "team_leader_id",
+      "foreign_table_name": "profiles",
+      "foreign_column_name": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "retargeting_attempts",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "retargeting_attempts",
+      "column_name": "schedule_id",
+      "foreign_table_name": "retargeting_schedule",
+      "foreign_column_name": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "retargeting_schedule",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "state_native_brand",
+      "column_name": "brand_id",
+      "foreign_table_name": "brands",
+      "foreign_column_name": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "state_native_brand",
+      "column_name": "state_id",
+      "foreign_table_name": "india_states",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "support_lead_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "webinar_attendance",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "webinar_attendance",
+      "column_name": "batch_id",
+      "foreign_table_name": "webinar_batches",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "website_form_default_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "website_form_malayalam_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "website_form_tamil_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "website_form_telugu_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    },
+    {
+      "table_name": "whatsapp_broadcast_initial_sends",
+      "column_name": "lead_id",
+      "foreign_table_name": "kob_leads",
+      "foreign_column_name": "id",
+      "delete_rule": "CASCADE"
+    }
+  ],
+  "triggers": {
+    "evaluation_questions": [
+      "trg_eval_q_updated (UPDATE)"
+    ],
+    "gallabox_templates": [
+      "trg_gbx_updated (UPDATE)"
+    ],
+    "incentive_rules": [
+      "trg_incentive_rules_touch (UPDATE)"
+    ],
+    "kob_configuration": [
+      "trg_enforce_kob_configuration_manager_scope (UPDATE)"
+    ],
+    "kob_leads": [
+      "trg_auto_allocate_lead (UPDATE)",
+      "trg_log_lead_activity (UPDATE)",
+      "trg_validate_stage_transition (UPDATE)",
+      "trg_leads_updated (UPDATE)",
+      "trg_lead_stage_change (UPDATE)",
+      "trg_auto_allocate_lead (INSERT)",
+      "trg_lead_auto_fire (INSERT)",
+      "trg_auto_assign_lead_inbox (INSERT)",
+      "trg_auto_enroll_retargeting (UPDATE)",
+      "trg_cancel_retargeting_on_exit (UPDATE)",
+      "trg_webinar_retargeting_first_touch (UPDATE)",
+      "trg_a_mark_duplicate_lead (INSERT)",
+      "trg_send_meta_ads_initial_template (INSERT)",
+      "trg_send_support_lead_template (INSERT)",
+      "trg_send_whatsapp_broadcast_initial_template (INSERT)",
+      "trg_send_website_form_default_template (INSERT)",
+      "trg_send_website_form_tamil_template (INSERT)",
+      "trg_send_website_form_telugu_template (INSERT)",
+      "trg_send_website_form_malayalam_template (INSERT)",
+      "trg_retargeting_first_touch (UPDATE)"
+    ],
+    "lead_eoi1_retarget_malayalam_sends": [
+      "touch_lead_eoi1_retarget_malayalam_sends (UPDATE)"
+    ],
+    "lead_eoi1_retarget_sends": [
+      "trg_lead_eoi1_retarget_sends_updated_at (UPDATE)"
+    ],
+    "lead_eoi1_retarget_telugu_sends": [
+      "touch_lead_eoi1_retarget_telugu_sends (UPDATE)"
+    ],
+    "lead_inbox_retarget_sends": [
+      "trg_lead_inbox_retarget_sends_touch (UPDATE)"
+    ],
+    "lead_webinar_retarget_tamil_sends": [
+      "trg_touch_webinar_tamil_sends (UPDATE)"
+    ],
+    "lead_webinar_retarget_telugu_sends": [
+      "trg_touch_wr_telugu (UPDATE)"
+    ],
+    "marketing_kpi_targets": [
+      "trg_marketing_kpi_targets_touch (UPDATE)"
+    ],
+    "profiles": [
+      "trg_profiles_updated (UPDATE)"
+    ],
+    "retargeting_attempts": [
+      "trg_rt_attempts_touch (UPDATE)"
+    ],
+    "retargeting_rules": [
+      "trg_retargeting_rules_updated (UPDATE)"
+    ],
+    "scv_component_weights": [
+      "trg_scv_weight_change (UPDATE)"
+    ],
+    "scv_manual_ratings": [
+      "trg_scv_manual_ratings_updated (UPDATE)"
+    ],
+    "scv_mode_inputs": [
+      "scv_mode_inputs_touch (UPDATE)"
+    ],
+    "scv_monthly_inputs": [
+      "scv_monthly_inputs_touch (UPDATE)"
+    ],
+    "scv_rules": [
+      "trg_scv_rules_touch (UPDATE)"
+    ],
+    "support_lead_sends": [
+      "trg_support_lead_sends_updated (UPDATE)"
+    ],
+    "webinar_attendance": [
+      "trg_webinar_attendance_updated (UPDATE)"
+    ],
+    "webinar_batches": [
+      "trg_webinar_batches_updated (UPDATE)"
+    ]
+  }
+}

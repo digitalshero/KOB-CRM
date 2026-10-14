@@ -1,0 +1,152 @@
+[
+  {
+    "file": "src/components/cuisine-dialog.tsx",
+    "line": 24,
+    "fn": "setLeadCuisine",
+    "varName": "save"
+  },
+  {
+    "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+    "line": 9,
+    "fn": "getExecPerformanceSummary",
+    "varName": "fn"
+  },
+  {
+    "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+    "line": 18,
+    "fn": "getFunnelStageLeads",
+    "varName": "fn"
+  },
+  {
+    "file": "src/components/ScvCalculationGuide.tsx",
+    "line": 27,
+    "fn": "getScvModeConfig",
+    "varName": "fnGetCfg"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.brands.tsx",
+    "line": 18,
+    "fn": "toggleEntity",
+    "varName": "fnTog"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "line": 36,
+    "fn": "listEvaluationQuestions",
+    "varName": "fetchList"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "line": 37,
+    "fn": "upsertEvaluationQuestion",
+    "varName": "upsert"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "line": 38,
+    "fn": "deleteEvaluationQuestion",
+    "varName": "del"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 30,
+    "fn": "upsertGallaboxTemplate",
+    "varName": "upsert"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+    "line": 17,
+    "fn": "toggleEntity",
+    "varName": "fnTog"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+    "line": 30,
+    "fn": "toggleEntity",
+    "varName": "fnTog"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "line": 18,
+    "fn": "updateConfig",
+    "varName": "updFn"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.marketing.tsx",
+    "line": 34,
+    "fn": "listMarketingTargets",
+    "varName": "fnT"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.marketing.tsx",
+    "line": 35,
+    "fn": "upsertMarketingTarget",
+    "varName": "upsert"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "line": 33,
+    "fn": "listManualRatings",
+    "varName": "fnRatings"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "line": 34,
+    "fn": "upsertManualRating",
+    "varName": "fnSave"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "line": 35,
+    "fn": "listScvComposite",
+    "varName": "fnComposite"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "line": 50,
+    "fn": "saveScvModeInput",
+    "varName": "save"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "line": 51,
+    "fn": "getScvModeConfig",
+    "varName": "fnGetCfg"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "line": 52,
+    "fn": "saveScvModeConfig",
+    "varName": "fnSaveCfg"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "line": 53,
+    "fn": "saveIncentiveAmount",
+    "varName": "fnSaveAmount"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+    "line": 52,
+    "fn": "getTATBreachDetailed",
+    "varName": "fn"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+    "line": 34,
+    "fn": "getWebinarHistory",
+    "varName": "fn"
+  },
+  {
+    "file": "src/routes/_authenticated/webinar.tsx",
+    "line": 41,
+    "fn": "listWebinarBatches",
+    "varName": "fnList"
+  },
+  {
+    "file": "src/routes/_authenticated/webinar.tsx",
+    "line": 42,
+    "fn": "listWebinarEligibleLeads",
+    "varName": "fnEligible"
+  }
+]

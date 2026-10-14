@@ -1,0 +1,288 @@
+[
+  {
+    "file": "src/components/cuisine-dialog.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "setLeadCuisine",
+        "line": 24,
+        "text": "const save = useServerFn(setLeadCuisine);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "getExecPerformanceSummary",
+        "line": 9,
+        "text": "const fn = useServerFn(getExecPerformanceSummary);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "getFunnelStageLeads",
+        "line": 18,
+        "text": "const fn = useServerFn(getFunnelStageLeads);"
+      }
+    ]
+  },
+  {
+    "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/components/kpi-trend-dialog.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/components/metric-drilldown.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/components/ScvCalculationGuide.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "getScvModeConfig",
+        "line": 27,
+        "text": "const fnGetCfg = useServerFn(getScvModeConfig);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.brands.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "toggleEntity",
+        "line": 18,
+        "text": "const fnTog = useServerFn(toggleEntity);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "count": 4,
+    "fns": [
+      {
+        "fn": "listEvaluationQuestions",
+        "line": 36,
+        "text": "const fetchList = useServerFn(listEvaluationQuestions);"
+      },
+      {
+        "fn": "upsertEvaluationQuestion",
+        "line": 37,
+        "text": "const upsert = useServerFn(upsertEvaluationQuestion);"
+      },
+      {
+        "fn": "deleteEvaluationQuestion",
+        "line": 38,
+        "text": "const del = useServerFn(deleteEvaluationQuestion);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "upsertGallaboxTemplate",
+        "line": 30,
+        "text": "const upsert = useServerFn(upsertGallaboxTemplate);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "toggleEntity",
+        "line": 17,
+        "text": "const fnTog = useServerFn(toggleEntity);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "toggleEntity",
+        "line": 30,
+        "text": "const fnTog = useServerFn(toggleEntity);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "updateConfig",
+        "line": 18,
+        "text": "const updFn = useServerFn(updateConfig);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/exe.reports.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/exe.retargeting.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/leads.$id.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.approvals.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.ktn.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.marketing.tsx",
+    "count": 3,
+    "fns": [
+      {
+        "fn": "listMarketingTargets",
+        "line": 34,
+        "text": "const fnT = useServerFn(listMarketingTargets);"
+      },
+      {
+        "fn": "upsertMarketingTarget",
+        "line": 35,
+        "text": "const upsert = useServerFn(upsertMarketingTarget);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "count": 4,
+    "fns": [
+      {
+        "fn": "listManualRatings",
+        "line": 33,
+        "text": "const fnRatings = useServerFn(listManualRatings);"
+      },
+      {
+        "fn": "upsertManualRating",
+        "line": 34,
+        "text": "const fnSave = useServerFn(upsertManualRating);"
+      },
+      {
+        "fn": "listScvComposite",
+        "line": 35,
+        "text": "const fnComposite = useServerFn(listScvComposite);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/tl.reports.tsx",
+    "count": 1,
+    "fns": []
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "count": 5,
+    "fns": [
+      {
+        "fn": "saveScvModeInput",
+        "line": 50,
+        "text": "const save = useServerFn(saveScvModeInput);"
+      },
+      {
+        "fn": "getScvModeConfig",
+        "line": 51,
+        "text": "const fnGetCfg = useServerFn(getScvModeConfig);"
+      },
+      {
+        "fn": "saveScvModeConfig",
+        "line": 52,
+        "text": "const fnSaveCfg = useServerFn(saveScvModeConfig);"
+      },
+      {
+        "fn": "saveIncentiveAmount",
+        "line": 53,
+        "text": "const fnSaveAmount = useServerFn(saveIncentiveAmount);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "getTATBreachDetailed",
+        "line": 52,
+        "text": "const fn = useServerFn(getTATBreachDetailed);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+    "count": 2,
+    "fns": [
+      {
+        "fn": "getWebinarHistory",
+        "line": 34,
+        "text": "const fn = useServerFn(getWebinarHistory);"
+      }
+    ]
+  },
+  {
+    "file": "src/routes/_authenticated/webinar.tsx",
+    "count": 3,
+    "fns": [
+      {
+        "fn": "listWebinarBatches",
+        "line": 41,
+        "text": "const fnList = useServerFn(listWebinarBatches);"
+      },
+      {
+        "fn": "listWebinarEligibleLeads",
+        "line": 42,
+        "text": "const fnEligible = useServerFn(listWebinarEligibleLeads);"
+      }
+    ]
+  }
+]

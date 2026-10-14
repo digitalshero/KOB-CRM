@@ -1,0 +1,16 @@
+id;full_name;email;team_leader_id;phone;created_at;updated_at;allocation_mode;rr_last_executive_id;scv_score;primary_language;secondary_language;assignment_active
+7209a94c-d3b1-48d2-8db9-2b4e54d23d94;Abi;abi@shero.in;;;2026-08-04 12:29:20.703423+00;2026-08-04 12:29:21.089383+00;MANUAL;;;;;true
+3f7aad05-a5d6-41f1-95c2-7ce86a9b9170;Gokula Krishnan;kob2@shero.in;0e73f086-ef69-411f-9948-474f95c3c8fb;;2026-08-21 05:30:30.779589+00;2026-08-21 05:30:31.03061+00;MANUAL;;;TAMIL;TELUGU;true
+8c4dff0d-cd27-474d-9ea8-9cc15b9a93f5;Bhuvana D.;sherohomefoodbhuvana@gmail.com;;;2026-07-31 11:14:03.200967+00;2026-08-24 05:23:54.230141+00;MANUAL;;;TAMIL;ENGLISH;false
+a6bb9b28-912b-46cc-9489-ec4aa7cdda29;Divya;kobdivya@gmail.com;;;2026-07-31 11:14:04.232181+00;2026-08-24 05:23:54.230141+00;MANUAL;;;MALAYALAM;TAMIL;false
+0e73f086-ef69-411f-9948-474f95c3c8fb;Team Leader 1;tl1@shero.test;;;2026-07-12 13:21:34.231185+00;2026-09-28 09:37:08.196191+00;MANUAL;;16;;;true
+6502c359-e15f-4dc2-8f6c-4b0238b4fda8;CEO Office;ceo@shero.test;;;2026-07-13 02:06:59.859521+00;2026-07-14 02:47:36.490029+00;MANUAL;;18;;;true
+25dc86bb-cda4-4bb4-8ec9-5bc6a03df10d;KOB Manager;manager@shero.test;;;2026-07-12 13:21:31.473546+00;2026-07-14 02:47:36.490029+00;MANUAL;;18;;;true
+3e173ee5-8692-41a7-a902-85fe09563794;Team Leader 2;tl2@shero.test;;;2026-07-12 13:21:35.648981+00;2026-07-14 02:47:36.490029+00;MANUAL;;9;;;true
+628ab0ad-e77f-48d4-a07e-5f671d604a81;Team Leader 3;tl3@shero.test;;;2026-07-12 13:21:37.062955+00;2026-07-14 02:47:36.490029+00;MANUAL;;14;;;true
+da971e6d-6830-41b9-98aa-ca96ec538947;Team Leader 4;tl4@shero.test;;;2026-07-12 13:21:38.617222+00;2026-07-14 02:47:36.490029+00;MANUAL;;15;;;true
+058b320b-8a21-49cf-bb7c-8f21c05803a4;Team Leader 5;tl5@shero.test;;;2026-07-12 13:21:40.093897+00;2026-07-14 02:47:36.490029+00;MANUAL;;12;;;true
+27420497-cb0b-4db5-8bec-c7716f299ee1;Aswathy I. G;aswathykobexecutive@gmail.com;;;2026-07-31 11:14:02.179243+00;2026-07-31 11:14:02.500173+00;MANUAL;;;TAMIL;MALAYALAM;true
+840ae35f-1083-4102-a24e-73c683fccbd2;Shrisha;srishakob@gmail.com;0e73f086-ef69-411f-9948-474f95c3c8fb;;2026-07-31 11:14:01.128165+00;2026-07-31 11:35:56.837817+00;MANUAL;;;TELUGU;TAMIL;true
+bcc9e500-a764-4d84-b128-2e550ffd1721;Maniraj;maniraj@shero.in;;;2026-08-01 07:48:47.269033+00;2026-08-01 07:48:47.635644+00;MANUAL;;;;;true
+9d31662d-b591-4535-938e-36b460ed53f7;Meena;meena@shero.in;;;2026-08-04 05:13:24.793852+00;2026-08-04 05:13:25.153241+00;MANUAL;;;;;true

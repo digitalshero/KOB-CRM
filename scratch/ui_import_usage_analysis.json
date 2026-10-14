@@ -1,0 +1,506 @@
+[
+  {
+    "file": "src/components/cuisine-dialog.tsx",
+    "target": "kob.functions",
+    "names": [
+      "setLeadCuisine"
+    ],
+    "usages": {
+      "setLeadCuisine": 1
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/AutoConversionFunnel.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getAutoFunnel",
+      "getAutoFunnelBuckets"
+    ],
+    "usages": {
+      "getAutoFunnel": 0,
+      "getAutoFunnelBuckets": 0
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/BrandPerformanceCard.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getBrandPerformance"
+    ],
+    "usages": {
+      "getBrandPerformance": 0
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/ChannelConversionCard.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getChannelConversion"
+    ],
+    "usages": {
+      "getChannelConversion": 1
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getCombinedFunnel",
+      "getCombinedFunnelBuckets"
+    ],
+    "usages": {
+      "getCombinedFunnel": 0,
+      "getCombinedFunnelBuckets": 0
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getExecPerformanceSummary"
+    ],
+    "usages": {
+      "getExecPerformanceSummary": 1
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getFunnelStageLeads"
+    ],
+    "usages": {
+      "getFunnelStageLeads": 1
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getLeadsTrend"
+    ],
+    "usages": {
+      "getLeadsTrend": 0
+    }
+  },
+  {
+    "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+    "target": "kob-dashboard.functions",
+    "names": [
+      "getManualFunnel",
+      "getManualFunnelBuckets"
+    ],
+    "usages": {
+      "getManualFunnel": 0,
+      "getManualFunnelBuckets": 0
+    }
+  },
+  {
+    "file": "src/components/kp-evaluation-page.tsx",
+    "target": "evaluation.functions",
+    "names": [
+      "QuestionType"
+    ],
+    "usages": {
+      "QuestionType": 2
+    }
+  },
+  {
+    "file": "src/components/kp-evaluation-page.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 1
+    }
+  },
+  {
+    "file": "src/components/kpi-trend-dialog.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getKpiTrend"
+    ],
+    "usages": {
+      "getKpiTrend": 0
+    }
+  },
+  {
+    "file": "src/components/metric-drilldown.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMetricDrilldown"
+    ],
+    "usages": {
+      "getMetricDrilldown": 0
+    }
+  },
+  {
+    "file": "src/components/ScvCalculationGuide.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getScvModeConfig"
+    ],
+    "usages": {
+      "getScvModeConfig": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/campaign-management.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/campaign-management.tsx",
+    "target": "meta-ads.server",
+    "names": [
+      "MetaCampaignsListResult"
+    ],
+    "usages": {
+      "MetaCampaignsListResult": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.brands.tsx",
+    "target": "kob.functions",
+    "names": [
+      "toggleEntity"
+    ],
+    "usages": {
+      "toggleEntity": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "target": "evaluation.functions",
+    "line": "} from \"@/lib/evaluation.functions\";",
+    "note": "multi-line or custom import"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listGallaboxTemplates",
+      "upsertGallaboxTemplate"
+    ],
+    "usages": {
+      "listGallaboxTemplates": 0,
+      "upsertGallaboxTemplate": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+    "target": "kob.functions",
+    "names": [
+      "toggleEntity"
+    ],
+    "usages": {
+      "toggleEntity": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.lead-inbox.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";",
+    "note": "multi-line or custom import"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "target": "kob.functions",
+    "names": [
+      "updateConfig",
+      "listGallaboxFireQueue"
+    ],
+    "usages": {
+      "updateConfig": 1,
+      "listGallaboxFireQueue": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/exe.abandoned-leads.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getAbandonedLeads"
+    ],
+    "usages": {
+      "getAbandonedLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/exe.reports.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/exe.reports.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads",
+      "getMyStageHistory"
+    ],
+    "usages": {
+      "listLeads": 0,
+      "getMyStageHistory": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/exe.retargeting.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRetargetingQueue"
+    ],
+    "usages": {
+      "getMyRetargetingQueue": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/exec.$stage.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getExecutiveStageSummary"
+    ],
+    "usages": {
+      "getExecutiveStageSummary": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/leads.$id.tsx",
+    "target": "evaluation.functions",
+    "names": [
+      "getLeadEvaluation"
+    ],
+    "usages": {
+      "getLeadEvaluation": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/leads.index.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads",
+      "getMyRole"
+    ],
+    "usages": {
+      "listLeads": 1,
+      "getMyRole": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.abandoned-leads.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getAbandonedLeads"
+    ],
+    "usages": {
+      "getAbandonedLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.approvals.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.ktn.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.lead-allocation.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getAllocationBreakdownByTL"
+    ],
+    "usages": {
+      "getAllocationBreakdownByTL": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.marketing.tsx",
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";",
+    "note": "multi-line or custom import"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";",
+    "note": "multi-line or custom import"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.qa.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole",
+      "listLeads"
+    ],
+    "usages": {
+      "getMyRole": 0,
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.abandoned-leads.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getAbandonedLeads"
+    ],
+    "usages": {
+      "getAbandonedLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.reports.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getMyRole"
+    ],
+    "usages": {
+      "getMyRole": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.reports.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listLeads"
+    ],
+    "usages": {
+      "listLeads": 0
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "target": "kob.functions",
+    "names": [
+      "saveScvModeInput",
+      "getScvModeConfig",
+      "saveScvModeConfig",
+      "saveIncentiveAmount"
+    ],
+    "usages": {
+      "saveScvModeInput": 1,
+      "getScvModeConfig": 1,
+      "saveScvModeConfig": 1,
+      "saveIncentiveAmount": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+    "target": "kob.functions",
+    "names": [
+      "getTATBreachDetailed"
+    ],
+    "usages": {
+      "getTATBreachDetailed": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+    "target": "webinar.functions",
+    "names": [
+      "getWebinarHistory"
+    ],
+    "usages": {
+      "getWebinarHistory": 1
+    }
+  },
+  {
+    "file": "src/routes/_authenticated/webinar.tsx",
+    "target": "webinar.functions",
+    "line": "} from \"@/lib/webinar.functions\";",
+    "note": "multi-line or custom import"
+  },
+  {
+    "file": "src/routes/_authenticated/whatsapp-messages.tsx",
+    "target": "kob.functions",
+    "names": [
+      "listWhatsappMessages",
+      "listWhatsappExecutives"
+    ],
+    "usages": {
+      "listWhatsappMessages": 1,
+      "listWhatsappExecutives": 1
+    }
+  }
+]

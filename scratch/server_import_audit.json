@@ -1,0 +1,650 @@
+[
+  {
+    "file": "src/components/cuisine-dialog.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { setLeadCuisine } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/AutoConversionFunnel.tsx",
+    "lineNo": 2,
+    "target": "kob-dashboard.functions",
+    "line": "import { getAutoFunnel, getAutoFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/BrandPerformanceCard.tsx",
+    "lineNo": 3,
+    "target": "kob-dashboard.functions",
+    "line": "import { getBrandPerformance } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/ChannelConversionCard.tsx",
+    "lineNo": 4,
+    "target": "kob-dashboard.functions",
+    "line": "import { getChannelConversion } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+    "lineNo": 8,
+    "target": "kob-dashboard.functions",
+    "line": "import { getCombinedFunnel, getCombinedFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+    "lineNo": 4,
+    "target": "kob-dashboard.functions",
+    "line": "import { getExecPerformanceSummary } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+    "lineNo": 4,
+    "target": "kob-dashboard.functions",
+    "line": "import { getFunnelStageLeads } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+    "lineNo": 16,
+    "target": "kob-dashboard.functions",
+    "line": "import { getLeadsTrend } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+    "lineNo": 3,
+    "target": "kob-dashboard.functions",
+    "line": "import { getManualFunnel, getManualFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+  },
+  {
+    "file": "src/components/kp-evaluation-page.tsx",
+    "lineNo": 3,
+    "target": "evaluation.functions",
+    "line": "import { type QuestionType } from \"@/lib/evaluation.functions\";"
+  },
+  {
+    "file": "src/components/kp-evaluation-page.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/components/kpi-trend-dialog.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getKpiTrend } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/components/metric-drilldown.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getMetricDrilldown } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/components/ScvCalculationGuide.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getScvModeConfig } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "lineNo": 62,
+    "target": "client.server",
+    "line": "// Load inside server handlers: const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/evaluation.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 30,
+    "target": "kob-dashboard.server",
+    "line": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 39,
+    "target": "kob-dashboard.server",
+    "line": "const { computeManualBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 48,
+    "target": "kob-dashboard.server",
+    "line": "const { computeCombinedBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 61,
+    "target": "kob-dashboard.server",
+    "line": "const { computeManualBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 87,
+    "target": "kob-dashboard.server",
+    "line": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 121,
+    "target": "client.server",
+    "line": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 199,
+    "target": "client.server",
+    "line": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 412,
+    "target": "kob-dashboard.server",
+    "line": "const { combinedFirstEntries } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 584,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "lineNo": 898,
+    "target": "kob-dashboard.server",
+    "line": "const { combinedFirstEntries } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.server.ts",
+    "lineNo": 216,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 19,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 111,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 255,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 291,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 504,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 638,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 1675,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 1999,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 2139,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 2272,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 2901,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "lineNo": 2947,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/meta-ads.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/meta-ads.functions.ts",
+    "lineNo": 7,
+    "target": "meta-ads.server",
+    "line": "} from \"./meta-ads.server\";"
+  },
+  {
+    "file": "src/lib/meta-ads.functions.ts",
+    "lineNo": 8,
+    "target": "meta-campaign-storage.server",
+    "line": "import { saveCampaignSelection } from \"./meta-campaign-storage.server\";"
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "lineNo": 1,
+    "target": "meta-campaign-storage.server",
+    "line": "import { getCampaignSelections, getEnabledCampaignIds } from \"./meta-campaign-storage.server\";"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 22,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 119,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 223,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 247,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 267,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "lineNo": 296,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "lineNo": 9,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "lineNo": 2,
+    "target": "auth-middleware",
+    "line": "import { requireSupabaseAuth } from \"@/integrations/supabase/auth-middleware\";"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "lineNo": 88,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "lineNo": 209,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "lineNo": 258,
+    "target": "client.server",
+    "line": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "lineNo": 236,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "lineNo": 81,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "lineNo": 82,
+    "target": "kob-dashboard.server",
+    "line": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+  },
+  {
+    "file": "src/routes/api/public/kob/lead-stage-counts.ts",
+    "lineNo": 48,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "lineNo": 3,
+    "target": "lead-sync.server",
+    "line": "import { ensureLeadByPhone } from \"@/lib/lead-sync.server\";"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "lineNo": 119,
+    "target": "client.server",
+    "line": "\"@/integrations/supabase/client.server\""
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "lineNo": 81,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/leads.ts",
+    "lineNo": 76,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/metrics.ts",
+    "lineNo": 51,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/metrics.ts",
+    "lineNo": 93,
+    "target": "meta-ads.server",
+    "line": "const { fetchMetaSpendAndCpl } = await import(\"@/lib/meta-ads.server\");"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "lineNo": 142,
+    "target": "client.server",
+    "line": "\"@/integrations/supabase/client.server\""
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "lineNo": 3,
+    "target": "lead-sync.server",
+    "line": "import { ensureLeadByPhone } from \"@/lib/lead-sync.server\";"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "lineNo": 168,
+    "target": "client.server",
+    "line": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/_authenticated/campaign-management.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/campaign-management.tsx",
+    "lineNo": 6,
+    "target": "meta-ads.server",
+    "line": "import type { MetaCampaignsListResult } from \"@/lib/meta-ads.server\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.brands.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { toggleEntity } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+    "lineNo": 9,
+    "target": "evaluation.functions",
+    "line": "} from \"@/lib/evaluation.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { listGallaboxTemplates, upsertGallaboxTemplate } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { toggleEntity } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.lead-inbox.tsx",
+    "lineNo": 3,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+    "lineNo": 8,
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { updateConfig, listGallaboxFireQueue } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "lineNo": 3,
+    "target": "kob.functions",
+    "line": "import type { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/exe.abandoned-leads.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/exe.reports.tsx",
+    "lineNo": 2,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/exe.reports.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { listLeads, getMyStageHistory } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/exe.retargeting.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getMyRetargetingQueue } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/exec.$stage.tsx",
+    "lineNo": 7,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getExecutiveStageSummary } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/leads.$id.tsx",
+    "lineNo": 9,
+    "target": "evaluation.functions",
+    "line": "import { getLeadEvaluation } from \"@/lib/evaluation.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/leads.index.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import type { listLeads, getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.abandoned-leads.tsx",
+    "lineNo": 3,
+    "target": "kob.functions",
+    "line": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.approvals.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.ktn.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.lead-allocation.tsx",
+    "lineNo": 3,
+    "target": "kob.functions",
+    "line": "import { getAllocationBreakdownByTL } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.marketing.tsx",
+    "lineNo": 9,
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+    "lineNo": 9,
+    "target": "kob.functions",
+    "line": "} from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/mgr.qa.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getMyRole, listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.abandoned-leads.tsx",
+    "lineNo": 4,
+    "target": "kob.functions",
+    "line": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.reports.tsx",
+    "lineNo": 2,
+    "target": "kob.functions",
+    "line": "import { getMyRole } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.reports.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { listLeads } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+    "lineNo": 7,
+    "target": "kob.functions",
+    "line": "import { saveScvModeInput, getScvModeConfig, saveScvModeConfig, saveIncentiveAmount } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+    "lineNo": 5,
+    "target": "kob.functions",
+    "line": "import { getTATBreachDetailed } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+    "lineNo": 5,
+    "target": "webinar.functions",
+    "line": "import { getWebinarHistory } from \"@/lib/webinar.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/webinar.tsx",
+    "lineNo": 11,
+    "target": "webinar.functions",
+    "line": "} from \"@/lib/webinar.functions\";"
+  },
+  {
+    "file": "src/routes/_authenticated/whatsapp-messages.tsx",
+    "lineNo": 8,
+    "target": "kob.functions",
+    "line": "import { listWhatsappMessages, listWhatsappExecutives } from \"@/lib/kob.functions\";"
+  },
+  {
+    "file": "src/start.ts",
+    "lineNo": 2,
+    "target": "auth-attacher",
+    "line": "import { attachSupabaseAuth } from \"@/integrations/supabase/auth-attacher\";"
+  }
+]

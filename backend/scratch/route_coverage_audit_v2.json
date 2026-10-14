@@ -1,0 +1,2399 @@
+{
+  "totalUniqueCalls": 142,
+  "totalRegisteredRoutes": 0,
+  "missingCount": 142,
+  "methodMismatchCount": 0,
+  "authMismatchCount": 0,
+  "auditResults": [
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/admin/demo-users/seed",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/admin/demo-users/seed",
+        "normEndpoint": "/api/admin/demo-users/seed",
+        "occurrences": [
+          {
+            "file": "src/routes/setup.tsx",
+            "line": 42
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-role",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/my-role",
+        "normEndpoint": "/api/kob/my-role",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/campaign-management.tsx",
+            "line": 77
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+            "line": 21
+          },
+          {
+            "file": "src/routes/_authenticated/dashboard.tsx",
+            "line": 110
+          },
+          {
+            "file": "src/routes/_authenticated/exe.reports.tsx",
+            "line": 12
+          },
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 214
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 24
+          },
+          {
+            "file": "src/routes/_authenticated/route.tsx",
+            "line": 137
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 14
+          },
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 19
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/meta/campaigns` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/meta/campaigns${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/meta/campaigns` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/campaign-management.tsx",
+            "line": 95
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/meta/campaigns/:param/selection",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/meta/campaigns/${vars.campaignId}/selection`",
+        "normEndpoint": "/api/meta/campaigns/:param/selection",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/campaign-management.tsx",
+            "line": 102
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-brands",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-brands",
+        "normEndpoint": "/api/kob/list-brands",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.brands.tsx",
+            "line": 21
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/entities/brands/:param/toggle",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/entities/brands/${b.id}/toggle`",
+        "normEndpoint": "/api/kob/entities/brands/:param/toggle",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.brands.tsx",
+            "line": 74
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/config",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "/api/kob/config",
+        "normEndpoint": "/api/kob/config",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.dashboard.tsx",
+            "line": 37
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.kitchen-scope.tsx",
+            "line": 43
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+            "line": 32
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.retargeting-rules.tsx",
+            "line": 108
+          },
+          {
+            "file": "src/routes/_authenticated/tl.overview.tsx",
+            "line": 149
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-dashboard-kpis` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/get-dashboard-kpis${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/get-dashboard-kpis` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.dashboard.tsx",
+            "line": 125
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-kpi-snapshot` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/get-kpi-snapshot${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/get-kpi-snapshot` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.dashboard.tsx",
+            "line": 135
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/evaluation/questions",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/evaluation/questions",
+        "normEndpoint": "/api/evaluation/questions",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+            "line": 42
+          },
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 42
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/evaluation/questions",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/evaluation/questions",
+        "normEndpoint": "/api/evaluation/questions",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+            "line": 55
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+            "line": 64
+          },
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 28
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "DELETE /api/evaluation/questions/:param",
+      "call": {
+        "method": "DELETE",
+        "rawEndpoint": "`/api/evaluation/questions/${id}`",
+        "normEndpoint": "/api/evaluation/questions/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+            "line": 72
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-gallabox-templates",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-gallabox-templates",
+        "normEndpoint": "/api/kob/list-gallabox-templates",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+            "line": 28
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/gallabox-templates",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/gallabox-templates",
+        "normEndpoint": "/api/kob/gallabox-templates",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+            "line": 63
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-states",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-states",
+        "normEndpoint": "/api/kob/list-states",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+            "line": 20
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/entities/india_states/:param/toggle",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/entities/india_states/${s.id}/toggle`",
+        "normEndpoint": "/api/kob/entities/india_states/:param/toggle",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+            "line": 41
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 157
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/kpi-targets",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/kpi-targets",
+        "normEndpoint": "/api/kob/kpi-targets",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.kpi-targets.tsx",
+            "line": 79
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.kpi-targets.tsx",
+            "line": 198
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.kpi-targets.tsx",
+            "line": 73
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "DELETE /api/kob/kpi-targets/:param",
+      "call": {
+        "method": "DELETE",
+        "rawEndpoint": "`/api/kob/kpi-targets/${t.id}`",
+        "normEndpoint": "/api/kob/kpi-targets/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.kpi-targets.tsx",
+            "line": 212
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-marketing-targets` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/list-marketing-targets${period ? `?period=${encodeURIComponent(period)}` : \"\"}`",
+        "normEndpoint": "/api/kob/list-marketing-targets` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.kpi-targets.tsx",
+            "line": 255
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.marketing.tsx",
+            "line": 70
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/marketing-targets",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/marketing-targets",
+        "normEndpoint": "/api/kob/marketing-targets",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.kpi-targets.tsx",
+            "line": 267
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.marketing.tsx",
+            "line": 99
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/leads",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/leads?${p.toString()}`",
+        "normEndpoint": "/api/kob/leads",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.lead-inbox.tsx",
+            "line": 100
+          },
+          {
+            "file": "src/routes/_authenticated/exe.reports.tsx",
+            "line": 41
+          },
+          {
+            "file": "src/routes/_authenticated/exec.$stage.tsx",
+            "line": 47
+          },
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 229
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.approvals.tsx",
+            "line": 17
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.ktn.tsx",
+            "line": 17
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 71
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.reports.tsx",
+            "line": 53
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.team.tsx",
+            "line": 18
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 113
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+            "line": 22
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 51
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/leads/:param/next-action",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/leads/${lead.id}/next-action`",
+        "normEndpoint": "/api/kob/leads/:param/next-action",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.lead-inbox.tsx",
+            "line": 263
+          },
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 431
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-cities-with-scope",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-cities-with-scope",
+        "normEndpoint": "/api/kob/list-cities-with-scope",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 33
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-state-pincode-totals",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-state-pincode-totals",
+        "normEndpoint": "/api/kob/list-state-pincode-totals",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 37
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/admin/pincodes/sync-india-post",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/admin/pincodes/sync-india-post",
+        "normEndpoint": "/api/admin/pincodes/sync-india-post",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 63
+          },
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 76
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/entities/india_cities/:param/toggle",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/entities/india_cities/${c.city_id}/toggle`",
+        "normEndpoint": "/api/kob/entities/india_cities/:param/toggle",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 202
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/admin/pincodes/aliases",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "/api/admin/pincodes/aliases",
+        "normEndpoint": "/api/admin/pincodes/aliases",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+            "line": 270
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-config",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-config",
+        "normEndpoint": "/api/kob/get-config",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+            "line": 21
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/gallabox-fire-queue",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/gallabox-fire-queue",
+        "normEndpoint": "/api/kob/gallabox-fire-queue",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+            "line": 25
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-state-native-brands",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-state-native-brands",
+        "normEndpoint": "/api/kob/list-state-native-brands",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.native-brand-mapping.tsx",
+            "line": 27
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/brands",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/brands",
+        "normEndpoint": "/api/kob/brands",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.native-brand-mapping.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/state-native-brand",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/state-native-brand",
+        "normEndpoint": "/api/kob/state-native-brand",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.native-brand-mapping.tsx",
+            "line": 103
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-scv-rules",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-scv-rules",
+        "normEndpoint": "/api/kob/get-scv-rules",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.scv-rules.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/scv-rules",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "/api/kob/scv-rules",
+        "normEndpoint": "/api/kob/scv-rules",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.scv-rules.tsx",
+            "line": 64
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/incentive-rules/:param",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/incentive-rules/${r.id}`",
+        "normEndpoint": "/api/kob/incentive-rules/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/ceo.scv-rules.tsx",
+            "line": 80
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-scv-score",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/my-scv-score",
+        "normEndpoint": "/api/kob/my-scv-score",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/dashboard.tsx",
+            "line": 121
+          },
+          {
+            "file": "src/routes/_authenticated/tl.overview.tsx",
+            "line": 131
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/meta/spend-kpis` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/meta/spend-kpis${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/meta/spend-kpis` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/dashboard.tsx",
+            "line": 130
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/abandoned-leads",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/abandoned-leads",
+        "normEndpoint": "/api/kob/abandoned-leads",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/exe.abandoned-leads.tsx",
+            "line": 29
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.abandoned-leads.tsx",
+            "line": 28
+          },
+          {
+            "file": "src/routes/_authenticated/tl.abandoned-leads.tsx",
+            "line": 29
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-exec-overview` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/my-exec-overview${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/my-exec-overview` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/exe.overview.tsx",
+            "line": 70
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-stage-history",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/my-stage-history",
+        "normEndpoint": "/api/kob/my-stage-history",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/exe.reports.tsx",
+            "line": 45
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-retargeting-queue",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/my-retargeting-queue",
+        "normEndpoint": "/api/kob/my-retargeting-queue",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/exe.retargeting.tsx",
+            "line": 17
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/leads/:param/stage",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/leads/${leadId}/stage`",
+        "normEndpoint": "/api/kob/leads/:param/stage",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/exec.$stage.tsx",
+            "line": 50
+          },
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 352
+          },
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 353
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/executive-stage-summary",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/executive-stage-summary?${params.toString()}`",
+        "normEndpoint": "/api/kob/executive-stage-summary",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+            "line": 75
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/scv-leaderboard",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/scv-leaderboard?month=${encodeURIComponent(month)}`",
+        "normEndpoint": "/api/kob/scv-leaderboard",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/incentives.tsx",
+            "line": 17
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-incentive-rules",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-incentive-rules",
+        "normEndpoint": "/api/kob/get-incentive-rules",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/incentives.tsx",
+            "line": 23
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/lead-detail",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/lead-detail?leadId=${encodeURIComponent(id)}`",
+        "normEndpoint": "/api/kob/lead-detail",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 75
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/leads/:param/rnr-tag",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/leads/${leadId}/rnr-tag`",
+        "normEndpoint": "/api/kob/leads/:param/rnr-tag",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 308
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/evaluation/lead",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/evaluation/lead?lead_id=${encodeURIComponent(leadId)}`",
+        "normEndpoint": "/api/evaluation/lead",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 468
+          },
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 50
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/leads/:param/messages/read",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "`/api/kob/leads/${leadId}/messages/read`",
+        "normEndpoint": "/api/kob/leads/:param/messages/read",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.$id.tsx",
+            "line": 498
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/all-executives",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/all-executives",
+        "normEndpoint": "/api/kob/all-executives",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 330
+          },
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 488
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/leads/:param/assignee",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/leads/${leadId}/assignee`",
+        "normEndpoint": "/api/kob/leads/:param/assignee",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 534
+          },
+          {
+            "file": "src/routes/_authenticated/leads.index.tsx",
+            "line": 547
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 152
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 160
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 190
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-audit-logs",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-audit-logs",
+        "normEndpoint": "/api/kob/list-audit-logs",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.audit.tsx",
+            "line": 14
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-funnel-by-brand",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-funnel-by-brand",
+        "normEndpoint": "/api/kob/get-funnel-by-brand",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.brand.tsx",
+            "line": 14
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/executives-with-stats",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/executives-with-stats",
+        "normEndpoint": "/api/kob/executives-with-stats",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.executives.tsx",
+            "line": 27
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executives.tsx",
+            "line": 29
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/allocatable-executives",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/allocatable-executives",
+        "normEndpoint": "/api/kob/allocatable-executives",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.executives.tsx",
+            "line": 32
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 126
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executives.tsx",
+            "line": 33
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/executives/:param/team-leader",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/executives/${v.executiveId}/team-leader`",
+        "normEndpoint": "/api/kob/executives/:param/team-leader",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.executives.tsx",
+            "line": 51
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/executives/:param/language",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/executives/${v.executiveId}/language`",
+        "normEndpoint": "/api/kob/executives/:param/language",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.executives.tsx",
+            "line": 60
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executives.tsx",
+            "line": 50
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/executives",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/executives",
+        "normEndpoint": "/api/kob/executives",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.executives.tsx",
+            "line": 71
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executives.tsx",
+            "line": 60
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-stage-distribution` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/get-stage-distribution${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/get-stage-distribution` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.funnel.tsx",
+            "line": 49
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-funnel-by-language",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-funnel-by-language",
+        "normEndpoint": "/api/kob/get-funnel-by-language",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.geo.tsx",
+            "line": 14
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-state-summary",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-state-summary",
+        "normEndpoint": "/api/kob/get-state-summary",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.geo.tsx",
+            "line": 18
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-kpi-targets",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-kpi-targets",
+        "normEndpoint": "/api/kob/list-kpi-targets",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.kpi-targets.tsx",
+            "line": 43
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/allocation-breakdown-by-tl",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/allocation-breakdown-by-tl",
+        "normEndpoint": "/api/kob/allocation-breakdown-by-tl",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.lead-allocation.tsx",
+            "line": 39
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-funnel-by-source` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/get-funnel-by-source${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/get-funnel-by-source` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.marketing.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-sources",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-sources",
+        "normEndpoint": "/api/kob/list-sources",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.marketing.tsx",
+            "line": 52
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/marketing-kpis",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/marketing-kpis",
+        "normEndpoint": "/api/kob/marketing-kpis",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.marketing.tsx",
+            "line": 56
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-rateable-users",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-rateable-users",
+        "normEndpoint": "/api/kob/list-rateable-users",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+            "line": 39
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-manual-ratings",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-manual-ratings",
+        "normEndpoint": "/api/kob/list-manual-ratings",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+            "line": 43
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-scv-composite",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-scv-composite",
+        "normEndpoint": "/api/kob/list-scv-composite",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-role-weights",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-role-weights",
+        "normEndpoint": "/api/kob/list-role-weights",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+            "line": 51
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/manual-ratings",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/manual-ratings",
+        "normEndpoint": "/api/kob/manual-ratings",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+            "line": 68
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/qa/staff",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/qa/staff",
+        "normEndpoint": "/api/qa/staff",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 29
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/lifecycle/run",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/lifecycle/run",
+        "normEndpoint": "/api/qa/lifecycle/run",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 95
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/retargeting/advance",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/retargeting/advance",
+        "normEndpoint": "/api/qa/retargeting/advance",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 107
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/compute-scv-scores",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/compute-scv-scores",
+        "normEndpoint": "/api/qa/compute-scv-scores",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 114
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/cleanup",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/cleanup",
+        "normEndpoint": "/api/qa/cleanup",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 118
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/sample-lead",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/sample-lead",
+        "normEndpoint": "/api/qa/sample-lead",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 132
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 207
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/qa/leads/:param/team-leader",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/qa/leads/${leadId}/team-leader`",
+        "normEndpoint": "/api/qa/leads/:param/team-leader",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 175
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/qa/leads/:param/executive",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/qa/leads/${leadId}/executive`",
+        "normEndpoint": "/api/qa/leads/:param/executive",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 188
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/leads/:param/stage",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "`/api/qa/leads/${leadId}/stage`",
+        "normEndpoint": "/api/qa/leads/:param/stage",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 201
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 211
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 226
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 228
+          },
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 230
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/retargeting/trigger",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/retargeting/trigger",
+        "normEndpoint": "/api/qa/retargeting/trigger",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 224
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/verify",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/verify",
+        "normEndpoint": "/api/qa/verify",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 242
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/qa/recalc-scv",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/qa/recalc-scv",
+        "normEndpoint": "/api/qa/recalc-scv",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.qa.tsx",
+            "line": 247
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/unallocated-leads",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/unallocated-leads",
+        "normEndpoint": "/api/kob/unallocated-leads",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.unallocated.tsx",
+            "line": 16
+          },
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 117
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/list-all-profiles",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/list-all-profiles",
+        "normEndpoint": "/api/kob/list-all-profiles",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/mgr.users.tsx",
+            "line": 14
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/retargeting-queue",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/retargeting-queue",
+        "normEndpoint": "/api/kob/retargeting-queue",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/retargeting.tsx",
+            "line": 17
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/leads/manual",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/leads/manual",
+        "normEndpoint": "/api/kob/leads/manual",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 35
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tl-overview",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tl-overview",
+        "normEndpoint": "/api/kob/tl-overview",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 105
+          },
+          {
+            "file": "src/routes/_authenticated/tl.overview.tsx",
+            "line": 126
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tl-executive-performance",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tl-executive-performance",
+        "normEndpoint": "/api/kob/tl-executive-performance",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 109
+          },
+          {
+            "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+            "line": 18
+          },
+          {
+            "file": "src/routes/_authenticated/tl.my-team.tsx",
+            "line": 14
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 48
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/my-team",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/my-team",
+        "normEndpoint": "/api/kob/my-team",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 122
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-my-allocation-mode",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/get-my-allocation-mode",
+        "normEndpoint": "/api/kob/get-my-allocation-mode",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 135
+          },
+          {
+            "file": "src/routes/_authenticated/tl.overview.tsx",
+            "line": 135
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/my-allocation-mode",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "/api/kob/my-allocation-mode",
+        "normEndpoint": "/api/kob/my-allocation-mode",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.allocation.tsx",
+            "line": 140
+          },
+          {
+            "file": "src/routes/_authenticated/tl.overview.tsx",
+            "line": 141
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tl-brand-performance",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tl-brand-performance",
+        "normEndpoint": "/api/kob/tl-brand-performance",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.brand-performance.tsx",
+            "line": 21
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 49
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/leads/import",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/leads/import",
+        "normEndpoint": "/api/kob/leads/import",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.import-leads.tsx",
+            "line": 80
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tl-language-performance",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tl-language-performance",
+        "normEndpoint": "/api/kob/tl-language-performance",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.language-performance.tsx",
+            "line": 14
+          },
+          {
+            "file": "src/routes/_authenticated/tl.reports.tsx",
+            "line": 50
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tl-retargeting",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tl-retargeting",
+        "normEndpoint": "/api/kob/tl-retargeting",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.retargeting.tsx",
+            "line": 15
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/scv-mode-incentives",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/scv-mode-incentives?month=${encodeURIComponent(month)}&ts=${refresh}`",
+        "normEndpoint": "/api/kob/scv-mode-incentives",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+            "line": 63
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/scv/mode-input",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/scv/mode-input",
+        "normEndpoint": "/api/kob/scv/mode-input",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+            "line": 109
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/scv-mode-config",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/scv-mode-config?mode=${mode}`",
+        "normEndpoint": "/api/kob/scv-mode-config",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+            "line": 119
+          },
+          {
+            "file": "src/components/ScvCalculationGuide.tsx",
+            "line": 28
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/scv/mode-config",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/scv/mode-config",
+        "normEndpoint": "/api/kob/scv/mode-config",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+            "line": 147
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/kob/scv/incentive-amount",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/kob/scv/incentive-amount",
+        "normEndpoint": "/api/kob/scv/incentive-amount",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+            "line": 159
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/tat-breach-detailed",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/tat-breach-detailed",
+        "normEndpoint": "/api/kob/tat-breach-detailed",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+            "line": 53
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/webinar/history",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/webinar/history?${p.toString()}`",
+        "normEndpoint": "/api/webinar/history",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+            "line": 45
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/webinar/batches` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/webinar/batches${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/webinar/batches` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 53
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/webinar/batch-attendance",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/webinar/batch-attendance?batchId=${encodeURIComponent(selectedBatch!)}`",
+        "normEndpoint": "/api/webinar/batch-attendance",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 74
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/webinar/batches",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/webinar/batches",
+        "normEndpoint": "/api/webinar/batches",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 79
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "DELETE /api/webinar/batches/:param",
+      "call": {
+        "method": "DELETE",
+        "rawEndpoint": "`/api/webinar/batches/${batchId}`",
+        "normEndpoint": "/api/webinar/batches/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 84
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/webinar/attendance/:param",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/webinar/attendance/${v.attendanceId}`",
+        "normEndpoint": "/api/webinar/attendance/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 90
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "DELETE /api/webinar/attendance/:param",
+      "call": {
+        "method": "DELETE",
+        "rawEndpoint": "`/api/webinar/attendance/${attendanceId}`",
+        "normEndpoint": "/api/webinar/attendance/:param",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 95
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/webinar/leads/:param/eoi2",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "`/api/webinar/leads/${leadId}/eoi2`",
+        "normEndpoint": "/api/webinar/leads/:param/eoi2",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 99
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/webinar/attendance/:param/reschedule",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "`/api/webinar/attendance/${v.attendanceId}/reschedule`",
+        "normEndpoint": "/api/webinar/attendance/:param/reschedule",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 106
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/webinar/batches/:param/leads",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "`/api/webinar/batches/${selectedBatch}/leads`",
+        "normEndpoint": "/api/webinar/batches/:param/leads",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 214
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/webinar/eligible-leads` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/webinar/eligible-leads${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/webinar/eligible-leads` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/webinar.tsx",
+            "line": 412
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/whatsapp-messages",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/whatsapp-messages?limit=5000",
+        "normEndpoint": "/api/kob/whatsapp-messages",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/whatsapp-messages.tsx",
+            "line": 48
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/whatsapp-executives",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/kob/whatsapp-executives",
+        "normEndpoint": "/api/kob/whatsapp-executives",
+        "occurrences": [
+          {
+            "file": "src/routes/_authenticated/whatsapp-messages.tsx",
+            "line": 54
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "PATCH /api/kob/leads/:param/cuisine",
+      "call": {
+        "method": "PATCH",
+        "rawEndpoint": "`/api/kob/leads/${leadId}/cuisine`",
+        "normEndpoint": "/api/kob/leads/:param/cuisine",
+        "occurrences": [
+          {
+            "file": "src/components/cuisine-dialog.tsx",
+            "line": 49
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/abandoned-funnel",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/abandoned-funnel${qs}`",
+        "normEndpoint": "/api/dashboard/abandoned-funnel",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/AbandonedFunnelCard.tsx",
+            "line": 19
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/retargeting-split",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/retargeting-split?asOf=${encodeURIComponent(asOf)}`",
+        "normEndpoint": "/api/dashboard/retargeting-split",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/AbandonedSplitCard.tsx",
+            "line": 25
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/abandoned-split",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/abandoned-split?asOf=${encodeURIComponent(asOf)}`",
+        "normEndpoint": "/api/dashboard/abandoned-split",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/AbandonedSplitCard.tsx",
+            "line": 73
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/auto-funnel",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/auto-funnel${qs}`",
+        "normEndpoint": "/api/dashboard/auto-funnel",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/AutoConversionFunnel.tsx",
+            "line": 93
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/auto-funnel-buckets",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/auto-funnel-buckets?spans=${encodeURIComponent(JSON.stringify(spans))}`",
+        "normEndpoint": "/api/dashboard/auto-funnel-buckets",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/AutoConversionFunnel.tsx",
+            "line": 105
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/brand-performance",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/brand-performance${qs}`",
+        "normEndpoint": "/api/dashboard/brand-performance",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/BrandPerformanceCard.tsx",
+            "line": 17
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/channel-conversion` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/channel-conversion${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/dashboard/channel-conversion` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ChannelConversionCard.tsx",
+            "line": 17
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/combined-funnel",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/combined-funnel${qs}`",
+        "normEndpoint": "/api/dashboard/combined-funnel",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+            "line": 54
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/combined-funnel-buckets",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/combined-funnel-buckets?spans=${encodeURIComponent(JSON.stringify(spans))}`",
+        "normEndpoint": "/api/dashboard/combined-funnel-buckets",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+            "line": 62
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/executive-performance-summary` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/executive-performance-summary${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/dashboard/executive-performance-summary` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+            "line": 18
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/funnel-stage-leads",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/funnel-stage-leads?${p.toString()}`",
+        "normEndpoint": "/api/dashboard/funnel-stage-leads",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+            "line": 27
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/get-contracts-count` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/get-contracts-count${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/kob/get-contracts-count` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/KPICards.tsx",
+            "line": 53
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/meta/cpl` : \"\"}",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/meta/cpl${q ? `?${q}` : \"\"}`",
+        "normEndpoint": "/api/meta/cpl` : \"\"}",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/KPICards.tsx",
+            "line": 64
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/leads-trend",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/leads-trend?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`",
+        "normEndpoint": "/api/dashboard/leads-trend",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+            "line": 36
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/manual-funnel",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/manual-funnel?from=${encodeURIComponent(rangeArg.from)}&to=${encodeURIComponent(rangeArg.to)}`",
+        "normEndpoint": "/api/dashboard/manual-funnel",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+            "line": 50
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/manual-funnel-buckets",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/manual-funnel-buckets?spans=${encodeURIComponent(JSON.stringify(spans))}`",
+        "normEndpoint": "/api/dashboard/manual-funnel-buckets",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+            "line": 59
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/manual-stage-response-split",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/manual-stage-response-split?${params.toString()}`",
+        "normEndpoint": "/api/dashboard/manual-stage-response-split",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ResponseSplitDialog.tsx",
+            "line": 47
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/combined-stage-response-split",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/combined-stage-response-split?${params.toString()}`",
+        "normEndpoint": "/api/dashboard/combined-stage-response-split",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ResponseSplitDialog.tsx",
+            "line": 50
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/stage-response-split",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/stage-response-split?${params.toString()}`",
+        "normEndpoint": "/api/dashboard/stage-response-split",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ResponseSplitDialog.tsx",
+            "line": 52
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/combined-stage-response-split-table",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/combined-stage-response-split-table?${params.toString()}`",
+        "normEndpoint": "/api/dashboard/combined-stage-response-split-table",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ResponseSplitDialog.tsx",
+            "line": 69
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/variant-stage-response-split-table",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/variant-stage-response-split-table?${params.toString()}`",
+        "normEndpoint": "/api/dashboard/variant-stage-response-split-table",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/ResponseSplitDialog.tsx",
+            "line": 72
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/dashboard/retargeting-funnel",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/dashboard/retargeting-funnel${qStr}`",
+        "normEndpoint": "/api/dashboard/retargeting-funnel",
+        "occurrences": [
+          {
+            "file": "src/components/kob-dashboard/RetargetingFunnelCard.tsx",
+            "line": 19
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/evaluation/leads",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "/api/evaluation/leads",
+        "normEndpoint": "/api/evaluation/leads",
+        "occurrences": [
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 46
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "POST /api/evaluation/responses",
+      "call": {
+        "method": "POST",
+        "rawEndpoint": "/api/evaluation/responses",
+        "normEndpoint": "/api/evaluation/responses",
+        "occurrences": [
+          {
+            "file": "src/components/kp-evaluation-page.tsx",
+            "line": 89
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/kpi-trend",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/kpi-trend?metric=${encodeURIComponent(metric)}`",
+        "normEndpoint": "/api/kob/kpi-trend",
+        "occurrences": [
+          {
+            "file": "src/components/kpi-trend-dialog.tsx",
+            "line": 21
+          }
+        ]
+      }
+    },
+    {
+      "status": "MISSING_ROUTE",
+      "frontend": "GET /api/kob/metric-drilldown",
+      "call": {
+        "method": "GET",
+        "rawEndpoint": "`/api/kob/metric-drilldown?${p.toString()}`",
+        "normEndpoint": "/api/kob/metric-drilldown",
+        "occurrences": [
+          {
+            "file": "src/components/metric-drilldown.tsx",
+            "line": 31
+          }
+        ]
+      }
+    }
+  ]
+}

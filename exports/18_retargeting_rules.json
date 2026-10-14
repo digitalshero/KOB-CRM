@@ -1,0 +1,59 @@
+[
+    {
+        "bucket": "NO",
+        "cadence": {
+            "phases": [
+                {
+                    "attempts": 6,
+                    "days": 30
+                }
+            ]
+        },
+        "created_at": "2026-07-13T11:24:18.432995+00:00",
+        "max_attempts": 6,
+        "max_period_days": 180,
+        "updated_at": "2026-07-16T03:55:59.849087+00:00"
+    },
+    {
+        "bucket": "LATER",
+        "cadence": {
+            "phases": [
+                {
+                    "attempts": 3,
+                    "days": 10
+                },
+                {
+                    "attempts": null,
+                    "days": 30
+                }
+            ]
+        },
+        "created_at": "2026-07-13T11:24:18.432995+00:00",
+        "max_attempts": 999,
+        "max_period_days": 180,
+        "updated_at": "2026-07-16T03:55:59.849087+00:00"
+    },
+    {
+        "bucket": "NO_RESPONSE",
+        "cadence": {
+            "phases": [
+                {
+                    "attempts": 3,
+                    "days": 3
+                },
+                {
+                    "attempts": 3,
+                    "days": 10
+                },
+                {
+                    "attempts": null,
+                    "days": 30
+                }
+            ]
+        },
+        "created_at": "2026-07-13T11:24:18.432995+00:00",
+        "max_attempts": 999,
+        "max_period_days": 180,
+        "updated_at": "2026-07-16T03:55:59.849087+00:00"
+    }
+]

@@ -1,0 +1,1 @@
+ALTER TABLE public.kob_leads ADD COLUMN IF NOT EXISTS next_action text;

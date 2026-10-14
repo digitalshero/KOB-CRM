@@ -1,0 +1,14 @@
+id;name;category;cost_per_lead;active;created_at
+3a2b1ebd-16d6-4d21-a358-9aba898d3ce7;Meta Ads;digital;180.00;true;2026-07-12 13:13:28.925425+00
+6eaf915d-e191-4518-a7ae-c0839930b25c;Google Ads;digital;220.00;true;2026-07-12 13:13:28.925425+00
+020cbad3-3aad-427d-8de2-9a472413d7c8;YouTube;digital;150.00;true;2026-07-12 13:13:28.925425+00
+bfed5048-33c5-4b71-9831-721b7f30c71b;WhatsApp Broadcast;messaging;40.00;true;2026-07-12 13:13:28.925425+00
+216f9b72-a1d3-4c63-940d-33a7a4972afe;Website Form;organic;0.00;true;2026-07-12 13:13:28.925425+00
+7998a1a8-71e1-403b-ac14-61330c4e18da;Referral;organic;0.00;true;2026-07-12 13:13:28.925425+00
+824a6c58-e769-498e-a80a-9b4208bbb759;IndiaMART;marketplace;95.00;true;2026-07-12 13:13:28.925425+00
+7cab4c4e-62bd-42ae-a2b8-a652fcdef69c;Franchise India Portal;marketplace;110.00;true;2026-07-12 13:13:28.925425+00
+8a111a59-7033-4a8a-846d-c5938d222d2b;Event / Roadshow;offline;300.00;true;2026-07-12 13:13:28.925425+00
+a0523da2-17ab-41fc-a1ca-f89ce1d4ef49;Cold Calling;offline;60.00;true;2026-07-12 13:13:28.925425+00
+ccae921e-37c4-431b-9094-d291cdc176e2;Mobile App;organic;0.00;true;2026-07-30 12:38:24.309262+00
+ad42c0ee-d86e-48e7-b6b9-6f85aaf8c1f4;Manual;ORGANIC;0.00;true;2026-07-31 12:03:59.891037+00
+5ef8a58f-5749-4a3c-b109-1dc871036d10;Support;organic;0.00;true;2026-08-08 12:39:58.355898+00

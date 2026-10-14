@@ -1,0 +1,16 @@
+[
+  {
+    "campaign_id": "120246547754720144",
+    "campaign_name": "Phase 1 KOB AUG",
+    "is_enabled": true,
+    "updated_at": "2026-10-09T09:40:54.728Z",
+    "updated_by": "bcc9e500-a764-4d84-b128-2e550ffd1721"
+  },
+  {
+    "campaign_id": "120247257560280144",
+    "campaign_name": "HR Campaign Sep 2026",
+    "is_enabled": false,
+    "updated_at": "2026-10-09T09:37:49.197Z",
+    "updated_by": null
+  }
+]

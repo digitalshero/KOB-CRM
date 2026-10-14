@@ -1,0 +1,1 @@
+DELETE FROM public.kob_leads WHERE code IN ('TEST-AUTO-STAGE','TEST-MANUAL-STAGE');

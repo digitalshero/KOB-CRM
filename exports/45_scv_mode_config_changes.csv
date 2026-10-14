@@ -1,0 +1,22 @@
+id;mode;changed_by;component;previous_value;new_value;changed_at
+ebfa20ef-93df-48e1-85f8-a4a9668ac454;AUTO;9d31662d-b591-4535-938e-36b460ed53f7;Incentive: Platinum (90+) amount;₹10000;₹20000;2026-09-27 07:15:48.041057+00
+ff81ea50-5471-4239-99c2-b07f8246392f;MANUAL;9d31662d-b591-4535-938e-36b460ed53f7;Incentive: Below Threshold amount;₹0;₹110;2026-09-27 07:26:16.303344+00
+34e4fd4b-29aa-4b3b-b8de-3dc552008c0e;MANUAL;9d31662d-b591-4535-938e-36b460ed53f7;Incentive: Platinum (90+) amount;₹20000;₹1500;2026-09-27 07:26:51.628384+00
+9f901b25-0eb9-4921-8cee-f839998cfff6;AUTO;9d31662d-b591-4535-938e-36b460ed53f7;Incentive: Below Threshold amount;₹110;₹0;2026-09-29 12:45:43.017484+00
+47df01a1-5d54-47ae-91b9-ae2f9cfa77ea;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Performance;Performance 90%;Performance 70%;2026-09-29 16:58:54.5591+00
+6dbb8f1e-b3d4-412e-8d78-ce5980386aaa;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT Compliance;TAT Compliance 0% (off);TAT Compliance 20%;2026-09-29 16:58:54.5591+00
+267666be-c0b5-4d1b-bc42-d4940a5237f0;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT: EOI 1 → Webinar;2 days;2 days (off);2026-10-01 05:27:29.900771+00
+3d4ea002-e5dc-475f-a334-689686446cb5;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT Compliance;TAT Compliance 20%;TAT Compliance 20% (off);2026-10-01 05:28:23.628231+00
+0d495280-6665-4746-b301-596856b47c0a;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Discipline;Discipline 10%;Discipline 30%;2026-10-01 05:28:23.628231+00
+c1da4a9f-77ce-46f2-806b-2bb6151f9612;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT Compliance;TAT Compliance 20% (off);TAT Compliance 20%;2026-10-01 06:37:08.120506+00
+073a1f7d-2eff-4f6d-b41d-d93576023ac4;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Discipline;Discipline 30%;Discipline 10%;2026-10-01 06:37:08.120506+00
+514d9988-447c-4709-a03f-ed51c7951881;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT: EOI 1 → Webinar;2 days (off);2 days;2026-10-01 06:37:08.120506+00
+bbaaad0e-189f-4dfd-8c98-4904a98dcc28;AUTO;9d31662d-b591-4535-938e-36b460ed53f7;Performance;Performance 70%;Performance 60%;2026-10-01 13:24:37.875128+00
+524d2750-4829-4a2b-a435-3a07c308db1e;AUTO;9d31662d-b591-4535-938e-36b460ed53f7;TAT Compliance;TAT Compliance 20%;TAT Compliance 30%;2026-10-01 13:24:37.875128+00
+a8f910eb-20db-480c-ad8b-4ac199e33173;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Incentive Amount (per contract);₹10000;₹500;2026-10-06 08:58:54.102627+00
+207dd669-faab-4676-a843-75716cfdcbcd;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Performance;Performance 60%;Performance 50%;2026-10-06 10:11:09.127536+00
+6e4fc1bd-4fba-4782-94b0-5708c29c9a72;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT Compliance;TAT Compliance 30%;TAT Compliance 40%;2026-10-06 10:11:09.127536+00
+665b0af6-c3a7-43ae-b3ca-323741f53877;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;Performance;Performance 50%;Performance 60%;2026-10-06 10:17:40.426109+00
+5341865d-4805-463c-a140-263582608b2a;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT Compliance;TAT Compliance 40%;TAT Compliance 30%;2026-10-06 10:17:40.426109+00
+f9ec5059-bf96-4354-b01e-d1fd626cd33d;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT: Lead → EOI 1;1 days;1 days (off);2026-10-06 10:17:40.426109+00
+4ced5da6-938d-44f2-821d-99692dfe217d;AUTO;6502c359-e15f-4dc2-8f6c-4b0238b4fda8;TAT: EOI 1 → Webinar;2 days;2 days (off);2026-10-06 10:17:40.426109+00

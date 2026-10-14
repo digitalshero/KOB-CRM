@@ -1,0 +1,1 @@
+ALTER TABLE public.scv_mode_config ADD COLUMN IF NOT EXISTS incentive_amount numeric NOT NULL DEFAULT 10000;

@@ -1,0 +1,1091 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["auth", "public"]
+}
+
+model users {
+  id                                                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instance_id                                            String?                    @db.Uuid
+  aud                                                    String?                    @db.VarChar(255)
+  role                                                   String?                    @db.VarChar(255)
+  email                                                  String?                    @unique @db.VarChar(255)
+  encrypted_password                                     String?                    @db.VarChar(255)
+  email_confirmed_at                                     DateTime?                  @db.Timestamptz(6)
+  invited_at                                             DateTime?                  @db.Timestamptz(6)
+  confirmation_token                                     String?                    @db.VarChar(255)
+  confirmation_sent_at                                   DateTime?                  @db.Timestamptz(6)
+  recovery_token                                         String?                    @db.VarChar(255)
+  recovery_sent_at                                       DateTime?                  @db.Timestamptz(6)
+  email_change_token_new                                 String?                    @db.VarChar(255)
+  email_change                                           String?                    @db.VarChar(255)
+  email_change_sent_at                                   DateTime?                  @db.Timestamptz(6)
+  last_sign_in_at                                        DateTime?                  @db.Timestamptz(6)
+  raw_app_meta_data                                      Json?                      @default("{}")
+  raw_user_meta_data                                     Json?                      @default("{}")
+  is_super_admin                                         Boolean?
+  created_at                                             DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                                             DateTime?                  @default(now()) @db.Timestamptz(6)
+  phone                                                  String?                    @unique
+  phone_confirmed_at                                     DateTime?                  @db.Timestamptz(6)
+  phone_change                                           String?
+  phone_change_token                                     String?                    @db.VarChar(255)
+  phone_change_sent_at                                   DateTime?                  @db.Timestamptz(6)
+  confirmed_at                                           DateTime?                  @db.Timestamptz(6)
+  email_change_token_current                             String?                    @db.VarChar(255)
+  email_change_confirm_status                            Int?                       @db.SmallInt
+  banned_until                                           DateTime?                  @db.Timestamptz(6)
+  reauthentication_token                                 String?                    @db.VarChar(255)
+  reauthentication_sent_at                               DateTime?                  @db.Timestamptz(6)
+  is_sso_user                                            Boolean?                   @default(false)
+  deleted_at                                             DateTime?                  @db.Timestamptz(6)
+  is_anonymous                                           Boolean?                   @default(false)
+  audit_logs                                             audit_logs[]
+  incentives                                             incentives[]
+  kob_leads_kob_leads_assigned_language_executiveTousers kob_leads[]                @relation("kob_leads_assigned_language_executiveTousers")
+  kob_leads_kob_leads_assigned_toTousers                 kob_leads[]                @relation("kob_leads_assigned_toTousers")
+  kob_leads_kob_leads_team_leader_idTousers              kob_leads[]                @relation("kob_leads_team_leader_idTousers")
+  lead_activities                                        lead_activities[]
+  lead_stage_history                                     lead_stage_history[]
+  meta_campaign_selections                               meta_campaign_selections[]
+  profiles                                               profiles?
+  scv_manual_ratings_scv_manual_ratings_rated_byTousers  scv_manual_ratings[]       @relation("scv_manual_ratings_rated_byTousers")
+  scv_manual_ratings_scv_manual_ratings_user_idTousers   scv_manual_ratings[]       @relation("scv_manual_ratings_user_idTousers")
+  scv_monthly_inputs                                     scv_monthly_inputs[]
+  user_roles                                             user_roles[]
+  webinar_attendance                                     webinar_attendance[]
+  webinar_batches                                        webinar_batches[]
+
+  @@schema("auth")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model audit_logs {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actor_id   String?  @db.Uuid
+  action     String
+  entity     String?
+  entity_id  String?  @db.Uuid
+  meta       Json?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users?   @relation(fields: [actor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model brand_state_availability {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  brand_id     String       @db.Uuid
+  state_id     String       @db.Uuid
+  is_native    Boolean      @default(false)
+  active       Boolean      @default(true)
+  brands       brands       @relation(fields: [brand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  india_states india_states @relation(fields: [state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([brand_id, state_id])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model brands {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                     String                     @unique
+  name                     String
+  is_shero                 Boolean                    @default(false)
+  active                   Boolean                    @default(true)
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  brand_state_availability brand_state_availability[]
+  india_cities             india_cities[]
+  kob_leads                kob_leads[]
+  state_native_brand       state_native_brand[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model email_fire_queue {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id            String              @db.Uuid
+  template_id        String?             @db.Uuid
+  to_email           String
+  subject            String
+  body               String
+  status             String              @default("PENDING")
+  error              String?
+  created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  sent_at            DateTime?           @db.Timestamptz(6)
+  kob_leads          kob_leads           @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gallabox_templates gallabox_templates? @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+
+  @@index([lead_id], map: "idx_email_fire_queue_lead")
+  @@index([status, created_at], map: "idx_email_fire_queue_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evaluation_questions {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_text        String
+  weight               Decimal                @default(1) @db.Decimal
+  question_type        String
+  active               Boolean                @default(true)
+  sort_order           Int                    @default(0)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  evaluation_responses evaluation_responses[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model evaluation_responses {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id              String               @db.Uuid
+  question_id          String               @db.Uuid
+  answer_value         Decimal?             @db.Decimal
+  answer_text          String?
+  filled_by            String?              @db.Uuid
+  filled_at            DateTime             @default(now()) @db.Timestamptz(6)
+  evaluation_id        String               @db.Uuid
+  weight_at_time       Decimal?             @db.Decimal
+  kob_leads            kob_leads            @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  evaluation_questions evaluation_questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lead_id], map: "idx_eval_resp_lead")
+  @@index([evaluation_id], map: "idx_eval_responses_eval_id")
+  @@index([lead_id, filled_at(sort: Desc)], map: "idx_eval_responses_lead_filled")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gallabox_fire_queue {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id            String              @db.Uuid
+  template_id        String?             @db.Uuid
+  status             String              @default("PENDING")
+  error              String?
+  created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  fired_at           DateTime?           @db.Timestamptz(6)
+  channel            String              @default("WHATSAPP")
+  kob_leads          kob_leads           @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gallabox_templates gallabox_templates? @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+
+  @@index([lead_id], map: "gallabox_fire_queue_lead_idx")
+  @@index([status])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gallabox_templates {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String                @unique
+  body                String
+  language            lead_language         @default(ENGLISH)
+  active              Boolean               @default(true)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  category            String                @default("ONBOARDING")
+  bucket              String?
+  email_subject       String?
+  email_body          String?
+  email_fire_queue    email_fire_queue[]
+  gallabox_fire_queue gallabox_fire_queue[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model incentive_rules {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label            String
+  min_score        Int
+  max_score        Int
+  incentive_pct    Int
+  sort_order       Int      @default(0)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @db.Timestamptz(6)
+  incentive_amount Decimal  @default(0) @db.Decimal
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model incentives {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String   @db.Uuid
+  period_month       DateTime @db.Date
+  kitchens_converted Int      @default(0)
+  slab_pct           Int      @default(0)
+  amount             Decimal  @default(0) @db.Decimal(12, 2)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, period_month])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model india_cities {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  district_id      String          @db.Uuid
+  state_id         String          @db.Uuid
+  name             String
+  tier             Int             @db.SmallInt
+  pincode_count    Int             @default(0)
+  native_brand_id  String?         @db.Uuid
+  active           Boolean         @default(true)
+  district_aliases String[]        @default([])
+  state_aliases    String[]        @default([])
+  india_districts  india_districts @relation(fields: [district_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  brands           brands?         @relation(fields: [native_brand_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  india_states     india_states    @relation(fields: [state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  kob_leads        kob_leads[]
+
+  @@unique([district_id, name])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model india_districts {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  state_id     String         @db.Uuid
+  name         String
+  active       Boolean        @default(true)
+  india_cities india_cities[]
+  india_states india_states   @relation(fields: [state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  kob_leads    kob_leads[]
+
+  @@unique([state_id, name])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model india_pincodes {
+  pincode    String   @id
+  taluk      String?
+  district   String
+  state      String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([district])
+  @@index([state, district])
+  @@index([state])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model india_states {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                     String                     @unique
+  name                     String
+  region                   String?
+  active                   Boolean                    @default(true)
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  brand_state_availability brand_state_availability[]
+  india_cities             india_cities[]
+  india_districts          india_districts[]
+  kob_leads                kob_leads[]
+  state_native_brand       state_native_brand?
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model integration_settings {
+  key        String   @id
+  value      String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model kob_configuration {
+  id                        Int      @id @default(1)
+  native_multiplier         Decimal  @default(0.020) @db.Decimal(6, 3)
+  other_multiplier          Decimal  @default(0.008) @db.Decimal(6, 3)
+  incentive_slab_a          Int      @default(90)
+  incentive_slab_b          Int      @default(80)
+  incentive_slab_c          Int      @default(70)
+  incentive_slab_d          Int      @default(60)
+  rt_no_days                Int      @default(30)
+  rt_no_attempts            Int      @default(6)
+  rt_later_first_days       Int      @default(10)
+  rt_later_first_attempts   Int      @default(3)
+  rt_later_then_days        Int      @default(30)
+  rt_noresp_first_days      Int      @default(3)
+  rt_noresp_first_attempts  Int      @default(3)
+  rt_noresp_second_days     Int      @default(10)
+  rt_noresp_second_attempts Int      @default(3)
+  rt_noresp_final_days      Int      @default(30)
+  updated_at                DateTime @default(now()) @db.Timestamptz(6)
+  native_brand_multiplier   Int      @default(4)
+  other_brand_multiplier    Int      @default(2)
+  default_mode              String   @default("AUTO")
+  auto_mode_killswitch      Boolean  @default(false)
+  incentive_amount          Decimal  @default(10000) @db.Decimal
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model kob_leads {
+  id                                                 String                                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                                               String                                  @unique
+  full_name                                          String
+  phone                                              String?
+  email                                              String?
+  brand_id                                           String?                                 @db.Uuid
+  state_id                                           String?                                 @db.Uuid
+  district_id                                        String?                                 @db.Uuid
+  city_id                                            String?                                 @db.Uuid
+  source_id                                          String?                                 @db.Uuid
+  stage                                              lead_stage                              @default(LEAD_INBOX)
+  assigned_to                                        String?                                 @db.Uuid
+  team_leader_id                                     String?                                 @db.Uuid
+  scv_score                                          Int                                     @default(0)
+  investment_capacity                                Decimal?                                @db.Decimal(12, 2)
+  notes                                              String?
+  converted_at                                       DateTime?                               @db.Timestamptz(6)
+  last_activity_at                                   DateTime                                @default(now()) @db.Timestamptz(6)
+  created_at                                         DateTime                                @default(now()) @db.Timestamptz(6)
+  updated_at                                         DateTime                                @default(now()) @db.Timestamptz(6)
+  mode                                               lead_mode                               @default(AUTO)
+  auto_fired_status                                  auto_fire_status                        @default(NOT_FIRED)
+  gallabox_template_sent                             Boolean                                 @default(false)
+  av_link_sent                                       Boolean                                 @default(false)
+  form_link_sent                                     Boolean                                 @default(false)
+  language                                           lead_language                           @default(ENGLISH)
+  assigned_language_executive                        String?                                 @db.Uuid
+  stage_entered_at                                   DateTime                                @default(now()) @db.Timestamptz(6)
+  next_action                                        String?
+  last_message                                       String?
+  last_message_at                                    DateTime?                               @db.Timestamptz(6)
+  unread_message_count                               Int                                     @default(0)
+  has_unread_messages                                Boolean                                 @default(false)
+  tags                                               String[]                                @default([])
+  cuisine                                            String?
+  email_fire_queue                                   email_fire_queue[]
+  evaluation_responses                               evaluation_responses[]
+  gallabox_fire_queue                                gallabox_fire_queue[]
+  users_kob_leads_assigned_language_executiveTousers users?                                  @relation("kob_leads_assigned_language_executiveTousers", fields: [assigned_language_executive], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_kob_leads_assigned_toTousers                 users?                                  @relation("kob_leads_assigned_toTousers", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brands                                             brands?                                 @relation(fields: [brand_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  india_cities                                       india_cities?                           @relation(fields: [city_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  india_districts                                    india_districts?                        @relation(fields: [district_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lead_sources                                       lead_sources?                           @relation(fields: [source_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  india_states                                       india_states?                           @relation(fields: [state_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_kob_leads_team_leader_idTousers              users?                                  @relation("kob_leads_team_leader_idTousers", fields: [team_leader_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lead_activities                                    lead_activities[]
+  lead_eoi1_retarget_malayalam_sends                 lead_eoi1_retarget_malayalam_sends[]
+  lead_eoi1_retarget_sends                           lead_eoi1_retarget_sends[]
+  lead_eoi1_retarget_telugu_sends                    lead_eoi1_retarget_telugu_sends[]
+  lead_events                                        lead_events[]
+  lead_inbox_retarget_sends                          lead_inbox_retarget_sends[]
+  lead_stage_history                                 lead_stage_history[]
+  lead_webinar_retarget_malayalam_sends              lead_webinar_retarget_malayalam_sends[]
+  lead_webinar_retarget_tamil_sends                  lead_webinar_retarget_tamil_sends[]
+  lead_webinar_retarget_telugu_sends                 lead_webinar_retarget_telugu_sends[]
+  meta_ads_initial_sends                             meta_ads_initial_sends?
+  retargeting_attempts                               retargeting_attempts[]
+  retargeting_schedule                               retargeting_schedule[]
+  support_lead_sends                                 support_lead_sends?
+  webinar_attendance                                 webinar_attendance[]
+  website_form_default_sends                         website_form_default_sends?
+  website_form_malayalam_sends                       website_form_malayalam_sends?
+  website_form_tamil_sends                           website_form_tamil_sends?
+  website_form_telugu_sends                          website_form_telugu_sends?
+  whatsapp_broadcast_initial_sends                   whatsapp_broadcast_initial_sends?
+
+  @@index([created_at(sort: Desc)], map: "idx_kob_leads_created_at")
+  @@index([mode, created_at], map: "idx_kob_leads_mode_created_at")
+  @@index([stage, stage_entered_at], map: "idx_kob_leads_stage_entered")
+  @@index([tags], map: "idx_kob_leads_tags", type: Gin)
+  @@index([assigned_to])
+  @@index([brand_id])
+  @@index([language])
+  @@index([mode])
+  @@index([source_id])
+  @@index([stage])
+  @@index([state_id])
+  @@index([team_leader_id])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model kpi_targets {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric         String
+  period         String   @default("monthly")
+  target_value   Decimal  @default(0) @db.Decimal
+  effective_from DateTime @default(dbgenerated("(date_trunc('month'::text, now()))::date")) @db.Date
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([metric, period, effective_from])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_activities {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id       String    @db.Uuid
+  actor_id      String?   @db.Uuid
+  activity_type String
+  detail        String?
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  users         users?    @relation(fields: [actor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  kob_leads     kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lead_id])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_eoi1_retarget_malayalam_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_eoi1_retarget_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_eoi1_retarget_telugu_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model lead_events {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String?    @db.Uuid
+  phone      String
+  event      String
+  template   String?
+  status     String?
+  event_at   DateTime?  @db.Timestamptz(6)
+  payload    Json?
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads? @relation(fields: [lead_id], references: [id], onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)])
+  @@index([lead_id])
+  @@index([phone])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_inbox_retarget_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_sources {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String      @unique
+  category      String      @default("digital")
+  cost_per_lead Decimal     @default(0) @db.Decimal(10, 2)
+  active        Boolean     @default(true)
+  created_at    DateTime    @default(now()) @db.Timestamptz(6)
+  kob_leads     kob_leads[]
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_stage_history {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String      @db.Uuid
+  from_stage lead_stage?
+  to_stage   lead_stage
+  changed_by String?     @db.Uuid
+  note       String?
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  users      users?      @relation(fields: [changed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  kob_leads  kob_leads   @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lead_id])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_webinar_retarget_malayalam_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at], map: "lead_webinar_retarget_malayalam_se_lead_id_stage_entered_at_key")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_webinar_retarget_tamil_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_webinar_retarget_telugu_sends {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id          String    @db.Uuid
+  stage_entered_at DateTime  @db.Timestamptz(6)
+  status           String    @default("PENDING")
+  request_id       BigInt?
+  error            String?
+  sent_at          DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads        kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([lead_id, stage_entered_at])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model marketing_kpi_targets {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric       String
+  target_value Decimal  @default(0) @db.Decimal
+  period       DateTime @db.Date
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([metric, period])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model meta_ads_initial_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model meta_campaign_selections {
+  campaign_id   String   @id
+  campaign_name String?
+  is_enabled    Boolean  @default(false)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_by    String?  @db.Uuid
+  users         users?   @relation(fields: [updated_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model profiles {
+  id                   String         @id @db.Uuid
+  full_name            String         @default("")
+  email                String?
+  team_leader_id       String?        @db.Uuid
+  phone                String?
+  created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime       @default(now()) @db.Timestamptz(6)
+  allocation_mode      String         @default("MANUAL")
+  rr_last_executive_id String?        @db.Uuid
+  scv_score            Int?
+  primary_language     lead_language?
+  secondary_language   lead_language?
+  assignment_active    Boolean        @default(true)
+  users                users          @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles             profiles?      @relation("profilesToprofiles", fields: [team_leader_id], references: [id], onUpdate: NoAction)
+  other_profiles       profiles[]     @relation("profilesToprofiles")
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model retargeting_attempts {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id              String                @db.Uuid
+  schedule_id          String?               @db.Uuid
+  bucket               lead_stage
+  attempt_no           Int                   @default(1)
+  template_name        String
+  scheduled_for        DateTime              @default(now()) @db.Timestamptz(6)
+  sent_at              DateTime?             @db.Timestamptz(6)
+  status               String                @default("PENDING")
+  request_id           BigInt?
+  error                String?
+  created_at           DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime              @default(now()) @db.Timestamptz(6)
+  kob_leads            kob_leads             @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  retargeting_schedule retargeting_schedule? @relation(fields: [schedule_id], references: [id], onUpdate: NoAction)
+
+  @@index([lead_id], map: "idx_rt_attempts_lead")
+  @@index([status], map: "idx_rt_attempts_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model retargeting_rules {
+  bucket          String   @id
+  cadence         Json
+  max_attempts    Int
+  max_period_days Int
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model retargeting_schedule {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id              String                 @db.Uuid
+  bucket               lead_stage
+  phase                Int                    @default(1)
+  attempts_done        Int                    @default(0)
+  next_touch_at        DateTime               @default(now()) @db.Timestamptz(6)
+  is_dead              Boolean                @default(false)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  first_touch_at       DateTime               @default(now()) @db.Timestamptz(6)
+  first_touch_source   String?
+  retargeting_attempts retargeting_attempts[]
+  kob_leads            kob_leads              @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lead_id])
+  @@index([next_touch_at])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_component_weights {
+  id                    Int      @id @default(1)
+  weight_conversion     Int      @default(35)
+  weight_tat            Int      @default(25)
+  weight_eoi2_payment   Int      @default(15)
+  weight_crm_discipline Int      @default(25)
+  updated_by            String?  @db.Uuid
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_manual_ratings {
+  id                                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                  String   @db.Uuid
+  period                                   DateTime @db.Date
+  personal_score                           Decimal  @db.Decimal
+  compliance_score                         Decimal? @db.Decimal
+  rated_by                                 String?  @db.Uuid
+  rated_at                                 DateTime @default(now()) @db.Timestamptz(6)
+  notes                                    String?
+  created_at                               DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                               DateTime @default(now()) @db.Timestamptz(6)
+  users_scv_manual_ratings_rated_byTousers users?   @relation("scv_manual_ratings_rated_byTousers", fields: [rated_by], references: [id], onUpdate: NoAction)
+  users_scv_manual_ratings_user_idTousers  users    @relation("scv_manual_ratings_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, period])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_mode_config {
+  mode             String   @id
+  components       Json
+  tat_movements    Json
+  updated_by       String?  @db.Uuid
+  updated_at       DateTime @default(now()) @db.Timestamptz(6)
+  incentive_amount Decimal  @default(10000) @db.Decimal
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_mode_config_changes {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mode           String
+  changed_by     String?  @db.Uuid
+  component      String
+  previous_value String?
+  new_value      String?
+  changed_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_mode_inputs {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @db.Uuid
+  period        DateTime @db.Date
+  mode          String
+  ktn_cs_target Int?
+  discipline    Decimal? @db.Decimal
+  marks         Json     @default("{}")
+  updated_by    String?  @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, period, mode])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_monthly_inputs {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String   @db.Uuid
+  period         DateTime @db.Date
+  ktn_cs_target  Int?
+  crm_discipline Decimal? @db.Decimal
+  updated_by     String?  @db.Uuid
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @db.Timestamptz(6)
+  users          users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, period])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_role_weights {
+  role              app_role @id
+  official_weight   Decimal  @db.Decimal
+  personal_weight   Decimal  @db.Decimal
+  compliance_weight Decimal  @db.Decimal
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_rules {
+  id                    Int      @id
+  weight_conversion     Int      @default(35)
+  weight_tat            Int      @default(25)
+  weight_eoi1_webinar   Int      @default(15)
+  weight_eoi2_payment   Int      @default(15)
+  weight_crm_discipline Int      @default(10)
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model scv_weight_changes {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  changed_by      String?  @db.Uuid
+  component       String
+  previous_weight Int
+  new_weight      Int
+  changed_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model state_native_brand {
+  state_id     String       @id @db.Uuid
+  brand_id     String       @db.Uuid
+  created_at   DateTime     @default(now()) @db.Timestamptz(6)
+  brands       brands       @relation(fields: [brand_id], references: [id], onUpdate: NoAction)
+  india_states india_states @relation(fields: [state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model support_lead_sends {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id       String    @unique @db.Uuid
+  template_name String?
+  status        String    @default("PENDING")
+  request_id    BigInt?
+  error         String?
+  sent_at       DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads     kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_roles {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String   @db.Uuid
+  role    app_role
+  users   users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, role])
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model webinar_attendance {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_id            String          @db.Uuid
+  lead_id             String          @db.Uuid
+  attended            Boolean         @default(false)
+  marked_at           DateTime?       @db.Timestamptz(6)
+  marked_by           String?         @db.Uuid
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime        @default(now()) @db.Timestamptz(6)
+  defaulter_marked_at DateTime?       @db.Timestamptz(6)
+  webinar_batches     webinar_batches @relation(fields: [batch_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  kob_leads           kob_leads       @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users?          @relation(fields: [marked_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([batch_id, lead_id])
+  @@index([batch_id], map: "idx_webinar_attendance_batch")
+  @@index([lead_id], map: "idx_webinar_attendance_lead")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model webinar_batches {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  scheduled_at       DateTime             @db.Timestamptz(6)
+  language           String?
+  notes              String?
+  created_by         String?              @db.Uuid
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  webinar_attendance webinar_attendance[]
+  users              users?               @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([scheduled_at(sort: Desc)], map: "idx_webinar_batches_scheduled_at")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model website_form_default_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model website_form_malayalam_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model website_form_tamil_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model website_form_telugu_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model whatsapp_broadcast_initial_sends {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @unique @db.Uuid
+  status     String    @default("PENDING")
+  request_id BigInt?
+  error      String?
+  sent_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  kob_leads  kob_leads @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+enum app_role {
+  super_admin
+  kob_manager
+  team_leader
+  executive
+
+  @@schema("public")
+}
+
+enum auto_fire_status {
+  NOT_FIRED
+  FIRED
+  FAILED
+
+  @@schema("public")
+}
+
+enum lead_language {
+  TAMIL
+  TELUGU
+  MALAYALAM
+  HINDI
+  BENGALI
+  ENGLISH
+  KANNADA
+  MARATHI
+  GUJARATI
+  OTHERS
+
+  @@schema("public")
+}
+
+enum lead_mode {
+  AUTO
+  MANUAL
+
+  @@schema("public")
+}
+
+enum lead_stage {
+  LEAD_INBOX
+  AUTO_FIRED
+  FAILED_FIRE
+  EOI_1
+  WEBINAR
+  WEBINAR_ATTENDED
+  EOI2_PENDING
+  EOI_2
+  FORM_FILLED
+  FEE_PAID
+  AGREEMENT_SIGNED
+  KTN_CS
+  KTN_LIVE
+  NO
+  LATER
+  NO_RESPONSE
+  RETARGETING
+  DEAD_LEAD
+  NON_SERVICEABLE
+  NO_VACANCY
+  DUPLICATE_LEAD
+
+  @@schema("public")
+}

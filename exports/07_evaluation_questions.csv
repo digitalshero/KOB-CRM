@@ -1,0 +1,4 @@
+id;question_text;weight;question_type;active;sort_order;created_at;updated_at
+a1f0abda-593d-48f1-aeca-fec9b8d84c42;Kitchen space availability (sqft, layout);40;SCALE_1_5;true;1;2026-07-18 12:54:28.24662+00;2026-07-18 12:54:28.24662+00
+c87ce5ee-1327-48f7-aff3-629829534d3e;Owner commitment & availability;30;SCALE_1_5;true;2;2026-07-18 12:54:28.24662+00;2026-07-18 12:54:28.24662+00
+7202b366-3990-4507-9a67-15e8b17edcde;Prior F&B experience;30;YES_NO;true;3;2026-07-18 12:54:28.24662+00;2026-07-18 12:54:28.24662+00

@@ -1,0 +1,572 @@
+[
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "afc2b7cc-07a6-46eb-bca7-a1f84f1da0c4",
+        "id": "b7d773c0-4a11-47c8-855e-1bba005bc8bf",
+        "name": "Mumbai",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 89,
+        "state_aliases": [],
+        "state_id": "2797c0a3-3f9b-4481-8b49-7cac43f55fe3",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "afc2b7cc-07a6-46eb-bca7-a1f84f1da0c4",
+        "id": "32331e75-a3df-417f-8595-9608f8580e3b",
+        "name": "Pune",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 141,
+        "state_aliases": [],
+        "state_id": "2797c0a3-3f9b-4481-8b49-7cac43f55fe3",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "afc2b7cc-07a6-46eb-bca7-a1f84f1da0c4",
+        "id": "a2dc8d74-653f-457c-af25-778805365baa",
+        "name": "Nagpur",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 63,
+        "state_aliases": [],
+        "state_id": "2797c0a3-3f9b-4481-8b49-7cac43f55fe3",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "a4234197-5daa-44d8-9e26-980c8ace8739",
+        "id": "3f310f15-7c4c-44ff-80e4-02179d20fa40",
+        "name": "Vadodara",
+        "native_brand_id": "b582b29c-a7fb-4a05-b592-fb839e3277b7",
+        "pincode_count": 77,
+        "state_aliases": [],
+        "state_id": "968a4288-f1fb-4bac-92f5-2ae62ed91521",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Bangalore",
+            "Bangalore Rural"
+        ],
+        "district_id": "bfa535c0-8120-4105-8127-96f67d4799af",
+        "id": "b2a6da10-aee5-49e9-9432-b8ff7a03d5fb",
+        "name": "Bengaluru",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 129,
+        "state_aliases": [],
+        "state_id": "738285c6-06e2-4ac4-ac4d-9128bd21e133",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Mysore"
+        ],
+        "district_id": "bfa535c0-8120-4105-8127-96f67d4799af",
+        "id": "e0e044e6-4c40-4b88-9e89-375f5045131f",
+        "name": "Mysuru",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 59,
+        "state_aliases": [],
+        "state_id": "738285c6-06e2-4ac4-ac4d-9128bd21e133",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Dakshina Kannada"
+        ],
+        "district_id": "bfa535c0-8120-4105-8127-96f67d4799af",
+        "id": "872133bf-2024-43fb-9df1-12014490d9ea",
+        "name": "Mangaluru",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 90,
+        "state_aliases": [],
+        "state_id": "738285c6-06e2-4ac4-ac4d-9128bd21e133",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Dharwad"
+        ],
+        "district_id": "bfa535c0-8120-4105-8127-96f67d4799af",
+        "id": "535e1103-81d1-4761-9c20-90510004af5a",
+        "name": "Hubli",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 38,
+        "state_aliases": [],
+        "state_id": "738285c6-06e2-4ac4-ac4d-9128bd21e133",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Tiruchirappalli"
+        ],
+        "district_id": "c9927dd8-7538-4fc4-b34f-7ada587a3607",
+        "id": "c54bc116-027a-4c65-9762-c7c6db56d28d",
+        "name": "Trichy",
+        "native_brand_id": "54409c09-0aba-4aa4-8578-0349d6005e94",
+        "pincode_count": 77,
+        "state_aliases": [],
+        "state_id": "bd524432-d855-408a-8e83-97ffd29d2900",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Hyderabad",
+            "K.V.Rangareddy"
+        ],
+        "district_id": "154ea3b3-7c41-41e5-9d07-1d1e27c97683",
+        "id": "6dfbf2e8-7662-452d-970f-0e2acec0ecfa",
+        "name": "Hyderabad",
+        "native_brand_id": "84247d0e-799d-4359-a308-57cb75cbafee",
+        "pincode_count": 129,
+        "state_aliases": [
+            "ANDHRA PRADESH",
+            "TELANGANA"
+        ],
+        "state_id": "b8b57f28-c200-4dd1-aba2-728cf8c343a7",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Warangal"
+        ],
+        "district_id": "154ea3b3-7c41-41e5-9d07-1d1e27c97683",
+        "id": "f35c84ed-42c5-4405-8507-067f003604b5",
+        "name": "Warangal",
+        "native_brand_id": "84247d0e-799d-4359-a308-57cb75cbafee",
+        "pincode_count": 77,
+        "state_aliases": [
+            "ANDHRA PRADESH",
+            "TELANGANA"
+        ],
+        "state_id": "b8b57f28-c200-4dd1-aba2-728cf8c343a7",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Nizamabad"
+        ],
+        "district_id": "154ea3b3-7c41-41e5-9d07-1d1e27c97683",
+        "id": "c09b602b-26fb-4e09-b4a9-85287778d520",
+        "name": "Nizamabad",
+        "native_brand_id": "84247d0e-799d-4359-a308-57cb75cbafee",
+        "pincode_count": 51,
+        "state_aliases": [
+            "ANDHRA PRADESH",
+            "TELANGANA"
+        ],
+        "state_id": "b8b57f28-c200-4dd1-aba2-728cf8c343a7",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Ernakulam"
+        ],
+        "district_id": "76cf18c1-3f60-40b6-b9a2-151ec7719837",
+        "id": "4d0436df-8c1b-4409-aed2-0a668349bc79",
+        "name": "Kochi",
+        "native_brand_id": "ecf517a5-cf43-4829-965b-4b1b8ac9941a",
+        "pincode_count": 137,
+        "state_aliases": [],
+        "state_id": "713a2355-92f6-4323-ad9c-09f372f09793",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Gurgaon"
+        ],
+        "district_id": "367fe918-7343-4765-8947-da39ac2a5490",
+        "id": "deb0de5b-350b-4ad2-9946-771bd04a5eb1",
+        "name": "Gurugram",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 32,
+        "state_aliases": [],
+        "state_id": "9e5416c6-c91a-4fb2-937b-0af9e8c18cf3",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Chandigarh"
+        ],
+        "district_id": "d2798a52-892e-4802-be03-67c0d0144762",
+        "id": "a86ef676-76c7-4fa5-a936-545094794ad0",
+        "name": "Chandigarh",
+        "native_brand_id": "acf4a588-27ea-490a-a265-d18da9fda41a",
+        "pincode_count": 21,
+        "state_aliases": [
+            "CHANDIGARH",
+            "PUNJAB"
+        ],
+        "state_id": "daf76735-559e-41a7-8ac1-99377a3632a2",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Gautam Buddha Nagar"
+        ],
+        "district_id": "e6bd5742-8a21-41f1-abd0-664386c7c370",
+        "id": "f2003877-66ae-44e2-ac09-93990be96467",
+        "name": "Noida",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 17,
+        "state_aliases": [],
+        "state_id": "79ae6820-dc28-47ce-829e-f6b737e6d658",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Kanpur Nagar",
+            "Kanpur Dehat"
+        ],
+        "district_id": "e6bd5742-8a21-41f1-abd0-664386c7c370",
+        "id": "78afe5cf-ce79-4223-aba4-eff47ab03f26",
+        "name": "Kanpur",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 54,
+        "state_aliases": [],
+        "state_id": "79ae6820-dc28-47ce-829e-f6b737e6d658",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "Darjiling"
+        ],
+        "district_id": "b50c249a-1853-42b6-937d-f6a9dbc3ab75",
+        "id": "62309177-0832-4f4e-ab61-ea044dda715b",
+        "name": "Siliguri",
+        "native_brand_id": "26032f80-329d-4f9f-8575-b72d211497b2",
+        "pincode_count": 58,
+        "state_aliases": [],
+        "state_id": "82424c1a-5cc9-441c-957d-96baaddfad32",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "New Delhi",
+            "Central Delhi"
+        ],
+        "district_id": "58d32304-2e4a-41bf-b337-8562eb39182e",
+        "id": "6534c0f7-e30c-4887-b5bf-cef4efe59b92",
+        "name": "New Delhi",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 14,
+        "state_aliases": [],
+        "state_id": "415684ed-1608-497d-8787-039d97ba0b28",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "North Delhi",
+            "North West Delhi",
+            "West Delhi"
+        ],
+        "district_id": "58d32304-2e4a-41bf-b337-8562eb39182e",
+        "id": "15dd3cbc-3faa-4a30-9042-516a7c6c54c2",
+        "name": "North Delhi",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 30,
+        "state_aliases": [],
+        "state_id": "415684ed-1608-497d-8787-039d97ba0b28",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "afc2b7cc-07a6-46eb-bca7-a1f84f1da0c4",
+        "id": "60003242-b652-4724-ad2e-06de180c212c",
+        "name": "Nashik",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 77,
+        "state_aliases": [],
+        "state_id": "2797c0a3-3f9b-4481-8b49-7cac43f55fe3",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "afc2b7cc-07a6-46eb-bca7-a1f84f1da0c4",
+        "id": "be03b6ba-db00-4204-af8b-a98e8b7606b0",
+        "name": "Aurangabad",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 40,
+        "state_aliases": [],
+        "state_id": "2797c0a3-3f9b-4481-8b49-7cac43f55fe3",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "c9927dd8-7538-4fc4-b34f-7ada587a3607",
+        "id": "479e9186-aa00-440c-9bb5-c3720e3f62c2",
+        "name": "Chennai",
+        "native_brand_id": "54409c09-0aba-4aa4-8578-0349d6005e94",
+        "pincode_count": 55,
+        "state_aliases": [],
+        "state_id": "bd524432-d855-408a-8e83-97ffd29d2900",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "c9927dd8-7538-4fc4-b34f-7ada587a3607",
+        "id": "8e01612a-c297-47d4-9b6b-7a1a0184c3b7",
+        "name": "Madurai",
+        "native_brand_id": "54409c09-0aba-4aa4-8578-0349d6005e94",
+        "pincode_count": 57,
+        "state_aliases": [],
+        "state_id": "bd524432-d855-408a-8e83-97ffd29d2900",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "e6bd5742-8a21-41f1-abd0-664386c7c370",
+        "id": "09e4f185-55fe-4ca7-be85-7f1915bbc93d",
+        "name": "Lucknow",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 43,
+        "state_aliases": [],
+        "state_id": "79ae6820-dc28-47ce-829e-f6b737e6d658",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "e6bd5742-8a21-41f1-abd0-664386c7c370",
+        "id": "c55f8a45-e80d-4e2a-8580-75d35fe85555",
+        "name": "Varanasi",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 33,
+        "state_aliases": [],
+        "state_id": "79ae6820-dc28-47ce-829e-f6b737e6d658",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "e6bd5742-8a21-41f1-abd0-664386c7c370",
+        "id": "35e78d06-3e18-4a26-adbe-f71fdd33060d",
+        "name": "Agra",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 29,
+        "state_aliases": [],
+        "state_id": "79ae6820-dc28-47ce-829e-f6b737e6d658",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "a4234197-5daa-44d8-9e26-980c8ace8739",
+        "id": "eb28f58b-108d-457f-971d-b74c1319815c",
+        "name": "Ahmedabad",
+        "native_brand_id": "b582b29c-a7fb-4a05-b592-fb839e3277b7",
+        "pincode_count": 76,
+        "state_aliases": [],
+        "state_id": "968a4288-f1fb-4bac-92f5-2ae62ed91521",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "a4234197-5daa-44d8-9e26-980c8ace8739",
+        "id": "622cd395-be1c-4b80-9abe-a47e9ef96983",
+        "name": "Rajkot",
+        "native_brand_id": "b582b29c-a7fb-4a05-b592-fb839e3277b7",
+        "pincode_count": 48,
+        "state_aliases": [],
+        "state_id": "968a4288-f1fb-4bac-92f5-2ae62ed91521",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "b50c249a-1853-42b6-937d-f6a9dbc3ab75",
+        "id": "e681cadf-540d-415d-a0c1-84d6805e33e6",
+        "name": "Kolkata",
+        "native_brand_id": "26032f80-329d-4f9f-8575-b72d211497b2",
+        "pincode_count": 80,
+        "state_aliases": [],
+        "state_id": "82424c1a-5cc9-441c-957d-96baaddfad32",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [
+            "South Delhi",
+            "South West Delhi",
+            "East Delhi"
+        ],
+        "district_id": "58d32304-2e4a-41bf-b337-8562eb39182e",
+        "id": "336e2a8a-8e46-4c93-8479-dab624d43dd0",
+        "name": "South Delhi",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 51,
+        "state_aliases": [],
+        "state_id": "415684ed-1608-497d-8787-039d97ba0b28",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "b50c249a-1853-42b6-937d-f6a9dbc3ab75",
+        "id": "5ff5da4e-ecfb-4e7b-a547-78723d6500b5",
+        "name": "Howrah",
+        "native_brand_id": "26032f80-329d-4f9f-8575-b72d211497b2",
+        "pincode_count": 50,
+        "state_aliases": [],
+        "state_id": "82424c1a-5cc9-441c-957d-96baaddfad32",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "a4234197-5daa-44d8-9e26-980c8ace8739",
+        "id": "b6488644-151b-41c8-a6e1-ea24390c8066",
+        "name": "Surat",
+        "native_brand_id": "b582b29c-a7fb-4a05-b592-fb839e3277b7",
+        "pincode_count": 91,
+        "state_aliases": [],
+        "state_id": "968a4288-f1fb-4bac-92f5-2ae62ed91521",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "367fe918-7343-4765-8947-da39ac2a5490",
+        "id": "f85b819b-ccde-48ea-8a8b-1ae81e77ded4",
+        "name": "Faridabad",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 18,
+        "state_aliases": [],
+        "state_id": "9e5416c6-c91a-4fb2-937b-0af9e8c18cf3",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "367fe918-7343-4765-8947-da39ac2a5490",
+        "id": "55d406d7-5b9f-442d-9aaa-32ba1ecc118e",
+        "name": "Panipat",
+        "native_brand_id": "7f29bff9-8a13-4bf2-a675-aae20f902ffa",
+        "pincode_count": 13,
+        "state_aliases": [],
+        "state_id": "9e5416c6-c91a-4fb2-937b-0af9e8c18cf3",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "cd48ed9e-37ee-48c5-99b4-95225ff45834",
+        "id": "e315ad8a-a7d2-4bf9-a20c-766958de047e",
+        "name": "Jaipur",
+        "native_brand_id": "7983e0af-2860-4f16-b202-72757298a45c",
+        "pincode_count": 75,
+        "state_aliases": [],
+        "state_id": "3fdede48-2110-4548-ac7d-7a79a6716d20",
+        "tier": 1
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "cd48ed9e-37ee-48c5-99b4-95225ff45834",
+        "id": "1d2e8c37-d77b-4bf4-9869-c6aa102be7ad",
+        "name": "Jodhpur",
+        "native_brand_id": "7983e0af-2860-4f16-b202-72757298a45c",
+        "pincode_count": 42,
+        "state_aliases": [],
+        "state_id": "3fdede48-2110-4548-ac7d-7a79a6716d20",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "cd48ed9e-37ee-48c5-99b4-95225ff45834",
+        "id": "15f96fa1-77b6-4acc-845d-5e96c4128377",
+        "name": "Udaipur",
+        "native_brand_id": "7983e0af-2860-4f16-b202-72757298a45c",
+        "pincode_count": 39,
+        "state_aliases": [],
+        "state_id": "3fdede48-2110-4548-ac7d-7a79a6716d20",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "d2798a52-892e-4802-be03-67c0d0144762",
+        "id": "123e7d2a-ca93-4742-8851-119404a5fb88",
+        "name": "Ludhiana",
+        "native_brand_id": "acf4a588-27ea-490a-a265-d18da9fda41a",
+        "pincode_count": 70,
+        "state_aliases": [],
+        "state_id": "daf76735-559e-41a7-8ac1-99377a3632a2",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "d2798a52-892e-4802-be03-67c0d0144762",
+        "id": "db22c18c-8df9-4727-bb61-4a8874e8f71e",
+        "name": "Amritsar",
+        "native_brand_id": "acf4a588-27ea-490a-a265-d18da9fda41a",
+        "pincode_count": 51,
+        "state_aliases": [],
+        "state_id": "daf76735-559e-41a7-8ac1-99377a3632a2",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "76cf18c1-3f60-40b6-b9a2-151ec7719837",
+        "id": "15245c1c-98bb-48b0-a646-a8943f18fb28",
+        "name": "Thiruvananthapuram",
+        "native_brand_id": "ecf517a5-cf43-4829-965b-4b1b8ac9941a",
+        "pincode_count": 131,
+        "state_aliases": [],
+        "state_id": "713a2355-92f6-4323-ad9c-09f372f09793",
+        "tier": 2
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "76cf18c1-3f60-40b6-b9a2-151ec7719837",
+        "id": "3a90d244-fe64-4098-94db-fa012fe30e04",
+        "name": "Kozhikode",
+        "native_brand_id": "ecf517a5-cf43-4829-965b-4b1b8ac9941a",
+        "pincode_count": 87,
+        "state_aliases": [],
+        "state_id": "713a2355-92f6-4323-ad9c-09f372f09793",
+        "tier": 3
+    },
+    {
+        "active": true,
+        "district_aliases": [],
+        "district_id": "c9927dd8-7538-4fc4-b34f-7ada587a3607",
+        "id": "378384c4-2b77-44fc-a75f-02b091605bae",
+        "name": "Coimbatore",
+        "native_brand_id": "54409c09-0aba-4aa4-8578-0349d6005e94",
+        "pincode_count": 137,
+        "state_aliases": [],
+        "state_id": "bd524432-d855-408a-8e83-97ffd29d2900",
+        "tier": 2
+    }
+]

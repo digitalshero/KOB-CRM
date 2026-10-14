@@ -1,0 +1,938 @@
+[
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 17,
+    "type": "Gallabox URL",
+    "text": "// Same normalisation used by the other public Gallabox endpoints.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 22,
+    "type": "Gallabox URL",
+    "text": "const EVENT_NAME = \"GALLABOX_FAILED_FIRE\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 24,
+    "type": "Gallabox URL",
+    "text": "// Only failures of this Gallabox template move a lead to FAILED_FIRE.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 27,
+    "type": "Gallabox URL",
+    "text": "/** Resolve the template id from a Gallabox message: whatsapp.template.templateId. */",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 36,
+    "type": "Gallabox URL",
+    "text": "* Look the message up in Gallabox to resolve which template it belongs to.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 37,
+    "type": "Gallabox URL",
+    "text": "* Gallabox only exposes GET /devapi/accounts/{accountId}/messages/{messageId};",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 41,
+    "type": "Gallabox URL",
+    "text": "const GALLABOX_DEFAULT_ACCOUNT_ID = \"61adf636b0cc0c00046772c2\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 43,
+    "type": "Gallabox URL",
+    "text": "async function resolveTemplateIdFromGallabox(",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 51,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_key\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 52,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_secret\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 53,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_key_telugu\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 54,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_secret_telugu\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 55,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_key_malayalam\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 56,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_api_secret_malayalam\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 57,
+    "type": "Gallabox URL",
+    "text": "\"gallabox_account_id\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 63,
+    "type": "Gallabox URL",
+    "text": "map.get(\"gallabox_account_id\") ??",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 64,
+    "type": "Gallabox URL",
+    "text": "process.env.GALLABOX_ACCOUNT_ID ??",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 65,
+    "type": "Gallabox URL",
+    "text": "GALLABOX_DEFAULT_ACCOUNT_ID;",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 68,
+    "type": "Gallabox URL",
+    "text": "[map.get(\"gallabox_api_key\"), map.get(\"gallabox_api_secret\")],",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 69,
+    "type": "Gallabox URL",
+    "text": "[map.get(\"gallabox_api_key_telugu\"), map.get(\"gallabox_api_secret_telugu\")],",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 70,
+    "type": "Gallabox URL",
+    "text": "[map.get(\"gallabox_api_key_malayalam\"), map.get(\"gallabox_api_secret_malayalam\")],",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 72,
+    "type": "Gallabox URL",
+    "text": "if (credentials.length === 0) return { error: \"Gallabox API credentials not configured\" };",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 74,
+    "type": "Gallabox URL",
+    "text": "const url = `https://server.gallabox.com/devapi/accounts/${accountId}/messages/${messageId}`;",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 75,
+    "type": "Gallabox URL",
+    "text": "let lastError = \"Gallabox message lookup failed\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 78,
+    "type": "fetch",
+    "text": "const res = await fetch(url, {",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 83,
+    "type": "Gallabox URL",
+    "text": "lastError = `Gallabox lookup ${res.status}`;",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 92,
+    "type": "Gallabox URL",
+    "text": "lastError = \"Template id not present in Gallabox message response\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 94,
+    "type": "Gallabox URL",
+    "text": "lastError = e?.message ?? \"Gallabox lookup error\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 101,
+    "type": "Gallabox URL",
+    "text": "// Tolerant schema — Gallabox nests fields differently across webhook types.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 164,
+    "type": "Gallabox URL",
+    "text": "// Real Gallabox webhook identifies the event via this header.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 166,
+    "type": "Gallabox URL",
+    "text": "const isGallaboxFailedEvent =",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 203,
+    "type": "Gallabox URL",
+    "text": "// Gallabox sends a structured errors array.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 232,
+    "type": "Gallabox URL",
+    "text": "if (!isGallaboxFailedEvent && !isFailure(status, event, reason)) {",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 239,
+    "type": "Gallabox URL",
+    "text": "// Resolution is always body.id -> Gallabox message -> whatsapp.template.templateId.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 243,
+    "type": "Gallabox URL",
+    "text": "// Gallabox lookups must use the Gallabox message id (body.id),",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 245,
+    "type": "Gallabox URL",
+    "text": "const gallaboxMessageId = pick(body, [[\"id\"], [\"message_id\"], [\"messageId\"]]);",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 246,
+    "type": "Gallabox URL",
+    "text": "if (gallaboxMessageId) {",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 247,
+    "type": "Gallabox URL",
+    "text": "const r = await resolveTemplateIdFromGallabox(supabaseAdmin, gallaboxMessageId);",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 257,
+    "type": "Gallabox URL",
+    "text": "lookup_message_id: gallaboxMessageId ?? null,",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 265,
+    "type": "Gallabox URL",
+    "text": "// Idempotency — same Gallabox message id already processed.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 298,
+    "type": "Gallabox URL",
+    "text": "// Gallabox sends a unix epoch (seconds) string.",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 328,
+    "type": "Gallabox URL",
+    "text": "source: \"gallabox-failed-fire-webhook\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 354,
+    "type": "Gallabox URL",
+    "text": "await logAudit(supabaseAdmin, null, \"GALLABOX_FAILED_FIRE\", \"kob_leads\", match.id, {",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 363,
+    "type": "Gallabox URL",
+    "text": "gallabox_status: status ?? null,",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 40,
+    "type": "Gallabox URL",
+    "text": "// automated source: /api/public/failed-fire (Gallabox template",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 141,
+    "type": "Gallabox URL",
+    "text": "// A successful Gallabox template trigger is NOT proof the CRM lead",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 153,
+    "type": "Gallabox URL",
+    "text": "origin: \"gallabox-lead-events-webhook\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 122,
+    "type": "Gallabox URL",
+    "text": "// /api/public/failed-fire (Gallabox template 6a619af9797a751542542897).",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 5,
+    "type": "Gallabox URL",
+    "text": "// KOB Sales WhatsApp channel (Gallabox). Messages from any other channel",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 8,
+    "type": "Gallabox URL",
+    "text": "process.env.GALLABOX_KOB_SALES_CHANNEL_ID || \"660bdabd3a96237ad64ff6d6\";",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 89,
+    "type": "Gallabox URL",
+    "text": "// Accepts either the simple {phone,message,...} payload or Gallabox's native",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 222,
+    "type": "Gallabox URL",
+    "text": "origin: \"gallabox-whatsapp-message-webhook\",",
+    "isServerFile": false,
+    "isPublicRoute": true,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 4,
+    "type": "Gallabox URL",
+    "text": "import { listGallaboxTemplates, upsertGallaboxTemplate } from \"@/lib/kob.functions\";",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 19,
+    "type": "Gallabox URL",
+    "text": "export const Route = createFileRoute(\"/_authenticated/ceo/gallabox-templates\")({",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 20,
+    "type": "Gallabox URL",
+    "text": "head: () => ({ meta: [{ title: \"Gallabox Templates — Shero KOB\" }] }),",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 21,
+    "type": "Gallabox URL",
+    "text": "component: CeoGallaboxTemplates,",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 24,
+    "type": "Gallabox URL",
+    "text": "function CeoGallaboxTemplates() {",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 28,
+    "type": "Gallabox URL",
+    "text": "queryFn: () => apiClient.get<any[]>(\"/api/kob/list-gallabox-templates\"),",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 30,
+    "type": "Gallabox URL",
+    "text": "const upsert = useServerFn(upsertGallaboxTemplate);",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 63,
+    "type": "Gallabox URL",
+    "text": "await apiClient.post(\"/api/kob/gallabox-templates\", {",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+    "line": 116,
+    "type": "Gallabox URL",
+    "text": "<h1 className=\"text-2xl font-bold\">Gallabox Templates</h1>",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "line": 4,
+    "type": "Gallabox URL",
+    "text": "import { updateConfig, listGallaboxFireQueue } from \"@/lib/kob.functions\";",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "line": 25,
+    "type": "Gallabox URL",
+    "text": "queryFn: () => apiClient.get<any[]>(\"/api/kob/gallabox-fire-queue\"),",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+    "line": 71,
+    "type": "Gallabox URL",
+    "text": "<CardTitle className=\"text-base\">Gallabox Fire Queue</CardTitle>",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/leads.$id.tsx",
+    "line": 135,
+    "type": "Gallabox URL",
+    "text": "href={`https://conversation-widget.gallabox.com/conversations/phone/${String(lead.phone).replace(/\\D/g, \"\")}?name=${encodeURIComponent(lead.full_name ?? \"\")}&channelId=660bdabd3a96237ad64ff6d6`}",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "line": 45,
+    "type": "Gallabox URL",
+    "text": "{ to: \"/ceo/gallabox-templates\", label: \"Gallabox Templates\", icon: Megaphone },",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "line": 110,
+    "type": "Gallabox URL",
+    "text": "{ to: \"/ceo/gallabox-templates\", label: \"Gallabox Templates\", icon: Megaphone },",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/targeting-rules.tsx",
+    "line": 37,
+    "type": "Gallabox URL",
+    "text": "{ stage: \"Webinar\", wait: \"Hourly check\", trigger: \"Lead marked as not attended in a webinar batch\", template: \"Active Gallabox template in category WEBINAR_DEFAULTER (WhatsApp + email)\", language: \"Matches lead language\", status: \"Active\" },",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/routes/_authenticated/tl.overview.tsx",
+    "line": 229,
+    "type": "Gallabox URL",
+    "text": "{entryMode === \"AUTO\" ? \"New leads skip Inbox and fire to Gallabox automatically.\" : \"New leads land in Lead Inbox for manual first-contact.\"}",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/api-client.ts",
+    "line": 3,
+    "type": "localhost backend URL",
+    "text": "const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || \"http://localhost:3001\";",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": true
+  },
+  {
+    "file": "src/lib/api-client.ts",
+    "line": 30,
+    "type": "fetch",
+    "text": "const response = await fetch(url, {",
+    "isServerFile": false,
+    "isPublicRoute": false,
+    "isApiClient": true
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 127,
+    "type": "Gallabox URL",
+    "text": "// template from the CRM (normal Meta/Gallabox leads still skip it).",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 185,
+    "type": "Gallabox URL",
+    "text": "supabase.from(\"gallabox_fire_queue\").select(\"lead_id\").in(\"lead_id\", chunk).eq(\"status\", \"FIRED\").limit(2000),",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 497,
+    "type": "Gallabox URL",
+    "text": "\"id, code, full_name, phone, stage, mode, language, tags, auto_fired_status, gallabox_template_sent, av_link_sent, form_link_sent, scv_score, investment_capacity, next_action, assigned_to, created_at, last_activity_at, stage_entered_at, last_message, last_message_at, unread_message_count, has_unread_messages, brand_id, state_id, city_id, source_id, brands(name), india_states(name, code), india_cities(name, tier), lead_sources(name)\";",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 896,
+    "type": "Gallabox URL",
+    "text": "// ---------- GALLABOX TEMPLATES ----------",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 897,
+    "type": "Gallabox URL",
+    "text": "export const listGallaboxTemplates = createServerFn({ method: \"GET\" })",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 899,
+    "type": "Gallabox URL",
+    "text": ".handler(async ({ context }) => (await (context.supabase as any).from(\"gallabox_templates\").select(\"*\").order(\"name\")).data ?? []);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 901,
+    "type": "Gallabox URL",
+    "text": "export const upsertGallaboxTemplate = createServerFn({ method: \"POST\" })",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 925,
+    "type": "Gallabox URL",
+    "text": "const { error } = await (context.supabase as any).from(\"gallabox_templates\").upsert(payload as any);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 927,
+    "type": "Gallabox URL",
+    "text": "await logAudit(context.supabase, context.userId, data.id ? \"gallabox_update\" : \"gallabox_create\", \"gallabox_templates\", data.id ?? null, { name: data.name, language: data.language, category: data.category, bucket: payload.bucket, active: data.active, email_ready: !!(payload.email_subject && payload.email_body) });",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2333,
+    "type": "Gallabox URL",
+    "text": "// ---------- GALLABOX FIRE QUEUE (Mode Control) ----------",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2334,
+    "type": "Gallabox URL",
+    "text": "export const listGallaboxFireQueue = createServerFn({ method: \"GET\" })",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2338,
+    "type": "Gallabox URL",
+    "text": ".from(\"gallabox_fire_queue\")",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2339,
+    "type": "Gallabox URL",
+    "text": ".select(\"id, status, channel, created_at, fired_at, error, lead:kob_leads(code, full_name, language, mode, email), template:gallabox_templates(name, language, email_subject, email_body)\")",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 1,
+    "type": "Gallabox URL",
+    "text": "// Shared inbound-lead synchronisation used by the Gallabox webhooks.",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 56,
+    "type": "fetch",
+    "text": "const res = await fetch(",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 57,
+    "type": "Meta Graph URL",
+    "text": "`https://graph.facebook.com/${GRAPH_VERSION}/${AD_ACCOUNT_ID}?fields=name,currency,timezone_name&access_token=${encodeURIComponent(accessToken)}`,",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 132,
+    "type": "Meta Graph URL",
+    "text": "const url = `https://graph.facebook.com/${GRAPH_VERSION}/${AD_ACCOUNT_ID}/insights?${params.toString()}`;",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 133,
+    "type": "fetch",
+    "text": "const res = await fetch(url, { cache: \"no-store\" });",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 181,
+    "type": "Meta Graph URL",
+    "text": "let nextUrl: string | null = `https://graph.facebook.com/${GRAPH_VERSION}/${AD_ACCOUNT_ID}/campaigns?fields=id,name,status,effective_status,objective,created_time,updated_time&limit=100&access_token=${encodeURIComponent(accessToken)}`;",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 186,
+    "type": "fetch",
+    "text": "const res = await fetch(nextUrl, { cache: \"no-store\" });",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 217,
+    "type": "Meta Graph URL",
+    "text": "let insightsUrl: string | null = `https://graph.facebook.com/${GRAPH_VERSION}/${AD_ACCOUNT_ID}/insights?${insightsParams.toString()}`;",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 221,
+    "type": "fetch",
+    "text": "const res = await fetch(insightsUrl, { cache: \"no-store\" });",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 345,
+    "type": "Meta Graph URL",
+    "text": "const url = `https://graph.facebook.com/${GRAPH_VERSION}/${AD_ACCOUNT_ID}/insights?${params.toString()}`;",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/meta-ads.server.ts",
+    "line": 346,
+    "type": "fetch",
+    "text": "const res = await fetch(url, { cache: \"no-store\" });",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 152,
+    "type": "Gallabox URL",
+    "text": "const { data: lead } = await supabase.from(\"kob_leads\").select(\"stage, gallabox_template_sent, av_link_sent, form_link_sent, investment_capacity\").eq(\"id\", data.leadId).maybeSingle();",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 155,
+    "type": "Gallabox URL",
+    "text": "const bonus = ((lead as any).gallabox_template_sent ? 2 : 0) + ((lead as any).av_link_sent ? 2 : 0) + ((lead as any).form_link_sent ? 2 : 0);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 231,
+    "type": "Gallabox URL",
+    "text": "await db.from(\"gallabox_fire_queue\").delete().in(\"lead_id\", ids);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 343,
+    "type": "Gallabox URL",
+    "text": "const { data: fireRows } = await supabase.from(\"gallabox_fire_queue\").select(\"id, status\").eq(\"lead_id\", lead1.id);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 345,
+    "type": "Gallabox URL",
+    "text": "push((fireRows ?? []).length > 0, \"1a. gallabox_fire_queue row created (mode=AUTO)\", `rows=${(fireRows ?? []).length}`);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 347,
+    "type": "Gallabox URL",
+    "text": "push(true, \"1a. gallabox_fire_queue skipped (mode!=AUTO)\", `rows=${(fireRows ?? []).length}`);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 442,
+    "type": "Gallabox URL",
+    "text": "await supabase.from(\"gallabox_fire_queue\").delete().in(\"lead_id\", createdLeadIds);",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "line": 212,
+    "type": "Gallabox URL",
+    "text": ".from(\"gallabox_templates\")",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "line": 220,
+    "type": "Gallabox URL",
+    "text": ".from(\"gallabox_fire_queue\")",
+    "isServerFile": true,
+    "isPublicRoute": false,
+    "isApiClient": false
+  }
+]

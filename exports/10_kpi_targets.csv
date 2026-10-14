@@ -1,0 +1,3 @@
+id;metric;period;target_value;effective_from;created_at
+c5141a4d-a7df-4f8d-8532-15764f56e7c9;KTN_CS;monthly;70;2026-08-01;2026-07-31 19:33:42.900552+00
+89d18567-eaaa-49b8-8860-d85adfe98919;TOTAL_LEADS;monthly;5000;2026-08-01;2026-08-01 06:14:20.840764+00

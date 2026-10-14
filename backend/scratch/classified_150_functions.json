@@ -1,0 +1,902 @@
+[
+  {
+    "name": "listEvaluationQuestions",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/evaluation/questions)"
+  },
+  {
+    "name": "upsertEvaluationQuestion",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/evaluation/questions)"
+  },
+  {
+    "name": "deleteEvaluationQuestion",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (DELETE /api/evaluation/questions/:param)"
+  },
+  {
+    "name": "listLeadsForEvaluation",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/evaluation/leads)"
+  },
+  {
+    "name": "getLeadEvaluation",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/evaluation/lead)"
+  },
+  {
+    "name": "saveEvaluationResponses",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/evaluation/responses)"
+  },
+  {
+    "name": "listLeadEvaluationHistory",
+    "file": "src/lib/evaluation.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "importLeads",
+    "file": "src/lib/import-leads.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/leads/import)"
+  },
+  {
+    "name": "getAutoFunnelBuckets",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/auto-funnel-buckets)"
+  },
+  {
+    "name": "getManualFunnelBuckets",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/manual-funnel-buckets)"
+  },
+  {
+    "name": "getCombinedFunnelBuckets",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/combined-funnel-buckets)"
+  },
+  {
+    "name": "getManualFunnel",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/manual-funnel)"
+  },
+  {
+    "name": "getAutoFunnel",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/auto-funnel)"
+  },
+  {
+    "name": "getChannelConversion",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/channel-conversion)"
+  },
+  {
+    "name": "getExecPerformanceSummary",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/executive-performance-summary)"
+  },
+  {
+    "name": "getStateSpread",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "getCombinedFunnel",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/combined-funnel)"
+  },
+  {
+    "name": "getLeadsTrend",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/leads-trend)"
+  },
+  {
+    "name": "getFunnelStageLeads",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/funnel-stage-leads)"
+  },
+  {
+    "name": "getStageResponseSplit",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/stage-response-split)"
+  },
+  {
+    "name": "getManualStageResponseSplit",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/manual-stage-response-split)"
+  },
+  {
+    "name": "getCombinedStageResponseSplit",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/combined-stage-response-split)"
+  },
+  {
+    "name": "getCombinedStageResponseSplitTable",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/combined-stage-response-split-table)"
+  },
+  {
+    "name": "getVariantStageResponseSplitTable",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/variant-stage-response-split-table)"
+  },
+  {
+    "name": "getRetargetingFunnel",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/retargeting-funnel)"
+  },
+  {
+    "name": "getAbandonedFunnel",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/abandoned-funnel)"
+  },
+  {
+    "name": "getBrandPerformance",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/brand-performance)"
+  },
+  {
+    "name": "getAbandonedSplit",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/abandoned-split)"
+  },
+  {
+    "name": "getRetargetingSplit",
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/dashboard/retargeting-split)"
+  },
+  {
+    "name": "getMyRole",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-role)"
+  },
+  {
+    "name": "getKpiSnapshot",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-kpi-snapshot)"
+  },
+  {
+    "name": "getContractsCount",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-contracts-count)"
+  },
+  {
+    "name": "getDashboardKpis",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-dashboard-kpis)"
+  },
+  {
+    "name": "getFunnelBySource",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-funnel-by-source)"
+  },
+  {
+    "name": "getFunnelByLanguage",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-funnel-by-language)"
+  },
+  {
+    "name": "getFunnelByBrand",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-funnel-by-brand)"
+  },
+  {
+    "name": "getStageDistribution",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-stage-distribution)"
+  },
+  {
+    "name": "getStateSummary",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-state-summary)"
+  },
+  {
+    "name": "listLeads",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/leads)"
+  },
+  {
+    "name": "updateLeadStage",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/leads/:param/stage)"
+  },
+  {
+    "name": "updateLeadNextAction",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/leads/:param/next-action)"
+  },
+  {
+    "name": "markLeadMessagesRead",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/leads/:param/messages/read)"
+  },
+  {
+    "name": "setLeadRnrTag",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/leads/:param/rnr-tag)"
+  },
+  {
+    "name": "getLeadDetail",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/lead-detail)"
+  },
+  {
+    "name": "getConfig",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-config)"
+  },
+  {
+    "name": "updateConfig",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/config)"
+  },
+  {
+    "name": "listBrands",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-brands)"
+  },
+  {
+    "name": "createBrand",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/brands)"
+  },
+  {
+    "name": "listSources",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-sources)"
+  },
+  {
+    "name": "listStates",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-states)"
+  },
+  {
+    "name": "listStatePincodeTotals",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-state-pincode-totals)"
+  },
+  {
+    "name": "listCitiesWithScope",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-cities-with-scope)"
+  },
+  {
+    "name": "toggleEntity",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/entities/brands/:param/toggle)"
+  },
+  {
+    "name": "updateSourceCost",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "listStateNativeBrands",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-state-native-brands)"
+  },
+  {
+    "name": "upsertStateNativeBrand",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/state-native-brand)"
+  },
+  {
+    "name": "syncCityPincodesFromIndiaPost",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/admin/pincodes/sync-india-post)"
+  },
+  {
+    "name": "updateCityPincodeAliases",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/admin/pincodes/aliases)"
+  },
+  {
+    "name": "listGallaboxTemplates",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-gallabox-templates)"
+  },
+  {
+    "name": "upsertGallaboxTemplate",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/gallabox-templates)"
+  },
+  {
+    "name": "listKpiTargets",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-kpi-targets)"
+  },
+  {
+    "name": "upsertKpiTarget",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/kpi-targets)"
+  },
+  {
+    "name": "deleteKpiTarget",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (DELETE /api/kob/kpi-targets/:param)"
+  },
+  {
+    "name": "listAuditLogs",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-audit-logs)"
+  },
+  {
+    "name": "getRetargetingQueue",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/retargeting-queue)"
+  },
+  {
+    "name": "getScvLeaderboard",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/scv-leaderboard)"
+  },
+  {
+    "name": "getScvRules",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-scv-rules)"
+  },
+  {
+    "name": "updateScvRules",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/scv-rules)"
+  },
+  {
+    "name": "getIncentiveRules",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-incentive-rules)"
+  },
+  {
+    "name": "updateIncentiveRule",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/incentive-rules/:param)"
+  },
+  {
+    "name": "listRateableUsers",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-rateable-users)"
+  },
+  {
+    "name": "listRoleWeights",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-role-weights)"
+  },
+  {
+    "name": "listScvComposite",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-scv-composite)"
+  },
+  {
+    "name": "listManualRatings",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-manual-ratings)"
+  },
+  {
+    "name": "upsertManualRating",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/manual-ratings)"
+  },
+  {
+    "name": "getMyTeam",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-team)"
+  },
+  {
+    "name": "getTLOverview",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tl-overview)"
+  },
+  {
+    "name": "getTLExecutivePerformance",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tl-executive-performance)"
+  },
+  {
+    "name": "getTLBrandPerformance",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tl-brand-performance)"
+  },
+  {
+    "name": "getTLLanguagePerformance",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tl-language-performance)"
+  },
+  {
+    "name": "getTLTATBreach",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "getTLRetargeting",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tl-retargeting)"
+  },
+  {
+    "name": "getTLScvIncentives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "getScvComponentWeights",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "updateScvComponentWeights",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "saveScvMonthlyInput",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "getScvModeIncentives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/scv-mode-incentives)"
+  },
+  {
+    "name": "getScvModeConfig",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/scv-mode-config)"
+  },
+  {
+    "name": "saveScvModeConfig",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/scv/mode-config)"
+  },
+  {
+    "name": "saveIncentiveAmount",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/scv/incentive-amount)"
+  },
+  {
+    "name": "saveIncentiveSlabs",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "saveScvModeInput",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/scv/mode-input)"
+  },
+  {
+    "name": "reassignLead",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/leads/:param/assignee)"
+  },
+  {
+    "name": "getUnallocatedLeads",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/unallocated-leads)"
+  },
+  {
+    "name": "listAllProfiles",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-all-profiles)"
+  },
+  {
+    "name": "getAllocationBreakdownByTL",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/allocation-breakdown-by-tl)"
+  },
+  {
+    "name": "getTATBreachDetailed",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/tat-breach-detailed)"
+  },
+  {
+    "name": "listGallaboxFireQueue",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/gallabox-fire-queue)"
+  },
+  {
+    "name": "getMyExecOverview",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-exec-overview)"
+  },
+  {
+    "name": "getMyRetargetingQueue",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-retargeting-queue)"
+  },
+  {
+    "name": "getMyStageHistory",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-stage-history)"
+  },
+  {
+    "name": "getMyAllocationMode",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/get-my-allocation-mode)"
+  },
+  {
+    "name": "updateMyAllocationMode",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/my-allocation-mode)"
+  },
+  {
+    "name": "listExecutivesWithStats",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/executives-with-stats)"
+  },
+  {
+    "name": "getExecutiveStageSummary",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/executive-stage-summary)"
+  },
+  {
+    "name": "reassignExecutiveTeamLeader",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/executives/:param/team-leader)"
+  },
+  {
+    "name": "getMyScvScore",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/my-scv-score)"
+  },
+  {
+    "name": "getMarketingKpis",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/marketing-kpis)"
+  },
+  {
+    "name": "listMarketingTargets",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/list-marketing-targets)"
+  },
+  {
+    "name": "upsertMarketingTarget",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/marketing-targets)"
+  },
+  {
+    "name": "listAllocatableExecutives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/allocatable-executives)"
+  },
+  {
+    "name": "listAllExecutives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/all-executives)"
+  },
+  {
+    "name": "createExecutive",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/executives)"
+  },
+  {
+    "name": "updateExecutiveLanguage",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/executives/:param/language)"
+  },
+  {
+    "name": "getKpiTrend",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/kpi-trend)"
+  },
+  {
+    "name": "getMetricDrilldown",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/metric-drilldown)"
+  },
+  {
+    "name": "getAbandonedLeads",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/abandoned-leads)"
+  },
+  {
+    "name": "createManualLead",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/kob/leads/manual)"
+  },
+  {
+    "name": "listActiveExecutives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "C",
+    "reason": "No active caller in frontend or routes"
+  },
+  {
+    "name": "listWhatsappExecutives",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/whatsapp-executives)"
+  },
+  {
+    "name": "listWhatsappMessages",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/kob/whatsapp-messages)"
+  },
+  {
+    "name": "setLeadCuisine",
+    "file": "src/lib/kob.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/kob/leads/:param/cuisine)"
+  },
+  {
+    "name": "getMetaSpendKpis",
+    "file": "src/lib/meta-ads.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/meta/spend-kpis)"
+  },
+  {
+    "name": "getMetaCampaignsList",
+    "file": "src/lib/meta-ads.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/meta/campaigns)"
+  },
+  {
+    "name": "toggleMetaCampaignSelection",
+    "file": "src/lib/meta-ads.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/meta/campaigns/:param/selection)"
+  },
+  {
+    "name": "getMetaCplForKpiCard",
+    "file": "src/lib/meta-ads.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/meta/cpl)"
+  },
+  {
+    "name": "qaListStaff",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/qa/staff)"
+  },
+  {
+    "name": "qaCreateSampleLead",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/sample-lead)"
+  },
+  {
+    "name": "qaAssignTL",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/qa/leads/:param/team-leader)"
+  },
+  {
+    "name": "qaAssignExec",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/qa/leads/:param/executive)"
+  },
+  {
+    "name": "qaMoveStage",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/leads/:param/stage)"
+  },
+  {
+    "name": "qaTriggerRetargeting",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/retargeting/trigger)"
+  },
+  {
+    "name": "qaRecalcScv",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/recalc-scv)"
+  },
+  {
+    "name": "qaVerify",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/verify)"
+  },
+  {
+    "name": "qaCleanup",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/cleanup)"
+  },
+  {
+    "name": "qaComputeScvScores",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/compute-scv-scores)"
+  },
+  {
+    "name": "qaAdvanceRetargeting",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/retargeting/advance)"
+  },
+  {
+    "name": "qaRunLifecycle",
+    "file": "src/lib/qa.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/qa/lifecycle/run)"
+  },
+  {
+    "name": "seedDemoUsers",
+    "file": "src/lib/seed-users.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/admin/demo-users/seed)"
+  },
+  {
+    "name": "listWebinarBatches",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/webinar/batches)"
+  },
+  {
+    "name": "createWebinarBatch",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/webinar/batches)"
+  },
+  {
+    "name": "deleteWebinarBatch",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (DELETE /api/webinar/batches/:param)"
+  },
+  {
+    "name": "listBatchAttendance",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/webinar/batch-attendance)"
+  },
+  {
+    "name": "listWebinarEligibleLeads",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/webinar/eligible-leads)"
+  },
+  {
+    "name": "addLeadsToBatch",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/webinar/batches/:param/leads)"
+  },
+  {
+    "name": "removeLeadFromBatch",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (DELETE /api/webinar/attendance/:param)"
+  },
+  {
+    "name": "markAttendance",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (PATCH /api/webinar/attendance/:param)"
+  },
+  {
+    "name": "markLeadEoi2",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/webinar/leads/:param/eoi2)"
+  },
+  {
+    "name": "rescheduleAttendance",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (POST /api/webinar/attendance/:param/reschedule)"
+  },
+  {
+    "name": "getWebinarHistory",
+    "file": "src/lib/webinar.functions.ts",
+    "category": "A",
+    "reason": "Migrated to Express; active frontend caller uses apiClient (GET /api/webinar/history)"
+  }
+]

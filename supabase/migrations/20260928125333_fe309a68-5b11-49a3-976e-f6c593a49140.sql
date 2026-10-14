@@ -1,0 +1,2 @@
+ALTER TABLE public.kob_leads ADD COLUMN IF NOT EXISTS cuisine text;
+ALTER TABLE public.kob_leads ADD CONSTRAINT kob_leads_cuisine_check CHECK (cuisine IS NULL OR cuisine IN ('Chettinad','Andhra','Kerala','North Indian'));

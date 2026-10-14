@@ -1,0 +1,590 @@
+{
+  "totalServerFunctions": 150,
+  "migratedCount": 92,
+  "remainingCount": 58,
+  "remainingReadOnly": [],
+  "remainingMutation": [
+    {
+      "name": "upsertEvaluationQuestion",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "deleteEvaluationQuestion",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "saveEvaluationResponses",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "importLeads",
+      "method": "POST",
+      "file": "src/lib/import-leads.functions.ts"
+    },
+    {
+      "name": "updateLeadStage",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateLeadNextAction",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "markLeadMessagesRead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "setLeadRnrTag",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateConfig",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createBrand",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "toggleEntity",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateSourceCost",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertStateNativeBrand",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "syncCityPincodesFromIndiaPost",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateCityPincodeAliases",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertGallaboxTemplate",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertKpiTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "deleteKpiTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateScvRules",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateIncentiveRule",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertManualRating",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateScvComponentWeights",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvMonthlyInput",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvModeConfig",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveIncentiveAmount",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveIncentiveSlabs",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvModeInput",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "reassignLead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateMyAllocationMode",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "reassignExecutiveTeamLeader",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertMarketingTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createExecutive",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateExecutiveLanguage",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createManualLead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "setLeadCuisine",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "getMetaSpendKpis",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "getMetaCampaignsList",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "toggleMetaCampaignSelection",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "getMetaCplForKpiCard",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "qaCreateSampleLead",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAssignTL",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAssignExec",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaMoveStage",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaTriggerRetargeting",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaRecalcScv",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaVerify",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaCleanup",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaComputeScvScores",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAdvanceRetargeting",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaRunLifecycle",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "seedDemoUsers",
+      "method": "POST",
+      "file": "src/lib/seed-users.functions.ts"
+    },
+    {
+      "name": "createWebinarBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "deleteWebinarBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "addLeadsToBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "removeLeadFromBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "markAttendance",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "markLeadEoi2",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "rescheduleAttendance",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    }
+  ],
+  "unmigratedFns": [
+    {
+      "name": "upsertEvaluationQuestion",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "deleteEvaluationQuestion",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "saveEvaluationResponses",
+      "method": "POST",
+      "file": "src/lib/evaluation.functions.ts"
+    },
+    {
+      "name": "importLeads",
+      "method": "POST",
+      "file": "src/lib/import-leads.functions.ts"
+    },
+    {
+      "name": "updateLeadStage",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateLeadNextAction",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "markLeadMessagesRead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "setLeadRnrTag",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateConfig",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createBrand",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "toggleEntity",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateSourceCost",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertStateNativeBrand",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "syncCityPincodesFromIndiaPost",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateCityPincodeAliases",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertGallaboxTemplate",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertKpiTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "deleteKpiTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateScvRules",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateIncentiveRule",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertManualRating",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateScvComponentWeights",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvMonthlyInput",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvModeConfig",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveIncentiveAmount",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveIncentiveSlabs",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "saveScvModeInput",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "reassignLead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateMyAllocationMode",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "reassignExecutiveTeamLeader",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "upsertMarketingTarget",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createExecutive",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "updateExecutiveLanguage",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "createManualLead",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "setLeadCuisine",
+      "method": "POST",
+      "file": "src/lib/kob.functions.ts"
+    },
+    {
+      "name": "getMetaSpendKpis",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "getMetaCampaignsList",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "toggleMetaCampaignSelection",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "getMetaCplForKpiCard",
+      "method": "POST",
+      "file": "src/lib/meta-ads.functions.ts"
+    },
+    {
+      "name": "qaCreateSampleLead",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAssignTL",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAssignExec",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaMoveStage",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaTriggerRetargeting",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaRecalcScv",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaVerify",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaCleanup",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaComputeScvScores",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaAdvanceRetargeting",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "qaRunLifecycle",
+      "method": "POST",
+      "file": "src/lib/qa.functions.ts"
+    },
+    {
+      "name": "seedDemoUsers",
+      "method": "POST",
+      "file": "src/lib/seed-users.functions.ts"
+    },
+    {
+      "name": "createWebinarBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "deleteWebinarBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "addLeadsToBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "removeLeadFromBatch",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "markAttendance",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "markLeadEoi2",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    },
+    {
+      "name": "rescheduleAttendance",
+      "method": "POST",
+      "file": "src/lib/webinar.functions.ts"
+    }
+  ]
+}

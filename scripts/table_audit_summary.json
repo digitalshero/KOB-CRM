@@ -1,0 +1,497 @@
+[
+  {
+    "table_name": "audit_logs",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 127679
+  },
+  {
+    "table_name": "brand_state_availability",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": null,
+    "trigger_count": 0,
+    "row_count": 104
+  },
+  {
+    "table_name": "brands",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 9
+  },
+  {
+    "table_name": "email_fire_queue",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at, sent_at",
+    "trigger_count": 0,
+    "row_count": 0
+  },
+  {
+    "table_name": "evaluation_questions",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 3
+  },
+  {
+    "table_name": "evaluation_responses",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": "filled_at",
+    "trigger_count": 0,
+    "row_count": 0
+  },
+  {
+    "table_name": "gallabox_fire_queue",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at, fired_at",
+    "trigger_count": 0,
+    "row_count": 335
+  },
+  {
+    "table_name": "gallabox_templates",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 17
+  },
+  {
+    "table_name": "incentive_rules",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 5
+  },
+  {
+    "table_name": "incentives",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 0
+  },
+  {
+    "table_name": "india_cities",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": null,
+    "trigger_count": 0,
+    "row_count": 43
+  },
+  {
+    "table_name": "india_districts",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": null,
+    "trigger_count": 0,
+    "row_count": 12
+  },
+  {
+    "table_name": "india_pincodes",
+    "primary_key": "pincode",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 19097
+  },
+  {
+    "table_name": "india_states",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 36
+  },
+  {
+    "table_name": "integration_settings",
+    "primary_key": "key",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 42
+  },
+  {
+    "table_name": "kob_configuration",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "updated_at",
+    "trigger_count": 1,
+    "row_count": 1
+  },
+  {
+    "table_name": "kob_leads",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "converted_at, last_activity_at, created_at, updated_at, stage_entered_at, last_message_at",
+    "trigger_count": 20,
+    "row_count": 4746
+  },
+  {
+    "table_name": "kpi_targets",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 2
+  },
+  {
+    "table_name": "lead_activities",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 16156
+  },
+  {
+    "table_name": "lead_eoi1_retarget_malayalam_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 74
+  },
+  {
+    "table_name": "lead_eoi1_retarget_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 948
+  },
+  {
+    "table_name": "lead_eoi1_retarget_telugu_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 140
+  },
+  {
+    "table_name": "lead_events",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "event_at, created_at",
+    "trigger_count": 0,
+    "row_count": 49537
+  },
+  {
+    "table_name": "lead_inbox_retarget_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 2014
+  },
+  {
+    "table_name": "lead_sources",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 13
+  },
+  {
+    "table_name": "lead_stage_history",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 16152
+  },
+  {
+    "table_name": "lead_webinar_retarget_malayalam_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 164
+  },
+  {
+    "table_name": "lead_webinar_retarget_tamil_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 1516
+  },
+  {
+    "table_name": "lead_webinar_retarget_telugu_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "stage_entered_at, sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 373
+  },
+  {
+    "table_name": "marketing_kpi_targets",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 8
+  },
+  {
+    "table_name": "meta_ads_initial_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 3403
+  },
+  {
+    "table_name": "meta_campaign_selections",
+    "primary_key": "campaign_id",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "updated_at",
+    "trigger_count": 0,
+    "row_count": 0
+  },
+  {
+    "table_name": "profiles",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 15
+  },
+  {
+    "table_name": "retargeting_attempts",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 22269
+  },
+  {
+    "table_name": "retargeting_rules",
+    "primary_key": "bucket",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 3
+  },
+  {
+    "table_name": "retargeting_schedule",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "next_touch_at, created_at, updated_at, first_touch_at",
+    "trigger_count": 0,
+    "row_count": 5608
+  },
+  {
+    "table_name": "scv_component_weights",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "weight_tat, updated_at",
+    "trigger_count": 1,
+    "row_count": 1
+  },
+  {
+    "table_name": "scv_manual_ratings",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "rated_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 6
+  },
+  {
+    "table_name": "scv_mode_config",
+    "primary_key": "mode",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "updated_at",
+    "trigger_count": 0,
+    "row_count": 2
+  },
+  {
+    "table_name": "scv_mode_config_changes",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": "changed_at",
+    "trigger_count": 0,
+    "row_count": 21
+  },
+  {
+    "table_name": "scv_mode_inputs",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 25
+  },
+  {
+    "table_name": "scv_monthly_inputs",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 10
+  },
+  {
+    "table_name": "scv_role_weights",
+    "primary_key": "role",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "updated_at",
+    "trigger_count": 0,
+    "row_count": 3
+  },
+  {
+    "table_name": "scv_rules",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": true,
+    "all_timestamp_cols": "weight_tat, updated_at",
+    "trigger_count": 1,
+    "row_count": 1
+  },
+  {
+    "table_name": "scv_weight_changes",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": "changed_at",
+    "trigger_count": 0,
+    "row_count": 0
+  },
+  {
+    "table_name": "state_native_brand",
+    "primary_key": "state_id",
+    "has_created_at": true,
+    "has_updated_at": false,
+    "all_timestamp_cols": "created_at",
+    "trigger_count": 0,
+    "row_count": 13
+  },
+  {
+    "table_name": "support_lead_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 452
+  },
+  {
+    "table_name": "user_roles",
+    "primary_key": "id",
+    "has_created_at": false,
+    "has_updated_at": false,
+    "all_timestamp_cols": null,
+    "trigger_count": 0,
+    "row_count": 15
+  },
+  {
+    "table_name": "webinar_attendance",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "marked_at, created_at, updated_at, defaulter_marked_at",
+    "trigger_count": 1,
+    "row_count": 412
+  },
+  {
+    "table_name": "webinar_batches",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "scheduled_at, created_at, updated_at",
+    "trigger_count": 1,
+    "row_count": 106
+  },
+  {
+    "table_name": "website_form_default_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 20
+  },
+  {
+    "table_name": "website_form_malayalam_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 18
+  },
+  {
+    "table_name": "website_form_tamil_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 198
+  },
+  {
+    "table_name": "website_form_telugu_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 63
+  },
+  {
+    "table_name": "whatsapp_broadcast_initial_sends",
+    "primary_key": "id",
+    "has_created_at": true,
+    "has_updated_at": true,
+    "all_timestamp_cols": "sent_at, created_at, updated_at",
+    "trigger_count": 0,
+    "row_count": 143
+  }
+]

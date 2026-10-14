@@ -1,0 +1,1784 @@
+[
+  {
+    "file": "src/integrations/supabase/auth-attacher.ts",
+    "line": 9,
+    "pattern": "supabase.auth",
+    "text": "const { data } = await supabase.auth.getSession()"
+  },
+  {
+    "file": "src/integrations/supabase/auth-middleware.ts",
+    "line": 92,
+    "pattern": "supabase.auth",
+    "text": "const { data, error } = await supabase.auth.getClaims(token);"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "line": 58,
+    "pattern": "supabaseAdmin",
+    "text": "let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "line": 62,
+    "pattern": "supabaseAdmin",
+    "text": "// Load inside server handlers: const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "line": 64,
+    "pattern": "supabaseAdmin",
+    "text": "export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "line": 66,
+    "pattern": "supabaseAdmin",
+    "text": "if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();"
+  },
+  {
+    "file": "src/integrations/supabase/client.server.ts",
+    "line": 67,
+    "pattern": "supabaseAdmin",
+    "text": "return Reflect.get(_supabaseAdmin, prop, receiver);"
+  },
+  {
+    "file": "src/lib/api-client.ts",
+    "line": 18,
+    "pattern": "supabase.auth",
+    "text": "const { data: sessionData } = await supabase.auth.getSession();"
+  },
+  {
+    "file": "src/lib/audit.ts",
+    "line": 12,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/lib/evaluation.functions.ts",
+    "line": 99,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"evaluation_responses\").select(\"*\").eq(\"lead_id\", data.lead_id),"
+  },
+  {
+    "file": "src/lib/evaluation.functions.ts",
+    "line": 100,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"v_lead_evaluation_score\").select(\"*\").eq(\"lead_id\", data.lead_id).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 13,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_configuration\").select(\"default_mode\").eq(\"id\", 1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 14,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"brands\").select(\"id, code, name\"),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 15,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"india_states\").select(\"id, name\"),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 16,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"india_cities\").select(\"id, name, state_id, district_id\"),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 17,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_sources\").select(\"id, name\"),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 18,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"phone\"),"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 42,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: isTL } = await supabase.rpc(\"has_role\", { _user_id: userId, _role: \"team_leader\" as any });"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 97,
+    "pattern": "supabase.from(",
+    "text": "const { data: insertedLead, error } = await supabase.from(\"kob_leads\").insert({"
+  },
+  {
+    "file": "src/lib/import-leads.functions.ts",
+    "line": 129,
+    "pattern": "supabase.rpc(",
+    "text": "try { await supabase.rpc(\"send_csv_import_meta_ads_initial\" as any, { _lead_id: (insertedLead as any).id }); } catch { /* lead stays imported */ }"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 117,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 121,
+    "pattern": "supabaseAdmin",
+    "text": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 195,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 199,
+    "pattern": "supabaseAdmin",
+    "text": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 321,
+    "pattern": "supabase.from(",
+    "text": "const { data: states } = await supabase.from(\"india_states\").select(\"id, name\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 401,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"kob_leads\").select(\"id, stage\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 501,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"id, created_at\").gte(\"created_at\", from).lte(\"created_at\", to),"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 559,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"kob_leads\").select(\"id\").order(\"created_at\", { ascending: true });"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 584,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1324,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"kob_leads\").select(\"brand_id, stage\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1344,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"lead_stage_history\").select(\"lead_id\").eq(\"to_stage\", \"KTN_CS\");"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1352,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"id, cuisine\").eq(\"stage\", \"KTN_CS\").not(\"cuisine\", \"is\", null),"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1383,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"lead_stage_history\").select(\"lead_id\")"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1391,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"lead_stage_history\").select(\"lead_id, from_stage, to_stage, created_at\")"
+  },
+  {
+    "file": "src/lib/kob-dashboard.functions.ts",
+    "line": 1414,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"lead_stage_history\").select(\"lead_id, to_stage\")"
+  },
+  {
+    "file": "src/lib/kob-dashboard.server.ts",
+    "line": 216,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 17,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await context.supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 19,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 20,
+    "pattern": "supabaseAdmin",
+    "text": "return supabaseAdmin as any;"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 92,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 93,
+    "pattern": "supabase.from(",
+    "text": "const { data: profile } = await supabase.from(\"profiles\").select(\"*\").eq(\"id\", userId).maybeSingle();"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 111,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 114,
+    "pattern": "supabase.from(",
+    "text": "const { data: rows } = await supabase.from(\"v_kpi_snapshot\").select(\"*\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 138,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"id, stage, created_at, updated_at\").order(\"created_at\", { ascending: true }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 150,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"id, stage, created_at\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 185,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"gallabox_fire_queue\").select(\"lead_id\").in(\"lead_id\", chunk).eq(\"status\", \"FIRED\").limit(2000),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 186,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"email_fire_queue\").select(\"lead_id\").in(\"lead_id\", chunk).eq(\"status\", \"SENT\").limit(2000),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 187,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"retargeting_attempts\").select(\"lead_id\").in(\"lead_id\", chunk).eq(\"status\", \"SENT\").limit(2000),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 188,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_events\").select(\"lead_id\").in(\"lead_id\", chunk).limit(2000),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 255,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 259,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"kob_leads\").select(\"id\", { count: \"exact\", head: true }).eq(\"stage\", \"KTN_CS\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 291,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 295,
+    "pattern": "supabase.from(",
+    "text": "const base = () => applyCreatedRange(supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }), r);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 304,
+    "pattern": "supabase.from(",
+    "text": "const { count: activeStates } = await supabase.from(\"india_states\").select(\"*\", { count: \"exact\", head: true }).eq(\"active\", true);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 305,
+    "pattern": "supabase.from(",
+    "text": "const { count: activeCities } = await supabase.from(\"india_cities\").select(\"*\", { count: \"exact\", head: true }).eq(\"active\", true);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 307,
+    "pattern": "supabase.from(",
+    "text": "const { data: scope } = await supabase.from(\"v_city_scope\").select(\"native_kitchen_scope, other_kitchen_scope, city_active, state_active, district_active\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 314,
+    "pattern": "supabase.from(",
+    "text": "let ql = supabase.from(\"kob_leads\").select(\"source_id, lead_sources(cost_per_lead)\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 351,
+    "pattern": "supabase.from(",
+    "text": "const { data: sources } = await supabase.from(\"lead_sources\").select(\"id, name, cost_per_lead\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 407,
+    "pattern": "supabase.from(",
+    "text": "const { data: brands } = await supabase.from(\"brands\").select(\"id, name, code\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 459,
+    "pattern": "supabase.from(",
+    "text": "const { data: states } = await supabase.from(\"india_states\").select(\"id, name, code, active\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 463,
+    "pattern": "supabase.from(",
+    "text": "const { data: scope } = await supabase.from(\"v_city_scope\").select(\"state_id, native_kitchen_scope, other_kitchen_scope, city_active, state_active, district_active\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 500,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await context.supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 504,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 505,
+    "pattern": "supabaseAdmin",
+    "text": "client = supabaseAdmin;"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 573,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"kob_leads\").update({ stage: data.stage as any }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 584,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"kob_leads\").update({ next_action: value } as any).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 635,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 638,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 687,
+    "pattern": "supabase.from(",
+    "text": ".handler(async ({ context }) => (await context.supabase.from(\"kob_configuration\").select(\"*\").eq(\"id\", 1).maybeSingle()).data);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 693,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"kob_configuration\").update(data as any).eq(\"id\", 1);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 702,
+    "pattern": "supabase.from(",
+    "text": ".handler(async ({ context }) => (await context.supabase.from(\"brands\").select(\"*\").order(\"code\")).data ?? []);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 724,
+    "pattern": "supabase.from(",
+    "text": ".handler(async ({ context }) => (await context.supabase.from(\"lead_sources\").select(\"*\").order(\"name\")).data ?? []);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 728,
+    "pattern": "supabase.from(",
+    "text": ".handler(async ({ context }) => (await context.supabase.from(\"india_states\").select(\"*\").order(\"name\")).data ?? []);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 778,
+    "pattern": "supabase.from(",
+    "text": "context.supabase.from(\"v_city_scope\").select(\"*\").order(\"state_name\"),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 809,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"lead_sources\").update({ cost_per_lead: data.cost_per_lead }).eq(\"id\", data.id);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 971,
+    "pattern": "supabase.from(",
+    "text": ".handler(async ({ context }) => (await context.supabase.from(\"audit_logs\").select(\"*\").order(\"created_at\", { ascending: false }).limit(100)).data ?? []);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1015,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"scv_rules\").select(\"*\").eq(\"id\", 1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1022,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"incentive_rules\").select(\"*\").order(\"sort_order\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1059,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"scv_component_weights\").select(\"*\").eq(\"id\", 1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1081,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1091,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1099,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1232,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"kob_leads\").select(\"created_at\").order(\"created_at\", { ascending: true }).limit(1);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1257,
+    "pattern": "supabase.from(",
+    "text": "? await supabase.from(\"profiles\").select(\"id, full_name\").in(\"id\", execIds)"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1291,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"scv_rules\").update(data as any).eq(\"id\", 1);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1313,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"incentive_rules\").update(patch as any).eq(\"id\", id);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1344,
+    "pattern": "supabase.from(",
+    "text": "(await context.supabase.from(\"scv_role_weights\").select(\"*\")).data ?? []"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1408,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await supabase.from(\"user_roles\").select(\"user_id\").eq(\"role\", \"executive\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1411,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"profiles\").select(cols).in(\"id\", ids);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1417,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await supabase.from(\"user_roles\").select(\"user_id\").eq(\"role\", \"executive\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1420,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"profiles\").select(cols).in(\"id\", ids).order(\"full_name\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1439,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"kob_leads\").select(cols).order(\"created_at\", { ascending: false });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1471,
+    "pattern": "supabase.from(",
+    "text": "const { count: activeStates } = await supabase.from(\"india_states\").select(\"*\", { count: \"exact\", head: true }).eq(\"active\", true);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1472,
+    "pattern": "supabase.from(",
+    "text": "const { count: activeCities } = await supabase.from(\"india_cities\").select(\"*\", { count: \"exact\", head: true }).eq(\"active\", true);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1473,
+    "pattern": "supabase.from(",
+    "text": "const { data: scope } = await supabase.from(\"v_city_scope\").select(\"kitchen_scope\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1607,
+    "pattern": "supabase.from(",
+    "text": "const { data: hist } = await supabase.from(\"lead_stage_history\").select(\"lead_id, from_stage, to_stage, changed_at\").in(\"lead_id\", leadIds).order(\"changed_at\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1608,
+    "pattern": "supabase.from(",
+    "text": "const { data: acts } = await supabase.from(\"lead_activities\").select(\"lead_id, created_at\").in(\"lead_id\", leadIds).order(\"created_at\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1662,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"retargeting_schedule\").select(\"*\").in(\"lead_id\", leadIds).order(\"next_touch_at\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1675,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1710,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1711,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1712,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"team_leader\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1738,
+    "pattern": "supabase.from(",
+    "text": "const { data: profs } = await context.supabase.from(\"profiles\").select(\"id, full_name\").in(\"id\", ids);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1758,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1759,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1764,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await supabase.from(\"scv_component_weights\").update({"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1785,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await context.supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1812,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"scv_mode_config\").select(\"*\").eq(\"mode\", mode).maybeSingle();"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1828,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1838,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1845,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1855,
+    "pattern": "supabase.from(",
+    "text": "const { data } = await supabase.from(\"kob_leads\").select(\"id\").in(\"id\", feeLeadIds.slice(i, i + 300)).eq(\"mode\", mode);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1861,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1881,
+    "pattern": "supabase.from(",
+    "text": "const { data: inputs } = await supabase.from(\"scv_mode_inputs\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1885,
+    "pattern": "supabase.from(",
+    "text": "const { data: orgTargetRow } = await supabase.from(\"kpi_targets\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 1999,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2017,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2018,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2019,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"team_leader\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2038,
+    "pattern": "supabase.from(",
+    "text": "const { data: history } = await context.supabase.from(\"scv_mode_config_changes\" as any)"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2044,
+    "pattern": "supabase.from(",
+    "text": "const { data: profs } = await context.supabase.from(\"profiles\").select(\"id, full_name\").in(\"id\", ids);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2047,
+    "pattern": "supabase.from(",
+    "text": "const { data: slabs } = await context.supabase.from(\"incentive_rules\").select(\"id, label, min_score, max_score, incentive_pct, incentive_amount, sort_order\").order(\"sort_order\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2067,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2068,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2106,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2107,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2128,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2129,
+    "pattern": "supabase.rpc(",
+    "text": "supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" }),"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2132,
+    "pattern": "supabase.from(",
+    "text": "const { data: prev } = await supabase.from(\"incentive_rules\").select(\"id, label, incentive_pct, incentive_amount\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2139,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2159,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await context.supabase.rpc(\"get_user_role\", { _user_id: context.userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2174,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await context.supabase.from(\"kob_leads\").update({ assigned_to: data.executiveId }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2208,
+    "pattern": "supabase.from(",
+    "text": "const { data: profiles } = await context.supabase.from(\"profiles\").select(\"id, full_name, email, phone, team_leader_id\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2209,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await context.supabase.from(\"user_roles\").select(\"user_id, role\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2220,
+    "pattern": "supabase.from(",
+    "text": "const { data: profiles } = await supabase.from(\"profiles\").select(\"id, full_name, team_leader_id\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2221,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await supabase.from(\"user_roles\").select(\"user_id, role\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2222,
+    "pattern": "supabase.from(",
+    "text": "const { data: leads } = await supabase.from(\"kob_leads\").select(\"id, team_leader_id, assigned_to\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2265,
+    "pattern": "supabase.from(",
+    "text": "const { data: leads } = await supabase.from(\"kob_leads\").select(\"id, code, full_name, stage, created_at, updated_at, last_activity_at, assigned_to\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2272,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2279,
+    "pattern": "supabase.from(",
+    "text": "const { data: hist } = await supabase.from(\"lead_stage_history\").select(\"lead_id, from_stage, to_stage, changed_at\").in(\"lead_id\", leadIds).order(\"changed_at\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2280,
+    "pattern": "supabase.from(",
+    "text": "const { data: acts } = await supabase.from(\"lead_activities\").select(\"lead_id, created_at\").in(\"lead_id\", leadIds).order(\"created_at\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2281,
+    "pattern": "supabase.from(",
+    "text": "const { data: rt } = await supabase.from(\"retargeting_schedule\").select(\"lead_id, next_touch_at, attempts_done, bucket, is_dead\").in(\"lead_id\", leadIds);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2815,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await supabase.from(\"user_roles\").select(\"user_id, role\").eq(\"role\", \"executive\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2854,
+    "pattern": "supabase.from(",
+    "text": "const { data: roles } = await supabase.from(\"user_roles\").select(\"user_id, role\").eq(\"role\", \"executive\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2901,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2905,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: existing } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2908,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: created, error } = await supabaseAdmin.auth.admin.createUser({"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2917,
+    "pattern": "supabaseAdmin",
+    "text": "await (supabaseAdmin.from(\"profiles\") as any).upsert({"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2925,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"user_roles\").upsert("
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 2947,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3074,
+    "pattern": "supabase.from(",
+    "text": "const { data: cities } = await supabase.from(\"india_cities\").select(\"id, name\").in(\"id\", cityIds);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3100,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: userId });"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3103,
+    "pattern": "supabase.from(",
+    "text": "let q = supabase.from(\"v_abandoned_leads\")"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3117,
+    "pattern": "supabase.from(",
+    "text": "const { data: profs } = await supabase.from(\"profiles\").select(\"id, full_name\").in(\"id\", ids);"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3152,
+    "pattern": "supabase.from(",
+    "text": "const { data: dupes } = await supabase.from(\"kob_leads\").select(\"id, phone, code\");"
+  },
+  {
+    "file": "src/lib/kob.functions.ts",
+    "line": 3166,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: isTL } = await supabase.rpc(\"has_role\", { _user_id: userId, _role: \"team_leader\" as any });"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 40,
+    "pattern": "supabaseAdmin",
+    "text": "async function findLeadByPhone(supabaseAdmin: any, tail: string) {"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 41,
+    "pattern": "supabaseAdmin",
+    "text": "const { data } = await supabaseAdmin"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 55,
+    "pattern": "supabaseAdmin",
+    "text": "supabaseAdmin: any,"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 63,
+    "pattern": "supabaseAdmin",
+    "text": "const existing = await findLeadByPhone(supabaseAdmin, tail);"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 70,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: src } = await supabaseAdmin"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 87,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: last } = await supabaseAdmin"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 99,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: inserted, error } = await supabaseAdmin"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 114,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 126,
+    "pattern": "supabaseAdmin",
+    "text": "const raced = await findLeadByPhone(supabaseAdmin, tail);"
+  },
+  {
+    "file": "src/lib/lead-sync.server.ts",
+    "line": 134,
+    "pattern": "supabaseAdmin",
+    "text": "const raced = await findLeadByPhone(supabaseAdmin, tail);"
+  },
+  {
+    "file": "src/lib/meta-ads.functions.ts",
+    "line": 69,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: role } = await supabase.rpc(\"get_user_role\", { _user_id: userId });"
+  },
+  {
+    "file": "src/lib/meta-campaign-storage.server.ts",
+    "line": 111,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"meta_campaign_selections\").upsert({"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 7,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: isMgr } = await supabase.rpc(\"has_role\", { _user_id: userId, _role: \"kob_manager\" });"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 8,
+    "pattern": "supabase.rpc(",
+    "text": "const { data: isSA } = await supabase.rpc(\"has_role\", { _user_id: userId, _role: \"super_admin\" });"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 22,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 43,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"brands\").select(\"id\").eq(\"active\", true).limit(1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 44,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"india_states\").select(\"id\").eq(\"active\", true).limit(1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 45,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"india_cities\").select(\"id, district_id, state_id\").eq(\"active\", true).limit(1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 46,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_sources\").select(\"id\").eq(\"active\", true).limit(1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 47,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_configuration\").select(\"default_mode\").eq(\"id\", 1).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 66,
+    "pattern": "supabase.from(",
+    "text": "const { data, error } = await supabase.from(\"kob_leads\").insert(payload).select(\"id, code, full_name\").single();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 79,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await supabase.from(\"kob_leads\").update({ team_leader_id: data.tlId }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 92,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await supabase.from(\"kob_leads\").update({ assigned_to: data.execId }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 105,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await supabase.from(\"kob_leads\").update({ stage: data.stage as any }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 119,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 124,
+    "pattern": "supabase.from(",
+    "text": "const { error: e1 } = await supabase.from(\"kob_leads\").update({ stage: \"NO\" as any }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 152,
+    "pattern": "supabase.from(",
+    "text": "const { data: lead } = await supabase.from(\"kob_leads\").select(\"stage, gallabox_template_sent, av_link_sent, form_link_sent, investment_capacity\").eq(\"id\", data.leadId).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 158,
+    "pattern": "supabase.from(",
+    "text": "const { error } = await supabase.from(\"kob_leads\").update({ scv_score: score }).eq(\"id\", data.leadId);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 184,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"id, code, full_name, stage, scv_score, assigned_to, team_leader_id, updated_at\").eq(\"id\", data.leadId).maybeSingle(),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 185,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\").select(\"*\", { count: \"exact\", head: true }).eq(\"lead_id\", data.leadId),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 186,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"lead_stage_history\").select(\"from_stage, to_stage, created_at\").eq(\"lead_id\", data.leadId).order(\"created_at\", { ascending: false }).limit(20),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 187,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"audit_logs\").select(\"*\", { count: \"exact\", head: true }).eq(\"entity_id\", data.leadId),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 188,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"audit_logs\").select(\"action, created_at, meta\").eq(\"entity_id\", data.leadId).order(\"created_at\", { ascending: false }).limit(20),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 189,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 190,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }).eq(\"stage\", \"FEE_PAID\"),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 191,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }).eq(\"stage\", \"AGREEMENT_SIGNED\"),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 192,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }).eq(\"stage\", \"KTN_CS\"),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 193,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }).eq(\"stage\", \"KTN_LIVE\"),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 194,
+    "pattern": "supabase.from(",
+    "text": "supabase.from(\"kob_leads\").select(\"*\", { count: \"exact\", head: true }).eq(\"stage\", \"RETARGETING\"),"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 223,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 247,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 267,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 291,
+    "pattern": "supabase.from(",
+    "text": "(await supabase.from(\"kob_leads\").select(\"*\").eq(\"id\", id).maybeSingle()).data as any;"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 296,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 308,
+    "pattern": "supabase.from(",
+    "text": "const { data: cfg } = await supabase.from(\"kob_configuration\").select(\"default_mode\").eq(\"id\", 1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 313,
+    "pattern": "supabase.from(",
+    "text": "const { data: brand } = await supabase.from(\"brands\").select(\"id\").eq(\"active\", true).limit(1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 314,
+    "pattern": "supabase.from(",
+    "text": "const { data: city } = await supabase.from(\"india_cities\").select(\"id, district_id, state_id\").eq(\"active\", true).limit(1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 315,
+    "pattern": "supabase.from(",
+    "text": "const { data: source } = await supabase.from(\"lead_sources\").select(\"id\").eq(\"active\", true).limit(1).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 343,
+    "pattern": "supabase.from(",
+    "text": "const { data: fireRows } = await supabase.from(\"gallabox_fire_queue\").select(\"id, status\").eq(\"lead_id\", lead1.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 351,
+    "pattern": "supabase.from(",
+    "text": "const { error: eTL } = await supabase.from(\"kob_leads\").update({ team_leader_id: tlId }).eq(\"id\", lead1.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 353,
+    "pattern": "supabase.from(",
+    "text": "const { error: eEX } = await supabase.from(\"kob_leads\").update({ assigned_to: execId }).eq(\"id\", lead1.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 361,
+    "pattern": "supabase.from(",
+    "text": "const { error: eMove } = await supabase.from(\"kob_leads\").update({ stage: next as any }).eq(\"id\", lead1.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 403,
+    "pattern": "supabase.from(",
+    "text": "const { error: eNR } = await supabase.from(\"kob_leads\").update({ stage: \"NO_RESPONSE\" as any }).eq(\"id\", lead2.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 406,
+    "pattern": "supabase.from(",
+    "text": "const { data: sched } = await supabase.from(\"retargeting_schedule\").select(\"*\").eq(\"lead_id\", lead2.id).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 418,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"retargeting_schedule\").update({ next_touch_at: new Date().toISOString() }).eq(\"id\", s.id);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 422,
+    "pattern": "supabase.from(",
+    "text": "const { data: sched2 } = await supabase.from(\"retargeting_schedule\").select(\"attempts_done\").eq(\"id\", s.id).maybeSingle();"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 439,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"retargeting_schedule\").delete().in(\"lead_id\", createdLeadIds);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 440,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"lead_stage_history\").delete().in(\"lead_id\", createdLeadIds);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 441,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"lead_activities\").delete().in(\"lead_id\", createdLeadIds);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 442,
+    "pattern": "supabase.from(",
+    "text": "await supabase.from(\"gallabox_fire_queue\").delete().in(\"lead_id\", createdLeadIds);"
+  },
+  {
+    "file": "src/lib/qa.functions.ts",
+    "line": 443,
+    "pattern": "supabase.from(",
+    "text": "const { error: eDel } = await supabase.from(\"kob_leads\").delete().in(\"id\", createdLeadIds);"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 9,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 28,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: existing } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 32,
+    "pattern": "supabaseAdmin",
+    "text": "const { data, error } = await supabaseAdmin.auth.admin.createUser({"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 46,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"profiles\").upsert({ id: existingUser.id, full_name: u.full_name, email: u.email });"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 47,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"user_roles\").upsert({ user_id: existingUser.id, role: u.role as any }, { onConflict: \"user_id,role\" });"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 57,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: allUsers } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 63,
+    "pattern": "supabaseAdmin",
+    "text": "if (tlId) await supabaseAdmin.from(\"profiles\").update({ team_leader_id: tlId }).eq(\"id\", uid);"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 67,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: profs } = await supabaseAdmin.from(\"profiles\").select(\"id, team_leader_id\").not(\"team_leader_id\", \"is\", null);"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 70,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: leads } = await supabaseAdmin.from(\"kob_leads\").select(\"id\").is(\"assigned_to\", null).limit(500);"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 73,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"kob_leads\").update({ assigned_to: e.id, team_leader_id: e.team_leader_id }).eq(\"id\", (leads![i] as any).id);"
+  },
+  {
+    "file": "src/lib/seed-users.functions.ts",
+    "line": 77,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "line": 88,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "line": 209,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/lib/webinar.functions.ts",
+    "line": 258,
+    "pattern": "supabaseAdmin",
+    "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 44,
+    "pattern": "supabaseAdmin",
+    "text": "supabaseAdmin: any,"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 47,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: settings, error } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 236,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 247,
+    "pattern": "supabaseAdmin",
+    "text": "const r = await resolveTemplateIdFromGallabox(supabaseAdmin, gallaboxMessageId);"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 266,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: existing, error: existErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 283,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: leads, error: leadErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 311,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: evErr } = await supabaseAdmin.from(\"lead_events\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 338,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: upErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/failed-fire.ts",
+    "line": 354,
+    "pattern": "supabaseAdmin",
+    "text": "await logAudit(supabaseAdmin, null, \"GALLABOX_FAILED_FIRE\", \"kob_leads\", match.id, {"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "line": 81,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "line": 85,
+    "pattern": "supabaseAdmin",
+    "text": "const [auto] = await computeAutoBuckets(supabaseAdmin, [{ from: fromIso, to: toIso }]);"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "line": 89,
+    "pattern": "supabaseAdmin",
+    "text": "const { count: manualTotal } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/kob/conversion-funnels.ts",
+    "line": 97,
+    "pattern": "supabaseAdmin",
+    "text": "supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/kob/lead-stage-counts.ts",
+    "line": 48,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/kob/lead-stage-counts.ts",
+    "line": 51,
+    "pattern": "supabaseAdmin",
+    "text": "let q = supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 118,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import("
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 127,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: leads } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 146,
+    "pattern": "supabaseAdmin",
+    "text": "const ensured = await ensureLeadByPhone(supabaseAdmin, {"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 169,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: logErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 213,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: upErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-events.ts",
+    "line": 221,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "line": 81,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "line": 88,
+    "pattern": "supabaseAdmin",
+    "text": "const { data, error } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "line": 103,
+    "pattern": "supabaseAdmin",
+    "text": "const { data, error } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "line": 145,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: upErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/lead-stage.ts",
+    "line": 153,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/leads.ts",
+    "line": 76,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/leads.ts",
+    "line": 90,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: srcRow, error: srcErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/leads.ts",
+    "line": 106,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: last } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/leads.ts",
+    "line": 126,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: inserted, error } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/metrics.ts",
+    "line": 51,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/metrics.ts",
+    "line": 63,
+    "pattern": "supabaseAdmin",
+    "text": "supabaseAdmin.from(\"kob_leads\").select(\"id, stage, source_id, lead_sources(cost_per_lead)\"),"
+  },
+  {
+    "file": "src/routes/api/public/metrics.ts",
+    "line": 76,
+    "pattern": "supabaseAdmin",
+    "text": "supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 141,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import("
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 146,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 207,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: leads, error: findErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 228,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 268,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 307,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 346,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 383,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: applied, error: rpcErr } = await supabaseAdmin.rpc("
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 390,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 439,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: applied, error: rpcErr } = await supabaseAdmin.rpc("
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 446,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 505,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: upErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 513,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/template-stage.ts",
+    "line": 532,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 168,
+    "pattern": "supabaseAdmin",
+    "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 185,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: leads, error: lookupErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 202,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: evErr } = await supabaseAdmin.from(\"lead_events\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 217,
+    "pattern": "supabaseAdmin",
+    "text": "const ensured = await ensureLeadByPhone(supabaseAdmin, {"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 226,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 233,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 257,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: upErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 270,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 290,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: src } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 298,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: langErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 305,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 331,
+    "pattern": "supabaseAdmin",
+    "text": "const { data: fresh } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 344,
+    "pattern": "supabaseAdmin",
+    "text": "const { error: stErr } = await supabaseAdmin"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 353,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/api/public/whatsapp-message.ts",
+    "line": 370,
+    "pattern": "supabaseAdmin",
+    "text": "await supabaseAdmin.from(\"audit_logs\").insert({"
+  },
+  {
+    "file": "src/routes/auth.tsx",
+    "line": 28,
+    "pattern": "supabase.auth",
+    "text": "const { error } = await supabase.auth.signInWithPassword({ email, password });"
+  },
+  {
+    "file": "src/routes/index.tsx",
+    "line": 7,
+    "pattern": "supabase.auth",
+    "text": "const { data } = await supabase.auth.getUser();"
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "line": 18,
+    "pattern": "supabase.auth",
+    "text": "const { data, error } = await supabase.auth.getUser();"
+  },
+  {
+    "file": "src/routes/_authenticated/route.tsx",
+    "line": 201,
+    "pattern": "supabase.auth",
+    "text": "onClick={async () => { await supabase.auth.signOut(); window.location.href = \"/auth\"; }}"
+  }
+]

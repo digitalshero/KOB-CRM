@@ -1,0 +1,145 @@
+[
+    {
+        "components": [
+            {
+                "enabled": true,
+                "key": "conversion",
+                "label": "Performance",
+                "type": "conversion",
+                "weight": 35
+            },
+            {
+                "enabled": true,
+                "key": "tat",
+                "label": "TAT Compliance",
+                "type": "tat",
+                "weight": 25
+            },
+            {
+                "enabled": true,
+                "key": "eoi1Webinar",
+                "label": "EOI 1 → Webinar",
+                "type": "eoi1Webinar",
+                "weight": 15
+            },
+            {
+                "enabled": true,
+                "key": "eoi2Payment",
+                "label": "EOI 2 → Payment",
+                "type": "eoi2Payment",
+                "weight": 15
+            },
+            {
+                "enabled": true,
+                "key": "discipline",
+                "label": "Discipline",
+                "type": "discipline",
+                "weight": 10
+            }
+        ],
+        "incentive_amount": 10000,
+        "mode": "MANUAL",
+        "tat_movements": [
+            {
+                "days": 1,
+                "enabled": true,
+                "key": "lead_eoi1",
+                "label": "Lead → EOI 1"
+            },
+            {
+                "days": 2,
+                "enabled": true,
+                "key": "eoi1_webinar",
+                "label": "EOI 1 → Webinar"
+            },
+            {
+                "days": 2,
+                "enabled": true,
+                "key": "webinar_eoi2",
+                "label": "Webinar → EOI 2"
+            },
+            {
+                "days": 3,
+                "enabled": true,
+                "key": "eoi2_payment",
+                "label": "EOI 2 → Payment"
+            },
+            {
+                "days": 4,
+                "enabled": true,
+                "key": "payment_contract",
+                "label": "Payment → Contract Signed"
+            }
+        ],
+        "updated_at": "2026-09-26T16:27:48.334877+00:00",
+        "updated_by": null
+    },
+    {
+        "components": [
+            {
+                "enabled": true,
+                "key": "conversion",
+                "label": "Performance",
+                "type": "conversion",
+                "weight": 60
+            },
+            {
+                "enabled": true,
+                "key": "tat",
+                "label": "TAT Compliance",
+                "type": "tat",
+                "weight": 30
+            },
+            {
+                "enabled": false,
+                "key": "eoi2Payment",
+                "label": "EOI 2 → Payment",
+                "type": "eoi2Payment",
+                "weight": 0
+            },
+            {
+                "enabled": true,
+                "key": "discipline",
+                "label": "Discipline",
+                "type": "discipline",
+                "weight": 10
+            }
+        ],
+        "incentive_amount": 10000,
+        "mode": "AUTO",
+        "tat_movements": [
+            {
+                "days": 1,
+                "enabled": false,
+                "key": "lead_eoi1",
+                "label": "Lead → EOI 1"
+            },
+            {
+                "days": 2,
+                "enabled": false,
+                "key": "eoi1_webinar",
+                "label": "EOI 1 → Webinar"
+            },
+            {
+                "days": 2,
+                "enabled": true,
+                "key": "webinar_eoi2",
+                "label": "Webinar → EOI 2"
+            },
+            {
+                "days": 3,
+                "enabled": true,
+                "key": "eoi2_payment",
+                "label": "EOI 2 → Payment"
+            },
+            {
+                "days": 4,
+                "enabled": true,
+                "key": "payment_contract",
+                "label": "Payment → Contract Signed"
+            }
+        ],
+        "updated_at": "2026-10-06T10:17:39.974+00:00",
+        "updated_by": "6502c359-e15f-4dc2-8f6c-4b0238b4fda8"
+    }
+]

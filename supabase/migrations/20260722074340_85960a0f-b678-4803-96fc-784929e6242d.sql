@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_coerce_auto_initial_stage ON public.kob_leads;

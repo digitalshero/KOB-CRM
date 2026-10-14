@@ -1,0 +1,1787 @@
+{
+  "useServerFn": [
+    {
+      "file": "src/components/cuisine-dialog.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/cuisine-dialog.tsx",
+      "line": 24,
+      "text": "const save = useServerFn(setLeadCuisine);"
+    },
+    {
+      "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+      "line": 9,
+      "text": "const fn = useServerFn(getExecPerformanceSummary);"
+    },
+    {
+      "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+      "line": 18,
+      "text": "const fn = useServerFn(getFunnelStageLeads);"
+    },
+    {
+      "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+      "line": 14,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kpi-trend-dialog.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/metric-drilldown.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/ScvCalculationGuide.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/ScvCalculationGuide.tsx",
+      "line": 27,
+      "text": "const fnGetCfg = useServerFn(getScvModeConfig);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.brands.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.brands.tsx",
+      "line": 18,
+      "text": "const fnTog = useServerFn(toggleEntity);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 36,
+      "text": "const fetchList = useServerFn(listEvaluationQuestions);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 37,
+      "text": "const upsert = useServerFn(upsertEvaluationQuestion);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 38,
+      "text": "const del = useServerFn(deleteEvaluationQuestion);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+      "line": 30,
+      "text": "const upsert = useServerFn(upsertGallaboxTemplate);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+      "line": 17,
+      "text": "const fnTog = useServerFn(toggleEntity);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+      "line": 5,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+      "line": 30,
+      "text": "const fnTog = useServerFn(toggleEntity);"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+      "line": 18,
+      "text": "const updFn = useServerFn(updateConfig);"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.reports.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.retargeting.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/leads.$id.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.approvals.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.ktn.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.marketing.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.marketing.tsx",
+      "line": 34,
+      "text": "const fnT = useServerFn(listMarketingTargets);"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.marketing.tsx",
+      "line": 35,
+      "text": "const upsert = useServerFn(upsertMarketingTarget);"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 33,
+      "text": "const fnRatings = useServerFn(listManualRatings);"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 34,
+      "text": "const fnSave = useServerFn(upsertManualRating);"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 35,
+      "text": "const fnComposite = useServerFn(listScvComposite);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.reports.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 50,
+      "text": "const save = useServerFn(saveScvModeInput);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 51,
+      "text": "const fnGetCfg = useServerFn(getScvModeConfig);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 52,
+      "text": "const fnSaveCfg = useServerFn(saveScvModeConfig);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 53,
+      "text": "const fnSaveAmount = useServerFn(saveIncentiveAmount);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+      "line": 52,
+      "text": "const fn = useServerFn(getTATBreachDetailed);"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+      "line": 34,
+      "text": "const fn = useServerFn(getWebinarHistory);"
+    },
+    {
+      "file": "src/routes/_authenticated/webinar.tsx",
+      "line": 5,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/webinar.tsx",
+      "line": 41,
+      "text": "const fnList = useServerFn(listWebinarBatches);"
+    },
+    {
+      "file": "src/routes/_authenticated/webinar.tsx",
+      "line": 42,
+      "text": "const fnEligible = useServerFn(listWebinarEligibleLeads);"
+    }
+  ],
+  "reactStart": [
+    {
+      "file": "src/components/cuisine-dialog.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+      "line": 14,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+      "line": 2,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/kpi-trend-dialog.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/metric-drilldown.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/components/ScvCalculationGuide.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/integrations/supabase/auth-attacher.ts",
+      "line": 2,
+      "text": "import { createMiddleware } from '@tanstack/react-start'"
+    },
+    {
+      "file": "src/integrations/supabase/auth-middleware.ts",
+      "line": 2,
+      "text": "import { createMiddleware } from '@tanstack/react-start'"
+    },
+    {
+      "file": "src/integrations/supabase/auth-middleware.ts",
+      "line": 3,
+      "text": "import { getRequest } from '@tanstack/react-start/server'"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/import-leads.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/seed-users.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.brands.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+      "line": 5,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.reports.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.retargeting.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/leads.$id.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.approvals.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.ktn.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.marketing.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.reports.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 4,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+      "line": 3,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routes/_authenticated/webinar.tsx",
+      "line": 5,
+      "text": "import { useServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/routeTree.gen.ts",
+      "line": 2241,
+      "text": "declare module '@tanstack/react-start' {"
+    },
+    {
+      "file": "src/server.ts",
+      "line": 14,
+      "text": "serverEntryPromise = import(\"@tanstack/react-start/server-entry\").then("
+    },
+    {
+      "file": "src/start.ts",
+      "line": 1,
+      "text": "import { createStart, createMiddleware } from \"@tanstack/react-start\";"
+    }
+  ],
+  "functionsImports": [
+    {
+      "file": "src/components/cuisine-dialog.tsx",
+      "line": 5,
+      "text": "import { setLeadCuisine } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/AutoConversionFunnel.tsx",
+      "line": 2,
+      "text": "import { getAutoFunnel, getAutoFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/BrandPerformanceCard.tsx",
+      "line": 3,
+      "text": "import { getBrandPerformance } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ChannelConversionCard.tsx",
+      "line": 4,
+      "text": "import { getChannelConversion } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ConversionFunnelCard.tsx",
+      "line": 8,
+      "text": "import { getCombinedFunnel, getCombinedFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ExecutivePerformance.tsx",
+      "line": 4,
+      "text": "import { getExecPerformanceSummary } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/FunnelStagePanel.tsx",
+      "line": 4,
+      "text": "import { getFunnelStageLeads } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/LeadsTrendChart.tsx",
+      "line": 16,
+      "text": "import { getLeadsTrend } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kob-dashboard/ManualConversionFunnel.tsx",
+      "line": 3,
+      "text": "import { getManualFunnel, getManualFunnelBuckets } from \"@/lib/kob-dashboard.functions\";"
+    },
+    {
+      "file": "src/components/kp-evaluation-page.tsx",
+      "line": 3,
+      "text": "import { type QuestionType } from \"@/lib/evaluation.functions\";"
+    },
+    {
+      "file": "src/components/kp-evaluation-page.tsx",
+      "line": 4,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/components/kpi-trend-dialog.tsx",
+      "line": 4,
+      "text": "import { getKpiTrend } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/components/metric-drilldown.tsx",
+      "line": 5,
+      "text": "import { getMetricDrilldown } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/components/ScvCalculationGuide.tsx",
+      "line": 5,
+      "text": "import { getScvModeConfig } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/integrations/supabase/client.server.ts",
+      "line": 63,
+      "text": "// Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle."
+    },
+    {
+      "file": "src/routes/_authenticated/campaign-management.tsx",
+      "line": 4,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.brands.tsx",
+      "line": 4,
+      "text": "import { toggleEntity } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 5,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.evaluation-questions.tsx",
+      "line": 9,
+      "text": "} from \"@/lib/evaluation.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.gallabox-templates.tsx",
+      "line": 4,
+      "text": "import { listGallaboxTemplates, upsertGallaboxTemplate } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.geo-control.tsx",
+      "line": 4,
+      "text": "import { toggleEntity } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.lead-inbox.tsx",
+      "line": 3,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.market-scope.tsx",
+      "line": 8,
+      "text": "} from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/ceo.mode-control.tsx",
+      "line": 4,
+      "text": "import { updateConfig, listGallaboxFireQueue } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/dashboard.tsx",
+      "line": 3,
+      "text": "import type { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.abandoned-leads.tsx",
+      "line": 4,
+      "text": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.reports.tsx",
+      "line": 2,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.reports.tsx",
+      "line": 5,
+      "text": "import { listLeads, getMyStageHistory } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exe.retargeting.tsx",
+      "line": 5,
+      "text": "import { getMyRetargetingQueue } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/exec.$stage.tsx",
+      "line": 7,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/executive-lead-summary.tsx",
+      "line": 4,
+      "text": "import { getExecutiveStageSummary } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/leads.$id.tsx",
+      "line": 9,
+      "text": "import { getLeadEvaluation } from \"@/lib/evaluation.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/leads.index.tsx",
+      "line": 5,
+      "text": "import type { listLeads, getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.abandoned-leads.tsx",
+      "line": 3,
+      "text": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.approvals.tsx",
+      "line": 5,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.ktn.tsx",
+      "line": 5,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.lead-allocation.tsx",
+      "line": 3,
+      "text": "import { getAllocationBreakdownByTL } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.marketing.tsx",
+      "line": 9,
+      "text": "} from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.monthly-ratings.tsx",
+      "line": 9,
+      "text": "} from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/mgr.qa.tsx",
+      "line": 4,
+      "text": "import { getMyRole, listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/route.tsx",
+      "line": 5,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.abandoned-leads.tsx",
+      "line": 4,
+      "text": "import { getAbandonedLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.executive-performance.tsx",
+      "line": 5,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.reports.tsx",
+      "line": 2,
+      "text": "import { getMyRole } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.reports.tsx",
+      "line": 5,
+      "text": "import { listLeads } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.scv-incentives.tsx",
+      "line": 7,
+      "text": "import { saveScvModeInput, getScvModeConfig, saveScvModeConfig, saveIncentiveAmount } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.tat-breach.tsx",
+      "line": 5,
+      "text": "import { getTATBreachDetailed } from \"@/lib/kob.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/tl.webinar-history.tsx",
+      "line": 5,
+      "text": "import { getWebinarHistory } from \"@/lib/webinar.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/webinar.tsx",
+      "line": 11,
+      "text": "} from \"@/lib/webinar.functions\";"
+    },
+    {
+      "file": "src/routes/_authenticated/whatsapp-messages.tsx",
+      "line": 8,
+      "text": "import { listWhatsappMessages, listWhatsappExecutives } from \"@/lib/kob.functions\";"
+    }
+  ],
+  "serverImports": [
+    {
+      "file": "src/integrations/supabase/auth-middleware.ts",
+      "line": 33,
+      "text": "export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server("
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 30,
+      "text": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 39,
+      "text": "const { computeManualBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 48,
+      "text": "const { computeCombinedBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 61,
+      "text": "const { computeManualBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 87,
+      "text": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 121,
+      "text": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 199,
+      "text": ": ((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any);"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 412,
+      "text": "const { combinedFirstEntries } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 584,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 898,
+      "text": "const { combinedFirstEntries } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 19,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 111,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 255,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 291,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 504,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 638,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1675,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1999,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2139,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2272,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2901,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2947,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 7,
+      "text": "} from \"./meta-ads.server\";"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 8,
+      "text": "import { saveCampaignSelection } from \"./meta-campaign-storage.server\";"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 22,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 119,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 223,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 247,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 267,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 296,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/seed-users.functions.ts",
+      "line": 9,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 88,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 209,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 258,
+      "text": "? (((await import(\"@/integrations/supabase/client.server\")).supabaseAdmin as any))"
+    },
+    {
+      "file": "src/routes/api/public/failed-fire.ts",
+      "line": 236,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/kob/conversion-funnels.ts",
+      "line": 81,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/kob/conversion-funnels.ts",
+      "line": 82,
+      "text": "const { computeAutoBuckets } = await import(\"@/lib/kob-dashboard.server\");"
+    },
+    {
+      "file": "src/routes/api/public/kob/lead-stage-counts.ts",
+      "line": 48,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/lead-events.ts",
+      "line": 3,
+      "text": "import { ensureLeadByPhone } from \"@/lib/lead-sync.server\";"
+    },
+    {
+      "file": "src/routes/api/public/lead-events.ts",
+      "line": 119,
+      "text": "\"@/integrations/supabase/client.server\""
+    },
+    {
+      "file": "src/routes/api/public/lead-stage.ts",
+      "line": 81,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/leads.ts",
+      "line": 76,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/metrics.ts",
+      "line": 51,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/api/public/metrics.ts",
+      "line": 93,
+      "text": "const { fetchMetaSpendAndCpl } = await import(\"@/lib/meta-ads.server\");"
+    },
+    {
+      "file": "src/routes/api/public/template-stage.ts",
+      "line": 142,
+      "text": "\"@/integrations/supabase/client.server\""
+    },
+    {
+      "file": "src/routes/api/public/whatsapp-message.ts",
+      "line": 3,
+      "text": "import { ensureLeadByPhone } from \"@/lib/lead-sync.server\";"
+    },
+    {
+      "file": "src/routes/api/public/whatsapp-message.ts",
+      "line": 168,
+      "text": "const { supabaseAdmin } = await import(\"@/integrations/supabase/client.server\");"
+    },
+    {
+      "file": "src/routes/_authenticated/campaign-management.tsx",
+      "line": 6,
+      "text": "import type { MetaCampaignsListResult } from \"@/lib/meta-ads.server\";"
+    },
+    {
+      "file": "src/start.ts",
+      "line": 6,
+      "text": "const errorMiddleware = createMiddleware().server(async ({ next }) => {"
+    }
+  ],
+  "createServerFn": [
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 9,
+      "text": "export const listEvaluationQuestions = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 21,
+      "text": "export const upsertEvaluationQuestion = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 55,
+      "text": "export const deleteEvaluationQuestion = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 68,
+      "text": "export const listLeadsForEvaluation = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 94,
+      "text": "export const getLeadEvaluation = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 105,
+      "text": "export const saveEvaluationResponses = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/evaluation.functions.ts",
+      "line": 146,
+      "text": "export const listLeadEvaluationHistory = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/import-leads.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/import-leads.functions.ts",
+      "line": 6,
+      "text": "export const importLeads = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 26,
+      "text": "export const getAutoFunnelBuckets = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 35,
+      "text": "export const getManualFunnelBuckets = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 44,
+      "text": "export const getCombinedFunnelBuckets = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 57,
+      "text": "export const getManualFunnel = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 81,
+      "text": "export const getAutoFunnel = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 110,
+      "text": "export const getChannelConversion = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 188,
+      "text": "export const getExecPerformanceSummary = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 316,
+      "text": "export const getStateSpread = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 394,
+      "text": "export const getCombinedFunnel = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 474,
+      "text": "export const getLeadsTrend = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 541,
+      "text": "export const getFunnelStageLeads = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 732,
+      "text": "export const getStageResponseSplit = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 804,
+      "text": "export const getManualStageResponseSplit = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 922,
+      "text": "export const getCombinedStageResponseSplit = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 954,
+      "text": "export const getCombinedStageResponseSplitTable = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1004,
+      "text": "export const getVariantStageResponseSplitTable = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1131,
+      "text": "export const getRetargetingFunnel = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1223,
+      "text": "export const getAbandonedFunnel = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1313,
+      "text": "export const getBrandPerformance = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1372,
+      "text": "export const getAbandonedSplit = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob-dashboard.functions.ts",
+      "line": 1406,
+      "text": "export const getRetargetingSplit = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 88,
+      "text": "export const getMyRole = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 101,
+      "text": "export const getKpiSnapshot = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 250,
+      "text": "export const getContractsCount = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 285,
+      "text": "export const getDashboardKpis = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 346,
+      "text": "export const getFunnelBySource = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 381,
+      "text": "export const getFunnelByLanguage = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 402,
+      "text": "export const getFunnelByBrand = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 428,
+      "text": "export const getStageDistribution = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 454,
+      "text": "export const getStateSummary = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 483,
+      "text": "export const listLeads = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 569,
+      "text": "export const updateLeadStage = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 579,
+      "text": "export const updateLeadNextAction = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 590,
+      "text": "export const markLeadMessagesRead = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 605,
+      "text": "export const setLeadRnrTag = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 630,
+      "text": "export const getLeadDetail = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 685,
+      "text": "export const getConfig = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 689,
+      "text": "export const updateConfig = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 700,
+      "text": "export const listBrands = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 704,
+      "text": "export const createBrand = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 722,
+      "text": "export const listSources = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 726,
+      "text": "export const listStates = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 730,
+      "text": "export const listStatePincodeTotals = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 774,
+      "text": "export const listCitiesWithScope = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 795,
+      "text": "export const toggleEntity = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 805,
+      "text": "export const updateSourceCost = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 817,
+      "text": "export const listStateNativeBrands = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 826,
+      "text": "export const upsertStateNativeBrand = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 843,
+      "text": "export const syncCityPincodesFromIndiaPost = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 869,
+      "text": "export const updateCityPincodeAliases = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 897,
+      "text": "export const listGallaboxTemplates = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 901,
+      "text": "export const upsertGallaboxTemplate = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 933,
+      "text": "export const listKpiTargets = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 937,
+      "text": "export const upsertKpiTarget = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 954,
+      "text": "export const deleteKpiTarget = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 969,
+      "text": "export const listAuditLogs = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 974,
+      "text": "export const getRetargetingQueue = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1246,
+      "text": "export const getScvLeaderboard = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1275,
+      "text": "export const getScvRules = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1279,
+      "text": "export const updateScvRules = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1297,
+      "text": "export const getIncentiveRules = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1301,
+      "text": "export const updateIncentiveRule = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1324,
+      "text": "export const listRateableUsers = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1341,
+      "text": "export const listRoleWeights = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1347,
+      "text": "export const listScvComposite = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1358,
+      "text": "export const listManualRatings = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1371,
+      "text": "export const upsertManualRating = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1425,
+      "text": "export const getMyTeam = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1453,
+      "text": "export const getTLOverview = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1501,
+      "text": "export const getTLExecutivePerformance = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1541,
+      "text": "export const getTLBrandPerformance = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1568,
+      "text": "export const getTLLanguagePerformance = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1600,
+      "text": "export const getTLTATBreach = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1655,
+      "text": "export const getTLRetargeting = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1668,
+      "text": "export const getTLScvIncentives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1726,
+      "text": "export const getScvComponentWeights = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1747,
+      "text": "export const updateScvComponentWeights = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1775,
+      "text": "export const saveScvMonthlyInput = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 1993,
+      "text": "export const getScvModeIncentives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2032,
+      "text": "export const getScvModeConfig = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2051,
+      "text": "export const saveScvModeConfig = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2100,
+      "text": "export const saveIncentiveAmount = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2119,
+      "text": "export const saveIncentiveSlabs = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2150,
+      "text": "export const saveScvModeInput = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2170,
+      "text": "export const reassignLead = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2181,
+      "text": "export const getUnallocatedLeads = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2205,
+      "text": "export const listAllProfiles = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2216,
+      "text": "export const getAllocationBreakdownByTL = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2261,
+      "text": "export const getTATBreachDetailed = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2334,
+      "text": "export const listGallaboxFireQueue = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2347,
+      "text": "export const getMyExecOverview = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2435,
+      "text": "export const getMyRetargetingQueue = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2456,
+      "text": "export const getMyStageHistory = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2482,
+      "text": "export const getMyAllocationMode = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2493,
+      "text": "export const updateMyAllocationMode = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2508,
+      "text": "export const listExecutivesWithStats = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2584,
+      "text": "export const getExecutiveStageSummary = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2668,
+      "text": "export const reassignExecutiveTeamLeader = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2682,
+      "text": "export const getMyScvScore = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2724,
+      "text": "export const getMarketingKpis = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2773,
+      "text": "export const listMarketingTargets = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2786,
+      "text": "export const upsertMarketingTarget = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2811,
+      "text": "export const listAllocatableExecutives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2850,
+      "text": "export const listAllExecutives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2889,
+      "text": "export const createExecutive = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 2937,
+      "text": "export const updateExecutiveLanguage = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3032,
+      "text": "export const getKpiTrend = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3056,
+      "text": "export const getMetricDrilldown = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3096,
+      "text": "export const getAbandonedLeads = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3136,
+      "text": "export const createManualLead = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3192,
+      "text": "export const listActiveExecutives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3212,
+      "text": "export const listWhatsappExecutives = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3230,
+      "text": "export const listWhatsappMessages = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/kob.functions.ts",
+      "line": 3264,
+      "text": "export const setLeadCuisine = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 15,
+      "text": "export const getMetaSpendKpis = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 38,
+      "text": "export const getMetaCampaignsList = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 64,
+      "text": "export const toggleMetaCampaignSelection = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/meta-ads.functions.ts",
+      "line": 100,
+      "text": "export const getMetaCplForKpiCard = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 13,
+      "text": "export const qaListStaff = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 37,
+      "text": "export const qaCreateSampleLead = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 73,
+      "text": "export const qaAssignTL = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 86,
+      "text": "export const qaAssignExec = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 99,
+      "text": "export const qaMoveStage = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 112,
+      "text": "export const qaTriggerRetargeting = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 146,
+      "text": "export const qaRecalcScv = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 165,
+      "text": "export const qaVerify = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 215,
+      "text": "export const qaCleanup = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 241,
+      "text": "export const qaComputeScvScores = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 261,
+      "text": "export const qaAdvanceRetargeting = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/qa.functions.ts",
+      "line": 280,
+      "text": "export const qaRunLifecycle = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/seed-users.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/seed-users.functions.ts",
+      "line": 8,
+      "text": "export const seedDemoUsers = createServerFn({ method: \"POST\" }).handler(async () => {"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 1,
+      "text": "import { createServerFn } from \"@tanstack/react-start\";"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 8,
+      "text": "export const listWebinarBatches = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 36,
+      "text": "export const createWebinarBatch = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 61,
+      "text": "export const deleteWebinarBatch = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 71,
+      "text": "export const listBatchAttendance = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 101,
+      "text": "export const listWebinarEligibleLeads = createServerFn({ method: \"GET\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 118,
+      "text": "export const addLeadsToBatch = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 131,
+      "text": "export const removeLeadFromBatch = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 141,
+      "text": "export const markAttendance = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 154,
+      "text": "export const markLeadEoi2 = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 167,
+      "text": "export const rescheduleAttendance = createServerFn({ method: \"POST\" })"
+    },
+    {
+      "file": "src/lib/webinar.functions.ts",
+      "line": 253,
+      "text": "export const getWebinarHistory = createServerFn({ method: \"GET\" })"
+    }
+  ]
+}
