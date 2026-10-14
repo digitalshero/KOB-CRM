@@ -232,3 +232,53 @@ export async function getProfileById(userId: string): Promise<Record<string, unk
   const { rows } = await getPool().query(`SELECT * FROM public.profiles WHERE id = $1`, [userId]);
   return rows[0] ?? null;
 }
+
+/** Mirrors getMyExecOverview()'s dueToday embed: `.select("...,kob_leads(code,full_name)")`. */
+export async function getDueTodayRetargeting(leadIds: string[], untilIso: string): Promise<{
+  id: string; lead_id: string; bucket: string | null; next_touch_at: string | null; phase: string | null;
+  lead: { code: string; full_name: string } | null;
+}[]> {
+  if (leadIds.length === 0) return [];
+  const { rows } = await getPool().query(
+    `SELECT rs.id, rs.lead_id, rs.bucket::text AS bucket, rs.next_touch_at, rs.phase::text AS phase,
+            l.code AS lead_code, l.full_name AS lead_full_name
+     FROM public.retargeting_schedule rs
+     JOIN public.kob_leads l ON l.id = rs.lead_id
+     WHERE rs.lead_id = ANY($1::uuid[]) AND rs.is_dead = false AND rs.next_touch_at <= $2
+     ORDER BY rs.next_touch_at ASC`,
+    [leadIds, untilIso],
+  );
+  return rows.map((r: any) => ({
+    id: r.id, lead_id: r.lead_id, bucket: r.bucket, next_touch_at: r.next_touch_at, phase: r.phase,
+    lead: { code: r.lead_code, full_name: r.lead_full_name },
+  }));
+}
+
+/** Mirrors listGallaboxFireQueue()'s double embed: `lead:kob_leads(...)`, `template:gallabox_templates(...)`. */
+export async function listGallaboxFireQueue(): Promise<Record<string, unknown>[]> {
+  const { rows } = await getPool().query(
+    `SELECT q.id, q.status::text AS status, q.channel::text AS channel, q.created_at, q.fired_at, q.error,
+            jsonb_build_object('code', l.code, 'full_name', l.full_name, 'language', l.language, 'mode', l.mode, 'email', l.email) AS lead,
+            jsonb_build_object('name', t.name, 'language', t.language, 'email_subject', t.email_subject, 'email_body', t.email_body) AS template
+     FROM public.gallabox_fire_queue q
+     LEFT JOIN public.kob_leads l ON l.id = q.lead_id
+     LEFT JOIN public.gallabox_templates t ON t.id = q.template_id
+     ORDER BY q.created_at DESC LIMIT 100`,
+  );
+  return rows;
+}
+
+/** Mirrors listWhatsappMessages()'s `.order("last_message_at",{ascending:false,nullsFirst:false}).range(...)`. */
+export async function listWhatsappMessagesPage(offset: number, size: number, unreadOnly: boolean): Promise<Record<string, unknown>[]> {
+  const extra = unreadOnly ? "AND has_unread_messages = true" : "";
+  const { rows } = await getPool().query(
+    `SELECT id, code, full_name, phone, stage::text AS stage, language::text AS language, assigned_to,
+            last_message, last_message_at, unread_message_count, has_unread_messages
+     FROM public.kob_leads
+     WHERE last_message IS NOT NULL ${extra}
+     ORDER BY last_message_at DESC NULLS LAST
+     LIMIT $1 OFFSET $2`,
+    [size, offset],
+  );
+  return rows;
+}

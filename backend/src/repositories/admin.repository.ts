@@ -177,6 +177,70 @@ export async function upsertExecutiveRole(client: PoolClient, userId: string): P
   );
 }
 
+// ---- STAGE 10I-G: small remaining profile/entity writes ----
+
+export interface ManualRatingUpsert {
+  user_id: string; period: string; personal_score: number; compliance_score: number | null;
+  notes: string | null; rated_by: string; rated_at: string;
+}
+export async function upsertManualRating(client: PoolClient, row: ManualRatingUpsert): Promise<Record<string, unknown> | null> {
+  const { rows } = await client.query(
+    `INSERT INTO public.scv_manual_ratings (user_id, period, personal_score, compliance_score, notes, rated_by, rated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     ON CONFLICT (user_id, period) DO UPDATE SET personal_score = EXCLUDED.personal_score, compliance_score = EXCLUDED.compliance_score,
+       notes = EXCLUDED.notes, rated_by = EXCLUDED.rated_by, rated_at = EXCLUDED.rated_at
+     RETURNING *`,
+    [row.user_id, row.period, row.personal_score, row.compliance_score, row.notes, row.rated_by, row.rated_at],
+  );
+  return rows[0] ?? null;
+}
+
+export async function updateAllocationMode(client: PoolClient, userId: string, mode: "MANUAL" | "ROUND_ROBIN"): Promise<void> {
+  await client.query(`UPDATE public.profiles SET allocation_mode = $1 WHERE id = $2`, [mode, userId]);
+}
+
+export interface ProfileLanguagePatch { primary_language?: string | null; secondary_language?: string | null }
+export async function getProfileTeamLeaderId(executiveId: string): Promise<string | null> {
+  const { rows } = await getPool().query(`SELECT team_leader_id FROM public.profiles WHERE id = $1`, [executiveId]);
+  return rows[0]?.team_leader_id ?? null;
+}
+export async function updateProfileLanguages(client: PoolClient, executiveId: string, patch: ProfileLanguagePatch): Promise<void> {
+  const keys = Object.keys(patch);
+  if (keys.length === 0) return;
+  const setClauses = keys.map((k, i) => `${k} = $${i + 1}`);
+  const params = keys.map((k) => (patch as any)[k]);
+  await client.query(`UPDATE public.profiles SET ${setClauses.join(", ")} WHERE id = $${keys.length + 1}`, [...params, executiveId]);
+}
+
+export async function updateProfileTeamLeader(client: PoolClient, executiveId: string, teamLeaderId: string): Promise<void> {
+  await client.query(`UPDATE public.profiles SET team_leader_id = $1 WHERE id = $2`, [teamLeaderId, executiveId]);
+}
+
+const TOGGLE_ENTITY_TABLES = new Set(["india_states", "india_districts", "india_cities", "brands", "lead_sources"]);
+export async function toggleEntityActive(client: PoolClient, table: string, id: string, active: boolean): Promise<void> {
+  if (!TOGGLE_ENTITY_TABLES.has(table)) throw new Error(`Unknown entity table: ${table}`);
+  await client.query(`UPDATE public.${table} SET active = $1 WHERE id = $2`, [active, id]);
+}
+
+/**
+ * recompute_city_pincode_counts(uuid) is a plain plpgsql function (no
+ * Supabase-platform dependency — confirmed by reading its source in
+ * supabase/migrations/20260717112819_*.sql: pure SQL UPDATE/SELECT,
+ * no auth.uid() requirement, no net.* outbound call), restored as part of
+ * the normal schema migration — safe to call via the pg Pool directly.
+ */
+export async function updateCityAliases(client: PoolClient, cityId: string, districtAliases: string[], stateAliases: string[]): Promise<void> {
+  await client.query(
+    `UPDATE public.india_cities SET district_aliases = $1, state_aliases = $2 WHERE id = $3`,
+    [districtAliases, stateAliases, cityId],
+  );
+}
+
+export async function recomputeCityPincodeCounts(client: PoolClient, cityId: string | null): Promise<{ city_id: string; city_name: string; pincode_count: number }[]> {
+  const { rows } = await client.query(`SELECT * FROM public.recompute_city_pincode_counts($1)`, [cityId]);
+  return rows;
+}
+
 export async function getRolesForUser(userId: string): Promise<string[]> {
   const { rows } = await getPool().query(`SELECT role FROM public.user_roles WHERE user_id = $1`, [userId]);
   return rows.map((r: any) => r.role);

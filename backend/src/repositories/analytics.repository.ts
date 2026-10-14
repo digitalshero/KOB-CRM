@@ -317,6 +317,67 @@ export async function getLeadsByAssignedToStageEntered(execIds: string[], from?:
   return rows;
 }
 
+// ---- getExecPerformanceSummary (STAGE 10I-H) ----
+// Same scope precedent as getExecutiveRoleUserIdsScoped above: the Supabase
+// path's "executive -> req.supabase; else -> supabaseAdmin" is this project's
+// documented self-scope-via-RLS pattern (see db/authz.ts's columnScopeSql
+// comment), so it's reproduced explicitly here with the same LeadScope the
+// rest of this codebase already uses for every other exec-roster endpoint.
+
+/** Mirrors the `rows` query: `.from("kob_leads").select("assigned_to")` with optional created_at range, scoped. */
+export async function getLeadsAssignedToInRangeScoped(scope: LeadScope, from?: string, to?: string): Promise<{ assigned_to: string | null }[]> {
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  const s = columnScopeSql(scope, "assigned_to", 1);
+  if (s.sql !== "TRUE") { conditions.push(s.sql); params.push(...s.params); }
+  if (from) { params.push(from); conditions.push(`created_at >= $${params.length}`); }
+  if (to) { params.push(to); conditions.push(`created_at <= $${params.length}`); }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const { rows } = await getPool().query(`SELECT assigned_to FROM public.kob_leads ${where}`, params);
+  return rows;
+}
+
+/** Mirrors the `ktnHist` query: lead_stage_history INNER JOIN kob_leads(assigned_to,stage), scoped on the joined kob_leads row. */
+export async function getKtnCsHistoryScoped(scope: LeadScope, from?: string, to?: string): Promise<{ lead_id: string; changed_by: string | null }[]> {
+  const conditions: string[] = ["h.to_stage = 'KTN_CS'", "l.stage = 'KTN_CS'"];
+  const params: unknown[] = [];
+  const s = columnScopeSql(scope, "l.assigned_to", 1);
+  if (s.sql !== "TRUE") { conditions.push(s.sql); params.push(...s.params); }
+  if (from) { params.push(from); conditions.push(`h.created_at >= $${params.length}`); }
+  if (to) { params.push(to); conditions.push(`h.created_at <= $${params.length}`); }
+  const { rows } = await getPool().query(
+    `SELECT h.lead_id, l.assigned_to AS changed_by
+     FROM public.lead_stage_history h
+     JOIN public.kob_leads l ON l.id = h.lead_id
+     WHERE ${conditions.join(" AND ")}`,
+    params,
+  );
+  return rows;
+}
+
+export async function getDefaultMode(): Promise<"AUTO" | "MANUAL"> {
+  const { rows } = await getPool().query(`SELECT default_mode FROM public.kob_configuration LIMIT 1`);
+  return rows[0]?.default_mode === "MANUAL" ? "MANUAL" : "AUTO";
+}
+
+export async function getScvModeInputTargets(period: string, mode: string, userIds: string[]): Promise<{ user_id: string; ktn_cs_target: number | null }[]> {
+  if (userIds.length === 0) return [];
+  const { rows } = await getPool().query(
+    `SELECT user_id, ktn_cs_target FROM public.scv_mode_inputs WHERE period = $1 AND mode = $2 AND user_id = ANY($3::uuid[])`,
+    [period, mode, userIds],
+  );
+  return rows;
+}
+
+export async function getOrgMonthlyKtnCsTarget(period: string): Promise<number> {
+  const { rows } = await getPool().query(
+    `SELECT target_value FROM public.kpi_targets WHERE metric = 'KTN_CS' AND period = 'monthly' AND effective_from <= $1
+     ORDER BY effective_from DESC LIMIT 1`,
+    [period],
+  );
+  return Number(rows[0]?.target_value ?? 0);
+}
+
 // ---- getMetricDrilldown ----
 
 export async function getScopedLeadsStageLangCityCreated(scope: LeadScope, range: DateRange): Promise<{ stage: string; language: string | null; city_id: string | null; created_at: string }[]> {

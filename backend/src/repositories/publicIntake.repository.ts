@@ -82,3 +82,67 @@ export async function findLeadEventByPayloadMessageId(event: string, messageId: 
   );
   return rows[0] ?? null;
 }
+
+// ---- STAGE 10I-H: getConversionFunnels / getLeadStageCounts / getMetrics (public, org-wide, no caller JWT) ----
+
+/** Mirrors getConversionFunnels()'s `.select("id",{count:"exact",head:true}).eq("action","lead_manual_create")` count. */
+export async function countManualCreateAuditLogs(fromIso: string, toIso: string): Promise<number> {
+  const { rows } = await getPool().query(
+    `SELECT COUNT(*)::int AS count FROM public.audit_logs WHERE action = 'lead_manual_create' AND created_at >= $1 AND created_at <= $2`,
+    [fromIso, toIso],
+  );
+  return rows[0]?.count ?? 0;
+}
+
+/** Mirrors getConversionFunnels()'s manual-history fetch: `.not("changed_by","is",null)` + range. */
+export async function getManualStageHistoryInRange(fromIso: string, toIso: string): Promise<{ lead_id: string; from_stage: string | null; to_stage: string; created_at: string }[]> {
+  const { rows } = await getPool().query(
+    `SELECT lead_id, from_stage::text AS from_stage, to_stage::text AS to_stage, created_at
+     FROM public.lead_stage_history
+     WHERE changed_by IS NOT NULL AND created_at >= $1 AND created_at <= $2
+     ORDER BY created_at ASC`,
+    [fromIso, toIso],
+  );
+  return rows;
+}
+
+/** Mirrors getLeadStageCounts()'s per-stage `.select("id",{count:"exact",head:true})` counts, done as one query instead of N+1. */
+export async function countLeadsByStageInRange(fromIso: string, toIso: string): Promise<{ total: number; byStage: Record<string, number> }> {
+  const { rows } = await getPool().query(
+    `SELECT stage::text AS stage, COUNT(*)::int AS count FROM public.kob_leads
+     WHERE created_at >= $1 AND created_at <= $2 GROUP BY stage`,
+    [fromIso, toIso],
+  );
+  const byStage: Record<string, number> = {};
+  let total = 0;
+  for (const r of rows) {
+    byStage[r.stage] = r.count;
+    total += r.count;
+  }
+  return { total, byStage };
+}
+
+/** Mirrors getMetrics()'s `.select("id, stage, source_id, lead_sources(cost_per_lead)")` embed, with optional from/to on created_at. */
+export async function getLeadsForMetrics(fromIso: string | null, toIso: string | null): Promise<{ id: string; stage: string; source_id: string | null; cost_per_lead: number | null }[]> {
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  if (fromIso) { params.push(fromIso); conditions.push(`l.created_at >= $${params.length}`); }
+  if (toIso) { params.push(toIso); conditions.push(`l.created_at <= $${params.length}`); }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const { rows } = await getPool().query(
+    `SELECT l.id, l.stage::text AS stage, l.source_id, s.cost_per_lead::float8 AS cost_per_lead
+     FROM public.kob_leads l LEFT JOIN public.lead_sources s ON s.id = l.source_id
+     ${where} ORDER BY l.created_at ASC`,
+    params,
+  );
+  return rows;
+}
+
+/** Mirrors getMetrics()'s `.eq("to_stage","KTN_CS")` history fetch (unfiltered by date — matches the Supabase path exactly). */
+export async function getAllKtnCsStageHistory(): Promise<{ lead_id: string; to_stage: string; created_at: string }[]> {
+  const { rows } = await getPool().query(
+    `SELECT lead_id, to_stage::text AS to_stage, created_at FROM public.lead_stage_history
+     WHERE to_stage = 'KTN_CS' ORDER BY created_at ASC`,
+  );
+  return rows;
+}

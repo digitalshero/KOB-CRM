@@ -11,6 +11,7 @@ import { withTransaction } from "../db/transaction.js";
 import * as publicIntakeRepo from "../repositories/publicIntake.repository.js";
 import * as adminRepo from "../repositories/admin.repository.js";
 import * as leadRepo from "../repositories/lead.repository.js";
+import { pgClient } from "../db/pgQueryAdapter.js";
 
 // STAGE 10H: true only when DATA_BACKEND=rds (default remains "supabase").
 // Used only by the specific system/public-webhook handlers migrated in this
@@ -86,26 +87,34 @@ export async function getConversionFunnels(req: Request, res: Response): Promise
     const toIso = parseBoundary(toParam, "to") ?? new Date().toISOString();
 
     // ---- AUTO funnel: identical computation to the dashboard ----
-    const [auto] = await computeAutoBuckets(supabaseAdmin, [{ from: fromIso, to: toIso }]);
+    const [auto] = await computeAutoBuckets(useRds() ? pgClient : supabaseAdmin, [{ from: fromIso, to: toIso }]);
     const autoTotal = auto ? auto.leadGenerated : 0;
 
     // ---- MANUAL funnel: same rules as getManualFunnel ----
-    const { count: manualTotal } = await supabaseAdmin
-      .from("audit_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("action", "lead_manual_create")
-      .gte("created_at", fromIso)
-      .lte("created_at", toIso);
-
-    const manualHist = await pageAll(() =>
-      supabaseAdmin
-        .from("lead_stage_history")
-        .select("lead_id, from_stage, to_stage, created_at")
-        .not("changed_by", "is", null)
+    let manualTotal: number;
+    let manualHist: { lead_id: string; from_stage: string | null; to_stage: string; created_at: string }[];
+    if (useRds()) {
+      manualTotal = await publicIntakeRepo.countManualCreateAuditLogs(fromIso, toIso);
+      manualHist = await publicIntakeRepo.getManualStageHistoryInRange(fromIso, toIso);
+    } else {
+      const { count } = await supabaseAdmin
+        .from("audit_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("action", "lead_manual_create")
         .gte("created_at", fromIso)
-        .lte("created_at", toIso)
-        .order("created_at", { ascending: true }),
-    );
+        .lte("created_at", toIso);
+      manualTotal = count ?? 0;
+
+      manualHist = await pageAll(() =>
+        supabaseAdmin
+          .from("lead_stage_history")
+          .select("lead_id, from_stage, to_stage, created_at")
+          .not("changed_by", "is", null)
+          .gte("created_at", fromIso)
+          .lte("created_at", toIso)
+          .order("created_at", { ascending: true }),
+      );
+    }
 
     // Same strict sequential rules as the dashboard Manual funnel.
     const STRICT_MANUAL: Record<string, string[]> = {
@@ -173,25 +182,34 @@ export async function getLeadStageCounts(req: Request, res: Response): Promise<v
     const fromIso = parseBoundary(fromParam, "from") ?? new Date(0).toISOString();
     const toIso = parseBoundary(toParam, "to") ?? new Date().toISOString();
 
-    const countFor = async (stage?: string) => {
-      let q = supabaseAdmin
-        .from("kob_leads")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", fromIso)
-        .lte("created_at", toIso);
-      if (stage) q = q.eq("stage", stage as never);
-      const { count, error } = await q;
-      if (error) throw new Error(error.message);
-      return count ?? 0;
-    };
+    let total: number;
+    let data: Record<string, number>;
+    if (useRds()) {
+      const { total: t, byStage } = await publicIntakeRepo.countLeadsByStageInRange(fromIso, toIso);
+      total = t;
+      data = { LEADS_GENERATED: total };
+      STAGES.forEach((s) => (data[s] = byStage[s] ?? 0));
+    } else {
+      const countFor = async (stage?: string) => {
+        let q = supabaseAdmin
+          .from("kob_leads")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", fromIso)
+          .lte("created_at", toIso);
+        if (stage) q = q.eq("stage", stage as never);
+        const { count, error } = await q;
+        if (error) throw new Error(error.message);
+        return count ?? 0;
+      };
 
-    const [total, ...stageCounts] = await Promise.all([
-      countFor(),
-      ...STAGES.map((s) => countFor(s)),
-    ]);
-
-    const data: Record<string, number> = { LEADS_GENERATED: total };
-    STAGES.forEach((s, i) => (data[s] = stageCounts[i] ?? 0));
+      const [t, ...stageCounts] = await Promise.all([
+        countFor(),
+        ...STAGES.map((s) => countFor(s)),
+      ]);
+      total = t;
+      data = { LEADS_GENERATED: total };
+      STAGES.forEach((s, i) => (data[s] = stageCounts[i] ?? 0));
+    }
 
     res.status(200).json({ success: true, data });
   } catch (e) {
@@ -235,12 +253,14 @@ export async function getMetrics(req: Request, res: Response): Promise<void> {
 
   try {
     // LEADS GENERATED
-    const leads = await pageAll(() =>
-      applyRange(
-        supabaseAdmin.from("kob_leads").select("id, stage, source_id, lead_sources(cost_per_lead)"),
-        "created_at",
-      ).order("created_at", { ascending: true }),
-    );
+    const leads = useRds()
+      ? await publicIntakeRepo.getLeadsForMetrics(fromIso, toIso)
+      : await pageAll(() =>
+          applyRange(
+            supabaseAdmin.from("kob_leads").select("id, stage, source_id, lead_sources(cost_per_lead)"),
+            "created_at",
+          ).order("created_at", { ascending: true }),
+        );
     const leadIds = new Set(leads.map((l: any) => l.id as string));
     const leadsGenerated = leadIds.size;
 
@@ -249,13 +269,15 @@ export async function getMetrics(req: Request, res: Response): Promise<void> {
     for (const l of leads as any[]) {
       if (l.stage === "KTN_CS" || l.stage === "KTN_LIVE") signed.add(l.id);
     }
-    const hist = await pageAll(() =>
-      supabaseAdmin
-        .from("lead_stage_history")
-        .select("lead_id, to_stage, created_at")
-        .eq("to_stage", "KTN_CS")
-        .order("created_at", { ascending: true }),
-    );
+    const hist = useRds()
+      ? await publicIntakeRepo.getAllKtnCsStageHistory()
+      : await pageAll(() =>
+          supabaseAdmin
+            .from("lead_stage_history")
+            .select("lead_id, to_stage, created_at")
+            .eq("to_stage", "KTN_CS")
+            .order("created_at", { ascending: true }),
+        );
     for (const h of hist as any[]) if (leadIds.has(h.lead_id)) signed.add(h.lead_id);
     const contractsSigned = signed.size;
 
@@ -275,7 +297,7 @@ export async function getMetrics(req: Request, res: Response): Promise<void> {
     }
     if (!totalSpend) {
       totalSpend = (leads as any[]).reduce(
-        (s, l: any) => s + Number(l.lead_sources?.cost_per_lead ?? 0),
+        (s, l: any) => s + Number(l.cost_per_lead ?? l.lead_sources?.cost_per_lead ?? 0),
         0,
       );
     }

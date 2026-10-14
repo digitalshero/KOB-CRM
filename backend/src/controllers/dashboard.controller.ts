@@ -5,6 +5,7 @@ import { resolveLeadScopeOrDeny } from "../db/authz.js";
 import * as dashboardRepo from "../repositories/dashboard.repository.js";
 import * as referenceRepo from "../repositories/reference.repository.js";
 import * as funnelRepo from "../repositories/funnel.repository.js";
+import * as analyticsRepo from "../repositories/analytics.repository.js";
 import { pgClient } from "../db/pgQueryAdapter.js";
 
 /**
@@ -1615,84 +1616,123 @@ export async function getVariantStageResponseSplitTable(req: Request, res: Respo
  */
 export async function getExecPerformanceSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!useRds() && (!req.supabase || !req.userId)) {
+      res.status(500).json({ error: "Supabase client not initialized on request" });
+      return;
+    }
+    if (useRds() && !req.userId) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
 
-    const { data: role } = await req.supabase.rpc("get_user_role", { _user_id: req.userId });
-    const db =
-      ((role as string | null) ?? "executive") === "executive" || !process.env.SUPABASE_SERVICE_ROLE_KEY
-        ? req.supabase
-        : supabaseAdmin;
-
     const from = typeof req.query.from === "string" && req.query.from.trim() ? req.query.from.trim() : undefined;
     const to = typeof req.query.to === "string" && req.query.to.trim() ? req.query.to.trim() : undefined;
 
-    const { data: roleRows } = await db
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "executive");
-    const execIds = ((roleRows ?? []) as any[]).map((r: any) => r.user_id);
-    if (execIds.length === 0) {
-      res.status(200).json([]);
-      return;
+    let execIds: string[];
+    let profs: { id: string; full_name: string }[];
+    let rows: { assigned_to: string | null }[];
+    let history: { lead_id: string; changed_by: string | null }[];
+    let mode: "AUTO" | "MANUAL";
+    let targetByUser: Map<string, number | null>;
+    let execTarget: number;
+
+    if (useRds()) {
+      // Same scope precedent as getExecutiveStageSummary/getTLOverview (see
+      // db/authz.ts's columnScopeSql doc comment): the Supabase path's
+      // "executive -> req.supabase; else -> supabaseAdmin" IS this project's
+      // already-documented self-scope-via-RLS pattern, reproduced explicitly.
+      const scope = await resolveLeadScopeOrDeny(req.userId!);
+      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+
+      execIds = await analyticsRepo.getExecutiveRoleUserIdsScoped(scope);
+      if (execIds.length === 0) {
+        res.status(200).json([]);
+        return;
+      }
+      profs = await analyticsRepo.getProfilesForExecSummary(execIds);
+      rows = await analyticsRepo.getLeadsAssignedToInRangeScoped(scope, from, to);
+      history = (await analyticsRepo.getKtnCsHistoryScoped(scope, from, to)).filter((h) => h.changed_by);
+
+      const refDate = from ? new Date(from) : new Date();
+      const period = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, "0")}-01`;
+      mode = await analyticsRepo.getDefaultMode();
+      const inputs = await analyticsRepo.getScvModeInputTargets(period, mode, execIds);
+      targetByUser = new Map(inputs.map((i) => [i.user_id, i.ktn_cs_target != null ? Number(i.ktn_cs_target) : null]));
+      execTarget = await analyticsRepo.getOrgMonthlyKtnCsTarget(period);
+    } else {
+      const db = req.supabase!;
+      const { data: role } = await db.rpc("get_user_role", { _user_id: req.userId });
+      const client =
+        ((role as string | null) ?? "executive") === "executive" || !process.env.SUPABASE_SERVICE_ROLE_KEY
+          ? db
+          : supabaseAdmin;
+
+      const { data: roleRows } = await client
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "executive");
+      execIds = ((roleRows ?? []) as any[]).map((r: any) => r.user_id);
+      if (execIds.length === 0) {
+        res.status(200).json([]);
+        return;
+      }
+
+      const { data: profsData } = await client
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", execIds);
+      profs = (profsData ?? []) as any[];
+
+      // Leads = leads assigned, created inside the selected date range.
+      rows = await pageAll(() => {
+        let q = client.from("kob_leads").select("assigned_to");
+        if (from) q = q.gte("created_at", from);
+        if (to) q = q.lte("created_at", to);
+        return q;
+      });
+
+      // Contracts = unique leads that entered KTN_CS in the range (stage history
+      // timestamp), credited to the lead's assigned executive — not the mover.
+      const ktnHist = await pageAll(() => {
+        let q = client
+          .from("lead_stage_history")
+          .select("lead_id, kob_leads!inner(assigned_to, stage)")
+          .eq("to_stage", "KTN_CS")
+          .eq("kob_leads.stage", "KTN_CS");
+        if (from) q = q.gte("created_at", from);
+        if (to) q = q.lte("created_at", to);
+        return q;
+      });
+      history = (ktnHist as any[])
+        .map((h: any) => ({ lead_id: h.lead_id, changed_by: h.kob_leads?.assigned_to ?? null }))
+        .filter((h: any) => h.changed_by);
+
+      // Target = per-executive KTN CS target from SCV & Incentives (active mode,
+      // month of the filter start), falling back to the org monthly KTN_CS target.
+      const refDate = from ? new Date(from) : new Date();
+      const period = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, "0")}-01`;
+      const { data: cfgRow } = await client.from("kob_configuration").select("default_mode").limit(1).maybeSingle();
+      mode = (cfgRow as any)?.default_mode === "MANUAL" ? "MANUAL" : "AUTO";
+      const { data: inputs } = await client
+        .from("scv_mode_inputs")
+        .select("user_id, ktn_cs_target")
+        .eq("period", period)
+        .eq("mode", mode)
+        .in("user_id", execIds);
+      targetByUser = new Map<string, number | null>(
+        ((inputs ?? []) as any[]).map((i: any) => [i.user_id, i.ktn_cs_target != null ? Number(i.ktn_cs_target) : null]),
+      );
+      const { data: orgTargetRow } = await client
+        .from("kpi_targets")
+        .select("target_value")
+        .eq("metric", "KTN_CS")
+        .eq("period", "monthly")
+        .lte("effective_from", period)
+        .order("effective_from", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      execTarget = Number((orgTargetRow as any)?.target_value ?? 0);
     }
-
-    const { data: profs } = await db
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", execIds);
-
-    // Leads = leads assigned, created inside the selected date range.
-    const rows = await pageAll(() => {
-      let q = db.from("kob_leads").select("assigned_to");
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q;
-    });
-
-    // Contracts = unique leads that entered KTN_CS in the range (stage history
-    // timestamp), credited to the lead's assigned executive — not the mover.
-    const ktnHist = await pageAll(() => {
-      let q = db
-        .from("lead_stage_history")
-        .select("lead_id, kob_leads!inner(assigned_to, stage)")
-        .eq("to_stage", "KTN_CS")
-        .eq("kob_leads.stage", "KTN_CS");
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q;
-    });
-    const history = (ktnHist as any[])
-      .map((h: any) => ({ lead_id: h.lead_id, changed_by: h.kob_leads?.assigned_to ?? null }))
-      .filter((h: any) => h.changed_by);
-
-    // Target = per-executive KTN CS target from SCV & Incentives (active mode,
-    // month of the filter start), falling back to the org monthly KTN_CS target.
-    const refDate = from ? new Date(from) : new Date();
-    const period = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, "0")}-01`;
-    const { data: cfgRow } = await db.from("kob_configuration").select("default_mode").limit(1).maybeSingle();
-    const mode = (cfgRow as any)?.default_mode === "MANUAL" ? "MANUAL" : "AUTO";
-    const { data: inputs } = await db
-      .from("scv_mode_inputs")
-      .select("user_id, ktn_cs_target")
-      .eq("period", period)
-      .eq("mode", mode)
-      .in("user_id", execIds);
-    const targetByUser = new Map<string, number | null>(
-      ((inputs ?? []) as any[]).map((i: any) => [i.user_id, i.ktn_cs_target != null ? Number(i.ktn_cs_target) : null]),
-    );
-    const { data: orgTargetRow } = await db
-      .from("kpi_targets")
-      .select("target_value")
-      .eq("metric", "KTN_CS")
-      .eq("period", "monthly")
-      .lte("effective_from", period)
-      .order("effective_from", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const execTarget = Number((orgTargetRow as any)?.target_value ?? 0);
 
     const UNASSIGNED = "__unassigned__";
     const byExec = new Map<string, { leads: number; contracts: number }>();

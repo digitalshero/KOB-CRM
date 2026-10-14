@@ -1624,21 +1624,22 @@ export async function getAbandonedLeads(req: Request, res: Response, next: NextF
  */
 export async function getAllocationBreakdownByTL(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const { data: profiles, error: pErr } = await req.supabase.from("profiles").select("id, full_name, team_leader_id");
+    const client = useRds() ? pgClient : req.supabase!;
+    const { data: profiles, error: pErr } = await client.from("profiles").select("id, full_name, team_leader_id");
     if (pErr) {
       res.status(500).json({ error: pErr.message });
       return;
     }
-    const { data: roles, error: rErr } = await req.supabase.from("user_roles").select("user_id, role");
+    const { data: roles, error: rErr } = await client.from("user_roles").select("user_id, role");
     if (rErr) {
       res.status(500).json({ error: rErr.message });
       return;
     }
-    const { data: leads, error: lErr } = await req.supabase.from("kob_leads").select("id, team_leader_id, assigned_to");
+    const { data: leads, error: lErr } = await client.from("kob_leads").select("id, team_leader_id, assigned_to");
     if (lErr) {
       res.status(500).json({ error: lErr.message });
       return;
@@ -2146,7 +2147,7 @@ export async function getMetricDrilldown(req: Request, res: Response, next: Next
  */
 export async function getMyRetargetingQueue(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -2155,7 +2156,8 @@ export async function getMyRetargetingQueue(req: Request, res: Response, next: N
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const { data: leads, error: lErr } = await req.supabase
+    const client = useRds() ? pgClient : req.supabase!;
+    const { data: leads, error: lErr } = await client
       .from("kob_leads")
       .select("id, code, full_name")
       .eq("assigned_to", userId);
@@ -2165,7 +2167,7 @@ export async function getMyRetargetingQueue(req: Request, res: Response, next: N
       res.status(200).json([]);
       return;
     }
-    const { data: rows, error: rErr } = await req.supabase
+    const { data: rows, error: rErr } = await client
       .from("retargeting_schedule")
       .select("id, lead_id, bucket, next_touch_at, attempts_done, phase, is_dead")
       .in("lead_id", leadIds)
@@ -2189,7 +2191,7 @@ export async function getMyRetargetingQueue(req: Request, res: Response, next: N
  */
 export async function getMyStageHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -2198,7 +2200,8 @@ export async function getMyStageHistory(req: Request, res: Response, next: NextF
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const { data: leads, error: lErr } = await req.supabase
+    const client = useRds() ? pgClient : req.supabase!;
+    const { data: leads, error: lErr } = await client
       .from("kob_leads")
       .select("id, code, full_name")
       .eq("assigned_to", userId);
@@ -2208,7 +2211,7 @@ export async function getMyStageHistory(req: Request, res: Response, next: NextF
       res.status(200).json([]);
       return;
     }
-    const { data: hist, error: hErr } = await req.supabase
+    const { data: hist, error: hErr } = await client
       .from("lead_stage_history")
       .select("lead_id, from_stage, to_stage, changed_at")
       .in("lead_id", ids)
@@ -2466,7 +2469,7 @@ async function fetchExecRoster(supabase: any, cols = "id, full_name, email, phon
  */
 export async function getMyTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orgClient = await getOrgReadClient(req);
+    const orgClient = useRds() ? pgClient : await getOrgReadClient(req);
     const roster = await fetchExecRoster(orgClient);
     res.status(200).json(roster);
   } catch (err) {
@@ -2484,7 +2487,7 @@ export async function getMyTeam(req: Request, res: Response, next: NextFunction)
  */
 export async function getRetargetingQueue(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const client = req.supabase ?? supabaseAdmin;
+    const client = useRds() ? pgClient : (req.supabase ?? supabaseAdmin);
     if (!client) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -3479,7 +3482,7 @@ export async function getUnallocatedLeads(req: Request, res: Response, next: Nex
  */
 export async function listActiveExecutives(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const db = await getOrgReadClient(req);
+    const db = useRds() ? pgClient : await getOrgReadClient(req);
     const { data: roles, error: rErr } = await db.from("user_roles").select("user_id, role").eq("role", "executive");
     if (rErr) throw rErr;
     const execIds = (roles ?? []).map((r: any) => r.user_id);
@@ -3508,7 +3511,7 @@ export async function listActiveExecutives(req: Request, res: Response, next: Ne
  */
 export async function listAllExecutives(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const supabase = req.supabase ?? supabaseAdmin;
+    const supabase = useRds() ? pgClient : (req.supabase ?? supabaseAdmin);
     const { data: roles, error: rErr } = await supabase.from("user_roles").select("user_id, role").eq("role", "executive");
     if (rErr) throw rErr;
     const execIds = (roles ?? []).map((r: any) => r.user_id);
@@ -3560,7 +3563,7 @@ export async function listAllExecutives(req: Request, res: Response, next: NextF
  */
 export async function listAllocatableExecutives(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const supabase = req.supabase ?? supabaseAdmin;
+    const supabase = useRds() ? pgClient : (req.supabase ?? supabaseAdmin);
     const { data: roles, error: rErr } = await supabase.from("user_roles").select("user_id, role").eq("role", "executive");
     if (rErr) throw rErr;
     const execIds = (roles ?? []).map((r: any) => r.user_id);
@@ -3612,7 +3615,7 @@ export async function listAllocatableExecutives(req: Request, res: Response, nex
  */
 export async function listExecutivesWithStats(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const db = await getOrgReadClient(req);
+    const db = useRds() ? pgClient : await getOrgReadClient(req);
     const { data: roles, error: rErr } = await db.from("user_roles").select("user_id, role");
     if (rErr) throw rErr;
     const execIds = (roles ?? []).filter((r: any) => r.role === "executive").map((r: any) => r.user_id);
@@ -3846,7 +3849,7 @@ export async function getLeadDetail(req: Request, res: Response, next: NextFunct
  */
 export async function getMyExecOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -3855,7 +3858,8 @@ export async function getMyExecOverview(req: Request, res: Response, next: NextF
     const from = typeof req.query.from === "string" && req.query.from.trim() ? req.query.from.trim() : undefined;
     const to = typeof req.query.to === "string" && req.query.to.trim() ? req.query.to.trim() : undefined;
 
-    let q = req.supabase
+    const client = useRds() ? pgClient : req.supabase!;
+    let q = client
       .from("kob_leads")
       .select("id, code, full_name, stage, last_activity_at, updated_at, created_at, assigned_to")
       .eq("assigned_to", userId);
@@ -3890,14 +3894,18 @@ export async function getMyExecOverview(req: Request, res: Response, next: NextF
       today.setHours(23, 59, 59, 999);
       for (let i = 0; i < leadIds.length; i += 150) {
         const chunk = leadIds.slice(i, i + 150);
-        const { data: rt } = await (req.supabase as any)
-          .from("retargeting_schedule")
-          .select("id, lead_id, bucket, next_touch_at, phase, kob_leads(code, full_name)")
-          .in("lead_id", chunk)
-          .eq("is_dead", false)
-          .lte("next_touch_at", today.toISOString())
-          .order("next_touch_at", { ascending: true });
-        dueToday.push(...(rt ?? []));
+        if (useRds()) {
+          dueToday.push(...(await referenceRepo.getDueTodayRetargeting(chunk, today.toISOString())));
+        } else {
+          const { data: rt } = await (req.supabase as any)
+            .from("retargeting_schedule")
+            .select("id, lead_id, bucket, next_touch_at, phase, kob_leads(code, full_name)")
+            .in("lead_id", chunk)
+            .eq("is_dead", false)
+            .lte("next_touch_at", today.toISOString())
+            .order("next_touch_at", { ascending: true });
+          dueToday.push(...(rt ?? []));
+        }
       }
       dueToday.sort((a, b) => new Date(a.next_touch_at).getTime() - new Date(b.next_touch_at).getTime());
     }
@@ -3910,14 +3918,14 @@ export async function getMyExecOverview(req: Request, res: Response, next: NextF
     if (leadIds.length) {
       for (let i = 0; i < leadIds.length; i += 150) {
         const chunk = leadIds.slice(i, i + 150);
-        const { data: hist } = await (req.supabase as any)
+        const { data: hist } = await (client as any)
           .from("lead_stage_history")
           .select("lead_id, to_stage")
           .in("lead_id", chunk)
           .in("to_stage", ["WEBINAR", "EOI_2", "KTN_CS"]);
         for (const h of hist ?? []) reached[h.to_stage]?.add(h.lead_id);
 
-        const { data: att } = await (req.supabase as any)
+        const { data: att } = await (client as any)
           .from("webinar_attendance")
           .select("lead_id")
           .in("lead_id", chunk)
@@ -4137,6 +4145,10 @@ export async function getMyRole(req: Request, res: Response, next: NextFunction)
  */
 export async function listGallaboxFireQueue(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (useRds()) {
+      res.json(await referenceRepo.listGallaboxFireQueue());
+      return;
+    }
     if (!req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized" });
       return;
@@ -4279,7 +4291,7 @@ export async function listLeads(req: Request, res: Response, next: NextFunction)
  */
 export async function listWhatsappExecutives(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const db = await getOrgReadClient(req);
+    const db = useRds() ? pgClient : await getOrgReadClient(req);
     const { data: roles } = await db.from("user_roles").select("user_id, role").eq("role", "executive");
     const execIds = (roles ?? []).map((r: any) => r.user_id);
     if (!execIds.length) {
@@ -4303,12 +4315,23 @@ export async function listWhatsappExecutives(req: Request, res: Response, next: 
  */
 export async function listWhatsappMessages(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const client = await getOrgReadClient(req);
     const limit = req.query.limit ? Math.max(1, parseInt(String(req.query.limit), 10) || 2000) : 2000;
     const unreadOnly = req.query.unreadOnly === "true";
-
     const PAGE = 1000;
     const out: any[] = [];
+
+    if (useRds()) {
+      for (let offset = 0; offset < limit; offset += PAGE) {
+        const size = Math.min(PAGE, limit - offset);
+        const page = await referenceRepo.listWhatsappMessagesPage(offset, size, unreadOnly);
+        out.push(...page);
+        if (page.length < size) break;
+      }
+      res.json(out);
+      return;
+    }
+
+    const client = await getOrgReadClient(req);
     for (let offset = 0; offset < limit; offset += PAGE) {
       const size = Math.min(PAGE, limit - offset);
       let q = client
@@ -4496,7 +4519,7 @@ export async function upsertMarketingTarget(req: Request, res: Response, next: N
  */
 export async function upsertManualRating(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4534,7 +4557,17 @@ export async function upsertManualRating(req: Request, res: Response, next: Next
       rated_at: new Date().toISOString(),
     };
 
-    const { data: saved, error } = await req.supabase
+    if (useRds()) {
+      const saved = await withTransaction(req.userId, async (client) => {
+        const s = await adminRepo.upsertManualRating(client, row);
+        await adminRepo.insertAuditLog(client, req.userId!, "manual_rating_upsert", "scv_manual_ratings", (s as any)?.id ?? null, row);
+        return s;
+      });
+      res.status(200).json(saved);
+      return;
+    }
+
+    const { data: saved, error } = await req.supabase!
       .from("scv_manual_ratings")
       .upsert(row as any, { onConflict: "user_id,period" })
       .select()
@@ -4545,7 +4578,7 @@ export async function upsertManualRating(req: Request, res: Response, next: Next
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "manual_rating_upsert", "scv_manual_ratings", saved?.id ?? null, row);
+    await logAudit(req.supabase!, req.userId, "manual_rating_upsert", "scv_manual_ratings", saved?.id ?? null, row);
     res.status(200).json(saved);
   } catch (err) {
     next(err);
@@ -5037,7 +5070,7 @@ export async function updateConfig(req: Request, res: Response, next: NextFuncti
  */
 export async function updateMyAllocationMode(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -5048,7 +5081,16 @@ export async function updateMyAllocationMode(req: Request, res: Response, next: 
       return;
     }
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await adminRepo.updateAllocationMode(client, req.userId!, mode);
+        await adminRepo.insertAuditLog(client, req.userId!, "allocation_mode_update", "profiles", req.userId!, { mode });
+      });
+      res.status(200).json({ ok: true, mode });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("profiles")
       .update({ allocation_mode: mode })
       .eq("id", req.userId);
@@ -5058,7 +5100,7 @@ export async function updateMyAllocationMode(req: Request, res: Response, next: 
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "allocation_mode_update", "profiles", req.userId, { mode });
+    await logAudit(req.supabase!, req.userId, "allocation_mode_update", "profiles", req.userId, { mode });
     res.status(200).json({ ok: true, mode });
   } catch (err) {
     next(err);
@@ -5071,7 +5113,7 @@ export async function updateMyAllocationMode(req: Request, res: Response, next: 
  */
 export async function updateExecutiveLanguage(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -5082,7 +5124,42 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
       return;
     }
 
-    const { data: roles } = await req.supabase
+    const patch: Record<string, any> = {};
+    if (Object.prototype.hasOwnProperty.call(req.body, "primary_language")) {
+      patch.primary_language = req.body.primary_language || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, "secondary_language")) {
+      patch.secondary_language = req.body.secondary_language || null;
+    }
+
+    if (useRds()) {
+      const roles = await adminRepo.getRolesForUser(req.userId);
+      const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
+      const isTL = roles.includes("team_leader");
+      if (!isAdmin && !isTL) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+      if (!isAdmin) {
+        const tlId = await adminRepo.getProfileTeamLeaderId(executiveId);
+        if (tlId !== req.userId) {
+          res.status(403).json({ error: "Forbidden" });
+          return;
+        }
+      }
+      if (Object.keys(patch).length === 0) {
+        res.status(200).json({ ok: true });
+        return;
+      }
+      await withTransaction(req.userId, async (client) => {
+        await adminRepo.updateProfileLanguages(client, executiveId, patch);
+        await adminRepo.insertAuditLog(client, req.userId!, "executive_language_updated", "profiles", executiveId, patch);
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { data: roles } = await req.supabase!
       .from("user_roles")
       .select("role")
       .eq("user_id", req.userId);
@@ -5095,7 +5172,7 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
       return;
     }
 
-    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
+    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase!;
 
     if (!isAdmin) {
       const { data: prof } = await db
@@ -5108,14 +5185,6 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
         res.status(403).json({ error: "Forbidden" });
         return;
       }
-    }
-
-    const patch: Record<string, any> = {};
-    if (Object.prototype.hasOwnProperty.call(req.body, "primary_language")) {
-      patch.primary_language = req.body.primary_language || null;
-    }
-    if (Object.prototype.hasOwnProperty.call(req.body, "secondary_language")) {
-      patch.secondary_language = req.body.secondary_language || null;
     }
 
     if (Object.keys(patch).length === 0) {
@@ -5133,7 +5202,7 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "executive_language_updated", "profiles", executiveId, patch);
+    await logAudit(req.supabase!, req.userId, "executive_language_updated", "profiles", executiveId, patch);
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5146,7 +5215,7 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
  */
 export async function reassignExecutiveTeamLeader(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -5164,7 +5233,22 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
       return;
     }
 
-    const { data: roles } = await req.supabase
+    if (useRds()) {
+      const roles = await adminRepo.getRolesForUser(req.userId);
+      const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
+      if (!isAdmin) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+      await withTransaction(req.userId, async (client) => {
+        await adminRepo.updateProfileTeamLeader(client, executiveId, teamLeaderId);
+        await adminRepo.insertAuditLog(client, req.userId!, "executive_reassign_tl", "profiles", executiveId, { team_leader_id: teamLeaderId });
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { data: roles } = await req.supabase!
       .from("user_roles")
       .select("role")
       .eq("user_id", req.userId);
@@ -5175,7 +5259,7 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
       return;
     }
 
-    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
+    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase!;
 
     const { error } = await db
       .from("profiles")
@@ -5187,7 +5271,7 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
       return;
     }
 
-    await logAudit(req.supabase, req.userId, "executive_reassign_tl", "profiles", executiveId, {
+    await logAudit(req.supabase!, req.userId, "executive_reassign_tl", "profiles", executiveId, {
       team_leader_id: teamLeaderId,
     });
     res.status(200).json({ ok: true });
@@ -5361,7 +5445,7 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
  */
 export async function toggleEntity(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
+    if (!useRds() && !req.supabase) {
       res.status(500).json({ error: "Supabase client not initialized on request" });
       return;
     }
@@ -5387,7 +5471,16 @@ export async function toggleEntity(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      await withTransaction(req.userId ?? null, async (client) => {
+        await adminRepo.toggleEntityActive(client, table, id, active);
+        await adminRepo.insertAuditLog(client, req.userId ?? null, active ? "activate" : "deactivate", table, id, { active });
+      });
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from(table)
       .update({ active })
       .eq("id", id);
@@ -5398,7 +5491,7 @@ export async function toggleEntity(req: Request, res: Response, next: NextFuncti
     }
 
     await logAudit(
-      req.supabase,
+      req.supabase!,
       req.userId ?? null,
       active ? "activate" : "deactivate",
       table,

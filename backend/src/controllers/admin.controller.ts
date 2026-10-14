@@ -1,6 +1,13 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { supabaseAdmin } from "../integrations/supabase/client.js";
 import { logAudit } from "../utils/audit.js";
+import { config } from "../config/index.js";
+import { withTransaction } from "../db/transaction.js";
+import * as adminRepo from "../repositories/admin.repository.js";
+
+// STAGE 10I-G: RDS path for updateCityPincodeAliases/syncCityPincodesFromIndiaPost
+// only. seedDemoUsers stays dev-only/Supabase (see routes/admin.routes.ts).
+const useRds = () => config.dataBackend === "rds";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -102,7 +109,7 @@ export async function seedDemoUsers(_req: Request, res: Response, next: NextFunc
  */
 export async function updateCityPincodeAliases(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -121,7 +128,17 @@ export async function updateCityPincodeAliases(req: Request, res: Response, next
     const clean = (arr: any[]) =>
       (Array.isArray(arr) ? arr.map((s) => String(s).trim()).filter((s) => s.length > 0) : []);
 
-    const { error } = await req.supabase
+    if (useRds()) {
+      const updated = await withTransaction(req.userId, async (client) => {
+        await adminRepo.updateCityAliases(client, trimmedCityId, clean(districtAliases), clean(stateAliases));
+        const rows = await adminRepo.recomputeCityPincodeCounts(client, trimmedCityId);
+        return rows[0] ?? null;
+      });
+      res.status(200).json({ ok: true, updated });
+      return;
+    }
+
+    const { error } = await req.supabase!
       .from("india_cities")
       .update({
         district_aliases: clean(districtAliases),
@@ -135,7 +152,7 @@ export async function updateCityPincodeAliases(req: Request, res: Response, next
     }
 
     // Recompute just this city
-    const { data: rows, error: rpcErr } = await req.supabase.rpc(
+    const { data: rows, error: rpcErr } = await req.supabase!.rpc(
       "recompute_city_pincode_counts",
       { _city_id: trimmedCityId },
     );
@@ -158,7 +175,7 @@ export async function updateCityPincodeAliases(req: Request, res: Response, next
  */
 export async function syncCityPincodesFromIndiaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId || (!useRds() && !req.supabase)) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -173,17 +190,22 @@ export async function syncCityPincodesFromIndiaPost(req: Request, res: Response,
       targetCityId = cityId.trim();
     }
 
-    const { data: rows, error } = await req.supabase.rpc(
-      "recompute_city_pincode_counts",
-      { _city_id: targetCityId },
-    );
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
+    let rows: { city_id: string; city_name: string; pincode_count: number }[];
+    if (useRds()) {
+      rows = await withTransaction(req.userId, (client) => adminRepo.recomputeCityPincodeCounts(client, targetCityId));
+    } else {
+      const { data, error } = await req.supabase!.rpc(
+        "recompute_city_pincode_counts",
+        { _city_id: targetCityId },
+      );
+      if (error) {
+        res.status(500).json({ error: error.message });
+        return;
+      }
+      rows = (data ?? []) as any[];
     }
 
-    const results = ((rows ?? []) as any[]).map((r) => ({
+    const results = (rows ?? []).map((r: any) => ({
       id: r.city_id as string,
       name: r.city_name as string,
       count: Number(r.pincode_count ?? 0),
@@ -193,14 +215,20 @@ export async function syncCityPincodesFromIndiaPost(req: Request, res: Response,
     const updated = results.filter((r) => r.matched).length;
     const failed = total - updated;
 
-    await logAudit(
-      req.supabase,
-      req.userId,
-      "pincode_recompute",
-      "india_cities",
-      targetCityId ?? "bulk",
-      { updated, failed, total },
-    );
+    if (useRds()) {
+      await withTransaction(req.userId, async (client) => {
+        await adminRepo.insertAuditLog(client, req.userId!, "pincode_recompute", "india_cities", targetCityId ?? "bulk", { updated, failed, total });
+      });
+    } else {
+      await logAudit(
+        req.supabase!,
+        req.userId,
+        "pincode_recompute",
+        "india_cities",
+        targetCityId ?? "bulk",
+        { updated, failed, total },
+      );
+    }
 
     res.status(200).json({ updated, failed, total, results });
   } catch (err) {
