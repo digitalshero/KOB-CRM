@@ -75,6 +75,7 @@ import { Route as AuthenticatedMgrLeadAllocationRouteImport } from './routes/_au
 import { Route as AuthenticatedMgrLeadInboxRouteImport } from './routes/_authenticated/mgr.lead-inbox'
 import { Route as AuthenticatedMgrMarketingRouteImport } from './routes/_authenticated/mgr.marketing'
 import { Route as AuthenticatedMgrMonthlyRatingsRouteImport } from './routes/_authenticated/mgr.monthly-ratings'
+import { Route as AuthenticatedMgrPageAccessRouteImport } from './routes/_authenticated/mgr.page-access'
 import { Route as AuthenticatedMgrQaRouteImport } from './routes/_authenticated/mgr.qa'
 import { Route as AuthenticatedMgrReportsRouteImport } from './routes/_authenticated/mgr.reports'
 import { Route as AuthenticatedMgrRetargetingRouteImport } from './routes/_authenticated/mgr.retargeting'
@@ -101,7 +102,6 @@ import { Route as AuthenticatedTlRetargetingRouteImport } from './routes/_authen
 import { Route as AuthenticatedTlScvIncentivesRouteImport } from './routes/_authenticated/tl.scv-incentives'
 import { Route as AuthenticatedTlTatBreachRouteImport } from './routes/_authenticated/tl.tat-breach'
 import { Route as AuthenticatedTlWebinarHistoryRouteImport } from './routes/_authenticated/tl.webinar-history'
-import { Route as AuthenticatedMgrUsersUserIdPageAccessRouteImport } from './routes/_authenticated/mgr.users.$userId.page-access'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -475,6 +475,12 @@ const AuthenticatedMgrMonthlyRatingsRoute =
     path: '/mgr/monthly-ratings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMgrPageAccessRoute =
+  AuthenticatedMgrPageAccessRouteImport.update({
+    id: '/mgr/page-access',
+    path: '/mgr/page-access',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMgrQaRoute = AuthenticatedMgrQaRouteImport.update({
   id: '/mgr/qa',
   path: '/mgr/qa',
@@ -623,12 +629,6 @@ const AuthenticatedTlWebinarHistoryRoute =
     path: '/tl/webinar-history',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMgrUsersUserIdPageAccessRoute =
-  AuthenticatedMgrUsersUserIdPageAccessRouteImport.update({
-    id: '/$userId/page-access',
-    path: '/$userId/page-access',
-    getParentRoute: () => AuthenticatedMgrUsersRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -695,6 +695,7 @@ export interface FileRoutesByFullPath {
   '/mgr/lead-inbox': typeof AuthenticatedMgrLeadInboxRoute
   '/mgr/marketing': typeof AuthenticatedMgrMarketingRoute
   '/mgr/monthly-ratings': typeof AuthenticatedMgrMonthlyRatingsRoute
+  '/mgr/page-access': typeof AuthenticatedMgrPageAccessRoute
   '/mgr/qa': typeof AuthenticatedMgrQaRoute
   '/mgr/reports': typeof AuthenticatedMgrReportsRoute
   '/mgr/retargeting': typeof AuthenticatedMgrRetargetingRoute
@@ -704,7 +705,7 @@ export interface FileRoutesByFullPath {
   '/mgr/team-performance': typeof AuthenticatedMgrTeamPerformanceRoute
   '/mgr/unallocated': typeof AuthenticatedMgrUnallocatedRoute
   '/mgr/unallocated-leads': typeof AuthenticatedMgrUnallocatedLeadsRoute
-  '/mgr/users': typeof AuthenticatedMgrUsersRouteWithChildren
+  '/mgr/users': typeof AuthenticatedMgrUsersRoute
   '/tl/abandoned-leads': typeof AuthenticatedTlAbandonedLeadsRoute
   '/tl/allocation': typeof AuthenticatedTlAllocationRoute
   '/tl/brand-performance': typeof AuthenticatedTlBrandPerformanceRoute
@@ -722,7 +723,6 @@ export interface FileRoutesByFullPath {
   '/tl/tat-breach': typeof AuthenticatedTlTatBreachRoute
   '/tl/webinar-history': typeof AuthenticatedTlWebinarHistoryRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
-  '/mgr/users/$userId/page-access': typeof AuthenticatedMgrUsersUserIdPageAccessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -789,6 +789,7 @@ export interface FileRoutesByTo {
   '/mgr/lead-inbox': typeof AuthenticatedMgrLeadInboxRoute
   '/mgr/marketing': typeof AuthenticatedMgrMarketingRoute
   '/mgr/monthly-ratings': typeof AuthenticatedMgrMonthlyRatingsRoute
+  '/mgr/page-access': typeof AuthenticatedMgrPageAccessRoute
   '/mgr/qa': typeof AuthenticatedMgrQaRoute
   '/mgr/reports': typeof AuthenticatedMgrReportsRoute
   '/mgr/retargeting': typeof AuthenticatedMgrRetargetingRoute
@@ -798,7 +799,7 @@ export interface FileRoutesByTo {
   '/mgr/team-performance': typeof AuthenticatedMgrTeamPerformanceRoute
   '/mgr/unallocated': typeof AuthenticatedMgrUnallocatedRoute
   '/mgr/unallocated-leads': typeof AuthenticatedMgrUnallocatedLeadsRoute
-  '/mgr/users': typeof AuthenticatedMgrUsersRouteWithChildren
+  '/mgr/users': typeof AuthenticatedMgrUsersRoute
   '/tl/abandoned-leads': typeof AuthenticatedTlAbandonedLeadsRoute
   '/tl/allocation': typeof AuthenticatedTlAllocationRoute
   '/tl/brand-performance': typeof AuthenticatedTlBrandPerformanceRoute
@@ -816,7 +817,6 @@ export interface FileRoutesByTo {
   '/tl/tat-breach': typeof AuthenticatedTlTatBreachRoute
   '/tl/webinar-history': typeof AuthenticatedTlWebinarHistoryRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
-  '/mgr/users/$userId/page-access': typeof AuthenticatedMgrUsersUserIdPageAccessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -885,6 +885,7 @@ export interface FileRoutesById {
   '/_authenticated/mgr/lead-inbox': typeof AuthenticatedMgrLeadInboxRoute
   '/_authenticated/mgr/marketing': typeof AuthenticatedMgrMarketingRoute
   '/_authenticated/mgr/monthly-ratings': typeof AuthenticatedMgrMonthlyRatingsRoute
+  '/_authenticated/mgr/page-access': typeof AuthenticatedMgrPageAccessRoute
   '/_authenticated/mgr/qa': typeof AuthenticatedMgrQaRoute
   '/_authenticated/mgr/reports': typeof AuthenticatedMgrReportsRoute
   '/_authenticated/mgr/retargeting': typeof AuthenticatedMgrRetargetingRoute
@@ -894,7 +895,7 @@ export interface FileRoutesById {
   '/_authenticated/mgr/team-performance': typeof AuthenticatedMgrTeamPerformanceRoute
   '/_authenticated/mgr/unallocated': typeof AuthenticatedMgrUnallocatedRoute
   '/_authenticated/mgr/unallocated-leads': typeof AuthenticatedMgrUnallocatedLeadsRoute
-  '/_authenticated/mgr/users': typeof AuthenticatedMgrUsersRouteWithChildren
+  '/_authenticated/mgr/users': typeof AuthenticatedMgrUsersRoute
   '/_authenticated/tl/abandoned-leads': typeof AuthenticatedTlAbandonedLeadsRoute
   '/_authenticated/tl/allocation': typeof AuthenticatedTlAllocationRoute
   '/_authenticated/tl/brand-performance': typeof AuthenticatedTlBrandPerformanceRoute
@@ -912,7 +913,6 @@ export interface FileRoutesById {
   '/_authenticated/tl/tat-breach': typeof AuthenticatedTlTatBreachRoute
   '/_authenticated/tl/webinar-history': typeof AuthenticatedTlWebinarHistoryRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
-  '/_authenticated/mgr/users/$userId/page-access': typeof AuthenticatedMgrUsersUserIdPageAccessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -981,6 +981,7 @@ export interface FileRouteTypes {
     | '/mgr/lead-inbox'
     | '/mgr/marketing'
     | '/mgr/monthly-ratings'
+    | '/mgr/page-access'
     | '/mgr/qa'
     | '/mgr/reports'
     | '/mgr/retargeting'
@@ -1008,7 +1009,6 @@ export interface FileRouteTypes {
     | '/tl/tat-breach'
     | '/tl/webinar-history'
     | '/leads/'
-    | '/mgr/users/$userId/page-access'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1075,6 +1075,7 @@ export interface FileRouteTypes {
     | '/mgr/lead-inbox'
     | '/mgr/marketing'
     | '/mgr/monthly-ratings'
+    | '/mgr/page-access'
     | '/mgr/qa'
     | '/mgr/reports'
     | '/mgr/retargeting'
@@ -1102,7 +1103,6 @@ export interface FileRouteTypes {
     | '/tl/tat-breach'
     | '/tl/webinar-history'
     | '/leads'
-    | '/mgr/users/$userId/page-access'
   id:
     | '__root__'
     | '/'
@@ -1170,6 +1170,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mgr/lead-inbox'
     | '/_authenticated/mgr/marketing'
     | '/_authenticated/mgr/monthly-ratings'
+    | '/_authenticated/mgr/page-access'
     | '/_authenticated/mgr/qa'
     | '/_authenticated/mgr/reports'
     | '/_authenticated/mgr/retargeting'
@@ -1197,7 +1198,6 @@ export interface FileRouteTypes {
     | '/_authenticated/tl/tat-breach'
     | '/_authenticated/tl/webinar-history'
     | '/_authenticated/leads/'
-    | '/_authenticated/mgr/users/$userId/page-access'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1671,6 +1671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMgrMonthlyRatingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mgr/page-access': {
+      id: '/_authenticated/mgr/page-access'
+      path: '/mgr/page-access'
+      fullPath: '/mgr/page-access'
+      preLoaderRoute: typeof AuthenticatedMgrPageAccessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mgr/qa': {
       id: '/_authenticated/mgr/qa'
       path: '/mgr/qa'
@@ -1853,29 +1860,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTlWebinarHistoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/mgr/users/$userId/page-access': {
-      id: '/_authenticated/mgr/users/$userId/page-access'
-      path: '/$userId/page-access'
-      fullPath: '/mgr/users/$userId/page-access'
-      preLoaderRoute: typeof AuthenticatedMgrUsersUserIdPageAccessRouteImport
-      parentRoute: typeof AuthenticatedMgrUsersRoute
-    }
   }
 }
-
-interface AuthenticatedMgrUsersRouteChildren {
-  AuthenticatedMgrUsersUserIdPageAccessRoute: typeof AuthenticatedMgrUsersUserIdPageAccessRoute
-}
-
-const AuthenticatedMgrUsersRouteChildren: AuthenticatedMgrUsersRouteChildren = {
-  AuthenticatedMgrUsersUserIdPageAccessRoute:
-    AuthenticatedMgrUsersUserIdPageAccessRoute,
-}
-
-const AuthenticatedMgrUsersRouteWithChildren =
-  AuthenticatedMgrUsersRoute._addFileChildren(
-    AuthenticatedMgrUsersRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCampaignManagementRoute: typeof AuthenticatedCampaignManagementRoute
@@ -1939,6 +1925,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMgrLeadInboxRoute: typeof AuthenticatedMgrLeadInboxRoute
   AuthenticatedMgrMarketingRoute: typeof AuthenticatedMgrMarketingRoute
   AuthenticatedMgrMonthlyRatingsRoute: typeof AuthenticatedMgrMonthlyRatingsRoute
+  AuthenticatedMgrPageAccessRoute: typeof AuthenticatedMgrPageAccessRoute
   AuthenticatedMgrQaRoute: typeof AuthenticatedMgrQaRoute
   AuthenticatedMgrReportsRoute: typeof AuthenticatedMgrReportsRoute
   AuthenticatedMgrRetargetingRoute: typeof AuthenticatedMgrRetargetingRoute
@@ -1948,7 +1935,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMgrTeamPerformanceRoute: typeof AuthenticatedMgrTeamPerformanceRoute
   AuthenticatedMgrUnallocatedRoute: typeof AuthenticatedMgrUnallocatedRoute
   AuthenticatedMgrUnallocatedLeadsRoute: typeof AuthenticatedMgrUnallocatedLeadsRoute
-  AuthenticatedMgrUsersRoute: typeof AuthenticatedMgrUsersRouteWithChildren
+  AuthenticatedMgrUsersRoute: typeof AuthenticatedMgrUsersRoute
   AuthenticatedTlAbandonedLeadsRoute: typeof AuthenticatedTlAbandonedLeadsRoute
   AuthenticatedTlAllocationRoute: typeof AuthenticatedTlAllocationRoute
   AuthenticatedTlBrandPerformanceRoute: typeof AuthenticatedTlBrandPerformanceRoute
@@ -2034,6 +2021,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMgrLeadInboxRoute: AuthenticatedMgrLeadInboxRoute,
   AuthenticatedMgrMarketingRoute: AuthenticatedMgrMarketingRoute,
   AuthenticatedMgrMonthlyRatingsRoute: AuthenticatedMgrMonthlyRatingsRoute,
+  AuthenticatedMgrPageAccessRoute: AuthenticatedMgrPageAccessRoute,
   AuthenticatedMgrQaRoute: AuthenticatedMgrQaRoute,
   AuthenticatedMgrReportsRoute: AuthenticatedMgrReportsRoute,
   AuthenticatedMgrRetargetingRoute: AuthenticatedMgrRetargetingRoute,
@@ -2043,7 +2031,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMgrTeamPerformanceRoute: AuthenticatedMgrTeamPerformanceRoute,
   AuthenticatedMgrUnallocatedRoute: AuthenticatedMgrUnallocatedRoute,
   AuthenticatedMgrUnallocatedLeadsRoute: AuthenticatedMgrUnallocatedLeadsRoute,
-  AuthenticatedMgrUsersRoute: AuthenticatedMgrUsersRouteWithChildren,
+  AuthenticatedMgrUsersRoute: AuthenticatedMgrUsersRoute,
   AuthenticatedTlAbandonedLeadsRoute: AuthenticatedTlAbandonedLeadsRoute,
   AuthenticatedTlAllocationRoute: AuthenticatedTlAllocationRoute,
   AuthenticatedTlBrandPerformanceRoute: AuthenticatedTlBrandPerformanceRoute,

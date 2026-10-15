@@ -17,12 +17,22 @@ function MgrUsers() {
   });
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Users & Roles</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Users & Roles</h1>
+          <p className="text-sm text-muted-foreground">Manage users, roles and access.</p>
+        </div>
+        <Button asChild size="sm" className="gap-1.5 shrink-0">
+          <Link to="/mgr/page-access">
+            <ShieldCheck className="h-4 w-4" /> Page Access
+          </Link>
+        </Button>
+      </div>
       <Card className="border-l-4 border-l-primary shadow-sm">
         <CardContent className="overflow-auto p-0">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground border-b bg-muted/30">
-              <tr><th className="p-2">Name</th><th className="p-2">Email</th><th className="p-2">Phone</th><th className="p-2">Roles</th><th className="p-2">Team Leader</th><th className="p-2">Page Access</th></tr>
+              <tr><th className="p-2">Name</th><th className="p-2">Email</th><th className="p-2">Phone</th><th className="p-2">Roles</th><th className="p-2">Team Leader</th></tr>
             </thead>
             <tbody>
               {(data as any[]).map((u) => (
@@ -38,13 +48,6 @@ function MgrUsers() {
                     </div>
                   </td>
                   <td className="p-2 text-xs font-mono">{u.team_leader_id?.slice(0, 8) ?? "—"}</td>
-                  <td className="p-2">
-                    <Button asChild variant="outline" size="sm" className="h-7 gap-1.5 text-xs">
-                      <Link to="/mgr/users/$userId/page-access" params={{ userId: u.id }}>
-                        <ShieldCheck className="h-3.5 w-3.5" /> Page Access
-                      </Link>
-                    </Button>
-                  </td>
                 </tr>
               ))}
             </tbody>

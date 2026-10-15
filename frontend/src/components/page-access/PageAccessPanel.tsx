@@ -1,23 +1,17 @@
-import { createFileRoute, Link, useParams, useBlocker } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useBlocker } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import { PAGE_MODULES } from "@/lib/pageRegistry";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Search, ShieldCheck } from "lucide-react";
-
-export const Route = createFileRoute("/_authenticated/mgr/users/$userId/page-access")({
-  head: () => ({ meta: [{ title: "Page Access — Shero KOB" }] }),
-  component: PageAccessScreen,
-});
+import { Search, ShieldCheck } from "lucide-react";
 
 interface PageAccessPage {
   key: string;
@@ -31,29 +25,23 @@ interface UserPageAccessResponse {
   unrestricted: boolean;
   targetRole: string | null;
 }
-interface ProfileRow { id: string; full_name: string; email: string; roles?: string[] }
+export interface ProfileRow { id: string; full_name: string; email: string; roles?: string[] }
 
-function initials(name: string | undefined) {
-  if (!name) return "?";
-  return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
-}
-
-function PageAccessScreen() {
-  const { userId } = useParams({ from: "/_authenticated/mgr/users/$userId/page-access" });
+/**
+ * The permission-management surface for a single user — grouped module
+ * toggles, search, bulk actions, copy-from-user, and the unsaved-changes
+ * save/cancel bar. Reused by the /mgr/page-access management screen.
+ * Business logic (staging, save mutation, audit) is unchanged from the
+ * original per-user route.
+ */
+export function PageAccessPanel({ userId, profiles }: { userId: string; profiles: ProfileRow[] }) {
   const queryClient = useQueryClient();
-
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["mgr-users"],
-    queryFn: () => apiClient.get<ProfileRow[]>("/api/kob/list-all-profiles"),
-  });
-  const user = profiles.find((p) => p.id === userId);
 
   const { data, isLoading } = useQuery({
     queryKey: ["user-page-access", userId],
     queryFn: () => apiClient.get<UserPageAccessResponse>(`/api/kob/users/${userId}/page-access`),
   });
 
-  // Staged local edits: key -> allowed. Populated once data loads.
   const [staged, setStaged] = useState<Record<string, boolean> | null>(null);
   const [search, setSearch] = useState("");
   const [confirmDisableAll, setConfirmDisableAll] = useState(false);
@@ -105,7 +93,7 @@ function PageAccessScreen() {
   });
 
   if (!data || !current) {
-    return <div className="p-6 text-sm text-muted-foreground">{isLoading ? "Loading…" : "Unable to load page access."}</div>;
+    return <div className="text-sm text-muted-foreground p-6">{isLoading ? "Loading…" : "Unable to load page access."}</div>;
   }
 
   const pages = data.pages.filter((p) => p.label.toLowerCase().includes(search.toLowerCase()) || p.module.toLowerCase().includes(search.toLowerCase()));
@@ -132,30 +120,10 @@ function PageAccessScreen() {
   const isCeoTarget = data.targetRole === "super_admin";
 
   return (
-    <div className="p-6 space-y-5 pb-24">
-      <div className="flex items-center gap-3">
-        <Link to="/mgr/users" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Back to Users & Roles
-        </Link>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback>{initials(user?.full_name)}</AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="text-lg font-semibold">{user?.full_name ?? "User"}</div>
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>{user?.email}</span>
-            {user?.roles?.map((r) => (
-              <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">{r}</span>
-            ))}
-          </div>
-        </div>
-        <div className="ml-auto text-sm font-medium flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-primary" />
-          {enabledCount} of {totalCount} pages enabled
-        </div>
+    <div className="space-y-5 pb-24">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <ShieldCheck className="h-4 w-4 text-primary" />
+        {enabledCount} of {totalCount} pages enabled
       </div>
 
       {isCeoTarget ? (
