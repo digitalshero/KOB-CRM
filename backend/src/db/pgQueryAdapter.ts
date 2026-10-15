@@ -55,6 +55,11 @@ class PgQueryBuilder implements PromiseLike<{ data: Row[]; error: null }> {
     return this;
   }
 
+  lt(col: string, val: unknown): this {
+    this.conditions.push(`${col} < ${this.nextParam(val)}`);
+    return this;
+  }
+
   in(col: string, vals: unknown[]): this {
     if (!vals || vals.length === 0) {
       this.conditions.push("1=0");
