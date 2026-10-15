@@ -108,7 +108,11 @@ async function selectEligibleRows(v: VariantConfig, leadIds: string[] | null): P
   const params: unknown[] = leadIds ? [leadIds] : [];
   const limitClause = leadIds ? "" : `LIMIT ${BATCH_LIMIT}`;
   const { rows } = await pool.query<LeadRow>(
-    `SELECT k.id, k.full_name, k.phone, k.stage_entered_at
+    // stage_entered_at cast to text — see the identical comment in
+    // leadInboxRetargeting.ts: avoids a JS Date precision-truncation
+    // round-trip that would otherwise permanently break the
+    // (lead_id, stage_entered_at) duplicate-prevention equality check.
+    `SELECT k.id, k.full_name, k.phone, k.stage_entered_at::text AS stage_entered_at
      FROM public.kob_leads k
      WHERE k.stage = 'EOI_1'::lead_stage
        AND ${v.languageFilter}

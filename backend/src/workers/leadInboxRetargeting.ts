@@ -45,7 +45,13 @@ async function selectEligibleRows(leadIds: string[] | null): Promise<LeadRow[]> 
   const params: unknown[] = leadIds ? [leadIds] : [];
   const limitClause = leadIds ? "" : `LIMIT ${BATCH_LIMIT}`;
   const { rows } = await pool.query<LeadRow>(
-    `SELECT k.id, k.full_name, k.phone, k.stage_entered_at
+    // stage_entered_at is cast to text so node-postgres never round-trips it
+    // through a JS Date (millisecond precision only — Postgres timestamptz
+    // has microsecond precision). Passing a truncated Date back into the
+    // ledger INSERT would make its stored value never exactly equal the
+    // lead's real stage_entered_at again, permanently breaking the
+    // (lead_id, stage_entered_at) duplicate-prevention equality check.
+    `SELECT k.id, k.full_name, k.phone, k.stage_entered_at::text AS stage_entered_at
      FROM public.kob_leads k
      WHERE k.stage = 'LEAD_INBOX'::lead_stage
        AND k.stage_entered_at <= now() - interval '24 hours'
