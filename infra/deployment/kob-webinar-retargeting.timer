@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly trigger for kob-webinar-retargeting.service (DISABLED until explicitly enabled)
+
+[Timer]
+OnCalendar=hourly
+Persistent=false
+Unit=kob-webinar-retargeting.service
+
+[Install]
+WantedBy=timers.target

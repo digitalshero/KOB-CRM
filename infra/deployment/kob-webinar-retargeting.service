@@ -1,0 +1,12 @@
+[Unit]
+Description=KOB CRM WEBINAR 24h Retargeting, Tamil/Telugu/Malayalam (batch mode) - Node replacement for Supabase send_webinar_7day_retargeting_{tamil,telugu,malayalam}()
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/data/kob-crm/current/backend
+EnvironmentFile=/data/kob-crm/shared/kob-staging.env
+ExecStart=/data/kob-crm/runtime/node22/bin/node dist/workers/webinarRetargeting.js
+
+# No [Install] WantedBy here deliberately: only ever started by the timer.
