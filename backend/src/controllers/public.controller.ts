@@ -1145,6 +1145,30 @@ export async function postLeads(req: Request, res: Response): Promise<void> {
   const notes = noteParts.length ? noteParts.join(" | ") : null;
 
   if (useRds()) {
+    // Idempotency: repeated webhook deliveries of the same lead (e.g.
+    // Gallabox retrying a Meta Lead Ads forward) must not create a second
+    // row. mark_duplicate_lead() (BEFORE INSERT trigger) only TAGS a repeat
+    // phone as DUPLICATE_LEAD after the row is already created — it doesn't
+    // stop the duplicate row itself. Checking first, using the same
+    // phone-tail match already used by createManualLead's clash check,
+    // returns the existing lead instead of inserting a throwaway duplicate.
+    const dupTail = phoneTail(phone);
+    if (dupTail.length === 10) {
+      const clash = await leadRepo.findPhoneClash(dupTail);
+      if (clash) {
+        res.status(200).json({
+          id: clash.id,
+          code: clash.code,
+          duplicate: true,
+          source: sourceRowName,
+          source_id,
+          message: "Lead already exists for this phone number; skipped duplicate insert",
+          ...(sourceWarning ? { warning: sourceWarning } : {}),
+        });
+        return;
+      }
+    }
+
     let inserted: { id: string; code: string; language: string | null };
     try {
       inserted = await withTransaction(null, async (client) => {
