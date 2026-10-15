@@ -500,6 +500,30 @@ export async function getContractsCount(req: Request, res: Response, next: NextF
 }
 
 /**
+ * Controller for getEoi2Count.
+ * Mirrors getContractsCount exactly, scoped to stage EOI_2 instead of
+ * KTN_CS, reusing the same analyticsRepo.countLeadsByStageEnteredAt
+ * helper — i.e. "leads currently in EOI_2 whose entry into EOI_2 falls
+ * within the selected period", not a lifetime/created_at count.
+ */
+export async function getEoi2Count(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const r = parseDateRange(req);
+    const current = await analyticsRepo.countLeadsByStageEnteredAt("EOI_2", r.from, r.to);
+    let previous = 0;
+    if (r.from && r.to) {
+      const fromMs = new Date(r.from).getTime();
+      const toMs = new Date(r.to).getTime();
+      const span = Math.max(1, toMs - fromMs);
+      previous = await analyticsRepo.countLeadsByStageEnteredAt("EOI_2", new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
+    }
+    res.status(200).json({ count: current, prev_period: previous });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * Controller for getDashboardKpis.
  * Migrated 1:1 from src/lib/kob.functions.ts (line 285).
  * Uses trusted server client (supabaseAdmin) when available.
@@ -3552,6 +3576,34 @@ export async function listLeads(req: Request, res: Response, next: NextFunction)
     }
 
     res.json(out);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Controller for getLeadInboxCount.
+ * Reuses listLeadRows' exact filter rule (via leadRepo.countLeadRows,
+ * sharing buildLeadListConditionBlocks) so the KOB Dashboard's "Leads" KPI
+ * card matches the Lead Inbox page's total for the same scope/date range,
+ * instead of get-kpi-snapshot's separate created_at-only count.
+ */
+export async function getLeadInboxCount(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.userId) {
+      res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
+      return;
+    }
+    const from = typeof req.query.from === "string" ? req.query.from : undefined;
+    const to = typeof req.query.to === "string" ? req.query.to : undefined;
+
+    const scope = await resolveLeadScopeOrDeny(req.userId);
+    if (scope === null) {
+      res.status(403).json({ error: "Forbidden: no role assigned" });
+      return;
+    }
+    const count = await leadRepo.countLeadRows(scope, { from, to });
+    res.status(200).json({ count });
   } catch (err) {
     next(err);
   }

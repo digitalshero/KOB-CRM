@@ -18,6 +18,7 @@ import {
   listAllProfiles,
   getKpiSnapshot,
   getContractsCount,
+  getEoi2Count,
   getDashboardKpis,
   getFunnelBySource,
   getFunnelByLanguage,
@@ -62,6 +63,7 @@ import {
   getMyRole,
   listGallaboxFireQueue,
   listLeads,
+  getLeadInboxCount,
   listWhatsappExecutives,
   listWhatsappMessages,
   upsertKpiTarget,
@@ -149,6 +151,9 @@ kobRouter.get("/get-kpi-snapshot", requireAuth, getKpiSnapshot);
 
 // GET /api/kob/get-contracts-count - Protected by auth middleware, uses supabaseAdmin or req.supabase
 kobRouter.get("/get-contracts-count", requireAuth, getContractsCount);
+
+// GET /api/kob/get-eoi2-count - same stage_entered_at-scoped pattern as get-contracts-count, for EOI_2
+kobRouter.get("/get-eoi2-count", requireAuth, getEoi2Count);
 
 // GET /api/kob/get-dashboard-kpis - Protected by auth middleware, uses supabaseAdmin or req.supabase
 kobRouter.get("/get-dashboard-kpis", requireAuth, getDashboardKpis);
@@ -286,6 +291,9 @@ kobRouter.get("/gallabox-fire-queue", requireAuth, listGallaboxFireQueue);
 
 // GET /api/kob/leads - Protected by auth middleware, uses role-based client
 kobRouter.get("/leads", requireAuth, listLeads);
+
+// GET /api/kob/get-lead-inbox-count - same filter rule as /leads (listLeadRows), count-only, for KOB Dashboard
+kobRouter.get("/get-lead-inbox-count", requireAuth, getLeadInboxCount);
 
 // GET /api/kob/whatsapp-executives - Protected by auth middleware, uses getOrgReadClient (RLS/role)
 kobRouter.get("/whatsapp-executives", requireAuth, listWhatsappExecutives);

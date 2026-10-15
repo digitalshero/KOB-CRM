@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBlocker } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
-import { PAGE_MODULES } from "@/lib/pageRegistry";
+import { PAGE_MODULES, groupPageRegistry, type GroupedPage } from "@/lib/pageRegistry";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, ChevronDown } from "lucide-react";
 
 interface PageAccessPage {
   key: string;
@@ -28,11 +28,13 @@ interface UserPageAccessResponse {
 export interface ProfileRow { id: string; full_name: string; email: string; roles?: string[] }
 
 /**
- * The permission-management surface for a single user — grouped module
- * toggles, search, bulk actions, copy-from-user, and the unsaved-changes
- * save/cancel bar. Reused by the /mgr/page-access management screen.
- * Business logic (staging, save mutation, audit) is unchanged from the
- * original per-user route.
+ * The permission-management surface for a single user. Sidebar pages that
+ * exist as multiple role-specific routes (e.g. "Lead Inbox" under CEO/
+ * Manager/TL nav) are shown as ONE row via groupPageRegistry — a user only
+ * ever has one such route in their own nav, so the CEO managing someone
+ * else's access should see one toggle per sidebar page, not one per route
+ * variant. Reused by the /mgr/page-access management screen. Business
+ * logic (staging, save mutation, audit) is unchanged.
  */
 export function PageAccessPanel({ userId, profiles }: { userId: string; profiles: ProfileRow[] }) {
   const queryClient = useQueryClient();
@@ -46,6 +48,7 @@ export function PageAccessPanel({ userId, profiles }: { userId: string; profiles
   const [search, setSearch] = useState("");
   const [confirmDisableAll, setConfirmDisableAll] = useState(false);
   const [copyFrom, setCopyFrom] = useState("");
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const baseline = useMemo(() => {
     if (!data) return null;
@@ -92,17 +95,30 @@ export function PageAccessPanel({ userId, profiles }: { userId: string; profiles
     enabled: !!copyFrom,
   });
 
+  const allGroups = useMemo(() => groupPageRegistry(), []);
+
   if (!data || !current) {
     return <div className="text-sm text-muted-foreground p-6">{isLoading ? "Loading…" : "Unable to load page access."}</div>;
   }
 
-  const pages = data.pages.filter((p) => p.label.toLowerCase().includes(search.toLowerCase()) || p.module.toLowerCase().includes(search.toLowerCase()));
-  const grouped = PAGE_MODULES.map((mod) => ({ module: mod, pages: pages.filter((p) => p.module === mod) })).filter((g) => g.pages.length > 0);
-  const enabledCount = Object.values(current).filter(Boolean).length;
-  const totalCount = data.pages.length;
+  // One row per sidebar page (not per underlying role-route key).
+  const q = search.toLowerCase();
+  const visibleGroups = allGroups.filter((g) => !q || g.label.toLowerCase().includes(q) || g.module.toLowerCase().includes(q));
+  const byModule = PAGE_MODULES
+    .map((mod) => ({ module: mod, groups: visibleGroups.filter((g) => g.module === mod) }))
+    .filter((m) => m.groups.length > 0);
 
-  function setOne(key: string, allowed: boolean) {
-    setStaged({ ...(current as Record<string, boolean>), [key]: allowed });
+  const allKeys = allGroups.flatMap((g) => g.keys);
+  const enabledGroupCount = allGroups.filter((g) => g.keys.some((k) => current[k])).length;
+  const totalGroupCount = allGroups.length;
+
+  function isGroupOn(g: GroupedPage) {
+    return g.keys.some((k) => (current as Record<string, boolean>)[k]);
+  }
+  function setGroup(g: GroupedPage, allowed: boolean) {
+    const next = { ...(current as Record<string, boolean>) };
+    for (const k of g.keys) next[k] = allowed;
+    setStaged(next);
   }
   function setMany(keys: string[], allowed: boolean) {
     const next = { ...(current as Record<string, boolean>) };
@@ -116,14 +132,19 @@ export function PageAccessPanel({ userId, profiles }: { userId: string; profiles
     setStaged(next);
     toast.info("Copied selection loaded — review and Save to apply.");
   }
+  function toggleCollapsed(mod: string) {
+    setCollapsed((c) => ({ ...c, [mod]: !c[mod] }));
+  }
 
   const isCeoTarget = data.targetRole === "super_admin";
 
   return (
-    <div className="space-y-5 pb-24">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <ShieldCheck className="h-4 w-4 text-primary" />
-        {enabledCount} of {totalCount} pages enabled
+    <div className="space-y-3 pb-20">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-sm font-medium">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          {enabledGroupCount} of {totalGroupCount} pages enabled
+        </div>
       </div>
 
       {isCeoTarget ? (
@@ -132,64 +153,100 @@ export function PageAccessPanel({ userId, profiles }: { userId: string; profiles
         </CardContent></Card>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search pages…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8" />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="relative flex-1 min-w-[160px] max-w-xs">
+              <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search pages…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-7 h-8 text-xs"
+              />
             </div>
-            <Button variant="outline" size="sm" onClick={() => setMany(data.pages.map((p) => p.key), true)}>Enable All</Button>
-            <Button variant="outline" size="sm" onClick={() => setConfirmDisableAll(true)}>Disable All</Button>
-            <select
-              className="h-9 rounded-md border bg-background px-2 text-sm"
-              value={copyFrom}
-              onChange={(e) => setCopyFrom(e.target.value)}
-            >
-              <option value="">Copy access from…</option>
-              {profiles.filter((p) => p.id !== userId).map((p) => (
-                <option key={p.id} value={p.id}>{p.full_name}</option>
-              ))}
-            </select>
-            <Button variant="outline" size="sm" disabled={!copyFrom || !copySource} onClick={applyCopy}>Load copy</Button>
+            <div className="flex items-center gap-1 text-xs ml-auto">
+              <button type="button" className="px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted" onClick={() => setMany(allKeys, true)}>
+                Enable All
+              </button>
+              <span className="text-border">|</span>
+              <button type="button" className="px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted" onClick={() => setConfirmDisableAll(true)}>
+                Disable All
+              </button>
+              <span className="text-border">|</span>
+              <select
+                className="h-7 rounded-md border bg-background px-1.5 text-xs text-muted-foreground"
+                value={copyFrom}
+                onChange={(e) => setCopyFrom(e.target.value)}
+              >
+                <option value="">Copy from…</option>
+                {profiles.filter((p) => p.id !== userId).map((p) => (
+                  <option key={p.id} value={p.id}>{p.full_name}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:pointer-events-none"
+                disabled={!copyFrom || !copySource}
+                onClick={applyCopy}
+              >
+                Load
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {grouped.map((group) => {
-              const groupKeys = group.pages.map((p) => p.key);
-              const allOn = groupKeys.every((k) => current[k]);
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+            {byModule.map(({ module, groups }) => {
+              const isCollapsed = collapsed[module] ?? false;
+              const allOn = groups.every((g) => isGroupOn(g));
               return (
-                <Card key={group.module}>
+                <Card key={module} className="overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
-                      <span className="text-sm font-semibold">{group.module}</span>
-                      <button
-                        className="text-xs text-primary hover:underline"
-                        onClick={() => setMany(groupKeys, !allOn)}
+                    <button
+                      type="button"
+                      onClick={() => toggleCollapsed(module)}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b bg-muted/30 text-left"
+                    >
+                      <span className="flex items-center gap-1.5 text-xs font-semibold">
+                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                        {module}
+                        <span className="font-normal text-muted-foreground">({groups.length})</span>
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setMany(groups.flatMap((g) => g.keys), !allOn); }}
+                        className="text-[11px] text-primary hover:underline"
                       >
                         {allOn ? "Turn off all" : "Turn on all"}
-                      </button>
-                    </div>
-                    <div className="divide-y">
-                      {group.pages.map((p) => (
-                        <button
-                          key={p.key}
-                          type="button"
-                          onClick={() => setOne(p.key, !current[p.key])}
-                          className="w-full flex items-center justify-between gap-4 px-4 py-3 text-left hover:bg-muted/40 transition-colors"
-                        >
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium truncate">{p.label}</div>
-                            <div className="text-xs text-muted-foreground truncate">{p.description}</div>
-                          </div>
-                          <span
-                            className={`shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${current[p.key] ? "bg-primary" : "bg-muted-foreground/30"}`}
-                            aria-checked={!!current[p.key]}
-                            role="switch"
-                          >
-                            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${current[p.key] ? "translate-x-5" : "translate-x-0.5"}`} />
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                      </span>
+                    </button>
+                    {!isCollapsed && (
+                      <div className="divide-y">
+                        {groups.map((g) => {
+                          const on = isGroupOn(g);
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => setGroup(g, !on)}
+                              className="w-full flex items-center justify-between gap-3 px-3 py-1.5 text-left hover:bg-muted/40 transition-colors"
+                            >
+                              <span className="text-xs font-medium truncate">{g.label}</span>
+                              <span
+                                className={`shrink-0 inline-flex h-4.5 w-8 items-center rounded-full transition-colors ${on ? "bg-primary" : "bg-muted-foreground/30"}`}
+                                style={{ height: "1.125rem", width: "2rem" }}
+                                aria-checked={on}
+                                role="switch"
+                              >
+                                <span
+                                  className={`inline-block rounded-full bg-white shadow transform transition-transform ${on ? "translate-x-[1.1rem]" : "translate-x-0.5"}`}
+                                  style={{ height: "0.85rem", width: "0.85rem" }}
+                                />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -220,7 +277,7 @@ export function PageAccessPanel({ userId, profiles }: { userId: string; profiles
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { setMany(data.pages.map((p) => p.key), false); setConfirmDisableAll(false); }}>
+            <AlertDialogAction onClick={() => { setMany(allKeys, false); setConfirmDisableAll(false); }}>
               Disable All
             </AlertDialogAction>
           </AlertDialogFooter>

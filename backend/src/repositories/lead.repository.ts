@@ -93,24 +93,18 @@ export interface LeadListFilters {
  * `scope` is resolved server-side (never from client input) and applied as
  * an unconditional AND on every branch.
  */
-export async function listLeadRows(scope: LeadScope, filters: LeadListFilters): Promise<LeadListRow[]> {
-  const { stage, limit, from, to } = filters;
+/**
+ * Builds the one or two condition/params blocks that listLeadRows/
+ * countLeadRows both filter by — the single place the "KTN_CS uses
+ * stage_entered_at, everything else uses created_at" rule is expressed,
+ * so every consumer (list or count) stays mechanically in sync.
+ */
+function buildLeadListConditionBlocks(scope: LeadScope, filters: Omit<LeadListFilters, "limit">): { conditions: string[]; params: unknown[] }[] {
+  const { stage, from, to } = filters;
   const hasRange = Boolean(from || to);
-  const pool = getPool();
+  const blocks: { conditions: string[]; params: unknown[] }[] = [];
 
-  async function runQuery(conditions: string[], params: unknown[], lim: number): Promise<LeadListRow[]> {
-    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-    const limitIdx = params.length + 1;
-    const { rows } = await pool.query<LeadListRow>(
-      `${LEAD_LIST_SELECT} ${where} ORDER BY l.created_at DESC LIMIT $${limitIdx}`,
-      [...params, lim],
-    );
-    return rows;
-  }
-
-  const out: LeadListRow[] = [];
-
-  // --- main query ---
+  // --- main block ---
   {
     const conditions: string[] = [];
     const params: unknown[] = [];
@@ -129,10 +123,10 @@ export async function listLeadRows(scope: LeadScope, filters: LeadListFilters): 
       if (to) { params.push(to); conditions.push(`l.created_at <= $${params.length}`); }
     }
 
-    out.push(...(await runQuery(conditions, params, limit)));
+    blocks.push({ conditions, params });
   }
 
-  // --- second query: KTN_CS rows filtered by stage_entered_at, only when !stage && hasRange ---
+  // --- second block: KTN_CS rows filtered by stage_entered_at, only when !stage && hasRange ---
   if (!stage && hasRange) {
     const conditions: string[] = [];
     const params: unknown[] = [];
@@ -143,10 +137,51 @@ export async function listLeadRows(scope: LeadScope, filters: LeadListFilters): 
     if (from) { params.push(from); conditions.push(`l.stage_entered_at >= $${params.length}`); }
     if (to) { params.push(to); conditions.push(`l.stage_entered_at <= $${params.length}`); }
 
-    out.push(...(await runQuery(conditions, params, limit)));
+    blocks.push({ conditions, params });
+  }
+
+  return blocks;
+}
+
+export async function listLeadRows(scope: LeadScope, filters: LeadListFilters): Promise<LeadListRow[]> {
+  const { limit } = filters;
+  const pool = getPool();
+  const out: LeadListRow[] = [];
+
+  for (const { conditions, params } of buildLeadListConditionBlocks(scope, filters)) {
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const limitIdx = params.length + 1;
+    const { rows } = await pool.query<LeadListRow>(
+      `${LEAD_LIST_SELECT} ${where} ORDER BY l.created_at DESC LIMIT $${limitIdx}`,
+      [...params, limit],
+    );
+    out.push(...rows);
   }
 
   return out;
+}
+
+/**
+ * Same exact filter rule as listLeadRows (reused via
+ * buildLeadListConditionBlocks), but returns a total count instead of
+ * fetching full rows — used by the KOB Dashboard's "Leads" KPI card so it
+ * matches the Lead Inbox page's total for the same scope/date range,
+ * without paying the cost of pulling every row just to measure .length.
+ */
+export async function countLeadRows(scope: LeadScope, filters: Omit<LeadListFilters, "limit">): Promise<number> {
+  const pool = getPool();
+  let total = 0;
+
+  for (const { conditions, params } of buildLeadListConditionBlocks(scope, filters)) {
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const { rows } = await pool.query<{ count: string }>(
+      `SELECT count(*) FROM public.kob_leads l ${where}`,
+      params,
+    );
+    total += Number(rows[0]?.count ?? 0);
+  }
+
+  return total;
 }
 
 /** Name lookup used for listLeads' `assigned_profile` enrichment. */

@@ -4,7 +4,14 @@ import { UNTOUCHED } from "./data";
 export function UntouchedLeadsCard() {
   const total = UNTOUCHED.reduce((s, u) => s + u.value, 0);
   return (
-    <DashboardCard title="Untouched Leads">
+    <DashboardCard
+      title="Untouched Leads"
+      action={
+        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-semibold text-amber-700 ring-1 ring-amber-200">
+          🚧 Coming Soon (Dummy Data)
+        </span>
+      }
+    >
       <div className="divide-y divide-border/40">
         {UNTOUCHED.map((u) => (
           <div key={u.label} className="flex items-center justify-between py-2.5 text-xs">

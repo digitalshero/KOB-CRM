@@ -498,18 +498,32 @@ export async function getBrandPerformance(req: Request, res: Response, next: Nex
       row.leads++;
     }
 
-    const ktnHist = await pageAll(() => {
-      let q = req.supabase!.from("lead_stage_history").select("lead_id").eq("to_stage", "KTN_CS");
-      if (from) q = q.gte("created_at", from);
-      if (to) q = q.lte("created_at", to);
-      return q;
-    });
-    const enteredIds = new Set<string>((ktnHist as any[]).map((h) => h.lead_id));
-    const ktn = (
-      await pageAll(() =>
+    // This cuisine-matched KTN_CS tally previously stayed on req.supabase
+    // unconditionally even when useRds() is true, so once lead writes
+    // (including setLeadCuisine) moved to RDS, a newly-saved cuisine value
+    // never showed up here — it was reading the hosted Supabase project's
+    // stale kob_leads/lead_stage_history instead of RDS. Both RDS repo
+    // functions below already existed (mirroring this exact Supabase query)
+    // but were never wired in.
+    let enteredIds: Set<string>;
+    let ktn: { id: string; cuisine: string }[];
+    if (useRds()) {
+      const hist = await dashboardRepo.getKtnCsStageHistoryLeadIds({ from, to });
+      enteredIds = new Set<string>(hist.map((h) => h.lead_id));
+      ktn = await dashboardRepo.getKtnCsLeadsWithCuisine();
+    } else {
+      const ktnHist = await pageAll(() => {
+        let q = req.supabase!.from("lead_stage_history").select("lead_id").eq("to_stage", "KTN_CS");
+        if (from) q = q.gte("created_at", from);
+        if (to) q = q.lte("created_at", to);
+        return q;
+      });
+      enteredIds = new Set<string>((ktnHist as any[]).map((h) => h.lead_id));
+      ktn = await pageAll(() =>
         req.supabase!.from("kob_leads").select("id, cuisine").eq("stage", "KTN_CS").not("cuisine", "is", null),
-      )
-    ).filter((l: any) => enteredIds.has(l.id));
+      );
+    }
+    ktn = ktn.filter((l: any) => enteredIds.has(l.id));
 
     const seen = new Set<string>();
     for (const l of ktn as any[]) {

@@ -144,19 +144,21 @@ export const EXECS = [
   { name: "Deepak", leads: 85, contracts: 12, target: 17, conv: "14.12%", pending: 12 },
 ];
 
+// Coming Soon — forced to 0 until a real "untouched leads" computation exists.
 export const UNTOUCHED = [
-  { label: "Today", value: 0, pct: "12.20%", tone: "text-sky-600" },
-  { label: "1 Day", value: 12, pct: "8.13%", tone: "text-emerald-600" },
-  { label: "2 Days", value: 8, pct: "5.42%", tone: "text-amber-600" },
-  { label: "3+ Days", value: 26, pct: "17.63%", tone: "text-rose-600" },
+  { label: "Today", value: 0, pct: "0.00%", tone: "text-sky-600" },
+  { label: "1 Day", value: 0, pct: "0.00%", tone: "text-emerald-600" },
+  { label: "2 Days", value: 0, pct: "0.00%", tone: "text-amber-600" },
+  { label: "3+ Days", value: 0, pct: "0.00%", tone: "text-rose-600" },
 ];
 
+// Coming Soon — forced to 0 until a real state-wise spread computation exists.
 export const STATES = [
-  { state: "Tamil Nadu", leads: 320, conv: "15.00%", coverage: "72.50%" },
-  { state: "Karnataka", leads: 220, conv: "13.64%", coverage: "61.20%" },
-  { state: "Telangana", leads: 180, conv: "13.89%", coverage: "54.80%" },
-  { state: "Kerala", leads: 70, conv: "14.29%", coverage: "48.30%" },
-  { state: "Andhra Pradesh", leads: 60, conv: "8.33%", coverage: "32.10%" },
+  { state: "Tamil Nadu", leads: 0, conv: "0.00%", coverage: "0.00%" },
+  { state: "Karnataka", leads: 0, conv: "0.00%", coverage: "0.00%" },
+  { state: "Telangana", leads: 0, conv: "0.00%", coverage: "0.00%" },
+  { state: "Kerala", leads: 0, conv: "0.00%", coverage: "0.00%" },
+  { state: "Andhra Pradesh", leads: 0, conv: "0.00%", coverage: "0.00%" },
 ];
 
 export const SIMPLE_FUNNEL = [

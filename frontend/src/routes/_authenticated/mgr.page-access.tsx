@@ -39,27 +39,39 @@ function PageAccessManagement() {
   const selected = profiles.find((p) => p.id === selectedId) ?? null;
 
   return (
-    <div className="p-6 space-y-5">
-      <div>
-        <Link to="/mgr/users" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Users & Roles
-        </Link>
-        <h1 className="text-2xl font-bold mt-2">Page Access Management</h1>
-        <p className="text-sm text-muted-foreground">Control which pages each user can access.</p>
+    <div className="p-6 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <Link to="/mgr/users" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-3.5 w-3.5" /> Users & Roles
+          </Link>
+          <h1 className="text-xl font-bold mt-0.5">Page Access Management</h1>
+        </div>
+        {selected && (
+          <div className="flex items-center gap-2 min-w-0 shrink text-right">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate">{selected.full_name}</div>
+              <div className="text-[11px] text-muted-foreground truncate">{roleLabel(selected.roles)}</div>
+            </div>
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarFallback className="text-xs">{initials(selected.full_name)}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-5">
-        <div className="border rounded-lg bg-background md:max-h-[calc(100vh-220px)] md:overflow-y-auto">
-          <div className="p-3 border-b sticky top-0 bg-background">
+      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
+        <div className="border rounded-lg bg-background md:max-h-[calc(100vh-150px)] md:overflow-y-auto">
+          <div className="p-2 border-b sticky top-0 bg-background z-10">
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search user…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9" />
+              <Search className="absolute left-2 top-1.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Input placeholder="Search user…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-7 h-7 text-xs" />
             </div>
           </div>
           <div className="divide-y">
             {filtered.length === 0 && (
-              <div className="p-4 text-sm text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" /> No users found
+              <div className="p-3 text-xs text-muted-foreground flex items-center gap-2">
+                <Users className="h-3.5 w-3.5" /> No users found
               </div>
             )}
             {filtered.map((p) => {
@@ -69,15 +81,10 @@ function PageAccessManagement() {
                   key={p.id}
                   type="button"
                   onClick={() => setSelectedId(p.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${active ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-muted/50 border-l-2 border-l-transparent"}`}
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-left transition-colors ${active ? "bg-primary/10 border-l-2 border-l-primary" : "hover:bg-muted/50 border-l-2 border-l-transparent"}`}
                 >
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="text-xs">{initials(p.full_name)}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className={`text-sm truncate ${active ? "font-semibold" : "font-medium"}`}>{p.full_name}</div>
-                    <div className="text-[11px] text-muted-foreground truncate">{roleLabel(p.roles)}</div>
-                  </div>
+                  <span className={`text-xs truncate ${active ? "font-semibold" : "font-medium"}`}>{p.full_name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{roleLabel(p.roles)}</span>
                 </button>
               );
             })}
@@ -86,26 +93,12 @@ function PageAccessManagement() {
 
         <div className="min-w-0">
           {!selected ? (
-            <div className="h-full flex flex-col items-center justify-center text-center gap-2 border rounded-lg py-20 text-muted-foreground">
-              <Users className="h-8 w-8" />
+            <div className="h-full flex flex-col items-center justify-center text-center gap-2 border rounded-lg py-16 text-muted-foreground">
+              <Users className="h-7 w-7" />
               <p className="text-sm">Select a user to manage their page access.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b pb-4">
-                <Avatar className="h-11 w-11">
-                  <AvatarFallback>{initials(selected.full_name)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <div className="text-base font-semibold truncate">{selected.full_name}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span className="truncate">{selected.email}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">{roleLabel(selected.roles)}</span>
-                  </div>
-                </div>
-              </div>
-              <PageAccessPanel key={selected.id} userId={selected.id} profiles={profiles} />
-            </div>
+            <PageAccessPanel key={selected.id} userId={selected.id} profiles={profiles} />
           )}
         </div>
       </div>

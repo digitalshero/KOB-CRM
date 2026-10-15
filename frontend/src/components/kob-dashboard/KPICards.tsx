@@ -57,6 +57,19 @@ export function KPICards({ range }: { range: DateRangeValue }) {
       return apiClient.get<any[]>(`/api/kob/get-kpi-snapshot${q ? `?${q}` : ""}`);
     },
   });
+  // Same filter rule as the Lead Inbox page (/api/kob/leads -> listLeadRows),
+  // so this card's total matches the Lead Inbox page's count exactly instead
+  // of get-kpi-snapshot's separate created_at-only tally.
+  const { data: leadInboxCount } = useQuery({
+    queryKey: ["lead-inbox-count", ...rangeKey],
+    queryFn: () => {
+      const p = new URLSearchParams();
+      if (rangeArg.from) p.set("from", rangeArg.from);
+      if (rangeArg.to) p.set("to", rangeArg.to);
+      const q = p.toString();
+      return apiClient.get<{ count: number }>(`/api/kob/get-lead-inbox-count${q ? `?${q}` : ""}`);
+    },
+  });
   const { data: contracts } = useQuery({
     queryKey: ["ceo-contracts", ...rangeKey],
     queryFn: () => {
@@ -83,7 +96,7 @@ export function KPICards({ range }: { range: DateRangeValue }) {
 
   const totalLeads = row("TOTAL_LEADS");
   const ktnCs = row("KTN_CS");
-  const leadsAchieved = Number(totalLeads.achieved ?? 0);
+  const leadsAchieved = Number(leadInboxCount?.count ?? totalLeads.achieved ?? 0);
   const contractsAchieved = Number(ktnCs.achieved ?? 0);
   const conv = leadsAchieved > 0 ? (contractsAchieved / leadsAchieved) * 100 : 0;
 

@@ -402,9 +402,15 @@ export async function getCityNamesByIds(ids: string[]): Promise<{ id: string; na
 // KPICards.tsx), none of which pass a per-user/assigned_to filter. The RDS
 // path below reproduces that exact "no scoping" behavior, not a narrower one.
 
-export async function countContracts(from?: string, to?: string): Promise<number> {
-  const conditions = ["stage = 'KTN_CS'"];
-  const params: unknown[] = [];
+/**
+ * Counts leads currently sitting in `stage` whose entry into that stage
+ * (`stage_entered_at`) falls within [from, to] — the period-correct
+ * semantic (as opposed to filtering by `created_at`, which undercounts
+ * leads created earlier but who moved into the stage during the period).
+ */
+export async function countLeadsByStageEnteredAt(stage: string, from?: string, to?: string): Promise<number> {
+  const conditions = ["stage = $1"];
+  const params: unknown[] = [stage];
   if (from) { params.push(from); conditions.push(`stage_entered_at >= $${params.length}`); }
   if (to) { params.push(to); conditions.push(`stage_entered_at <= $${params.length}`); }
   const { rows } = await getPool().query<{ count: string }>(
@@ -412,6 +418,10 @@ export async function countContracts(from?: string, to?: string): Promise<number
     params,
   );
   return Number(rows[0].count);
+}
+
+export async function countContracts(from?: string, to?: string): Promise<number> {
+  return countLeadsByStageEnteredAt("KTN_CS", from, to);
 }
 
 export interface DashboardKpiLeadRow { stage: string; mode: string; source_id: string | null; cost_per_lead: number | null }

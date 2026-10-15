@@ -98,3 +98,32 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
 ];
 
 export const PAGE_MODULES = Array.from(new Set(PAGE_REGISTRY.map((p) => p.module)));
+
+export interface GroupedPage {
+  /** Stable identity for this sidebar page, not shown in the UI. */
+  id: string;
+  label: string;
+  module: string;
+  description: string;
+  /** Every underlying route key (across role variants) this one sidebar page maps to. */
+  keys: string[];
+}
+
+/**
+ * Collapses PAGE_REGISTRY entries that represent the SAME sidebar page under
+ * different roles' routes (e.g. /ceo/lead-inbox, /mgr/lead-inbox and /leads
+ * are all "Lead Inbox") into one row, identified by (module, label). A real
+ * user only ever has one of those routes in their own nav, so the CEO
+ * managing someone else's access should see exactly one "Lead Inbox" toggle,
+ * not one per role variant.
+ */
+export function groupPageRegistry(entries: PageRegistryEntry[] = PAGE_REGISTRY): GroupedPage[] {
+  const byId = new Map<string, GroupedPage>();
+  for (const e of entries) {
+    const id = `${e.module}::${e.label}`;
+    const existing = byId.get(id);
+    if (existing) existing.keys.push(e.key);
+    else byId.set(id, { id, label: e.label, module: e.module, description: e.description, keys: [e.key] });
+  }
+  return Array.from(byId.values());
+}
