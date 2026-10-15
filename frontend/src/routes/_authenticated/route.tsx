@@ -11,7 +11,10 @@ import {
   Inbox, UserX, CheckSquare, Megaphone, Rocket, ShieldCheck, ScrollText,
   Kanban, Handshake, CreditCard, FileSignature, Zap, XCircle, FlaskConical,
   PanelLeftClose, PanelLeftOpen, Upload, Menu, CalendarClock, MessageCircle, SlidersHorizontal,
+  Home, ShieldAlert,
 } from "lucide-react";
+
+interface MyPageAccessResponse { allowedPageKeys: string[] | null; unrestricted: boolean }
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -137,14 +140,27 @@ function AuthedShell() {
     queryKey: ["my-role"],
     queryFn: () => apiClient.get<MyRoleResponse>("/api/kob/my-role"),
   });
+  const { data: pageAccess, isLoading: pageAccessLoading } = useQuery({
+    queryKey: ["my-page-access"],
+    queryFn: () => apiClient.get<MyPageAccessResponse>("/api/kob/my-page-access"),
+  });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const role = data?.role ?? "executive";
   const roleLabel = role === "super_admin" ? "CEO Office" : role === "kob_manager" ? "KOB Manager" : role === "team_leader" ? "Team Leader" : "Executive";
 
-  const nav = role === "super_admin" ? CEO_NAV
+  const fullNav = role === "super_admin" ? CEO_NAV
     : role === "kob_manager" ? MANAGER_NAV
     : role === "team_leader" ? TL_NAV
     : EXEC_NAV;
+
+  // Backward-compatible: allowedPageKeys === null means unrestricted (today's
+  // exact behavior, either because no grants have been saved for this user
+  // yet, or because they are super_admin/CEO).
+  const allowedPageKeys = pageAccess?.allowedPageKeys ?? null;
+  const nav = allowedPageKeys === null ? fullNav : fullNav.filter((n) => allowedPageKeys.includes(n.to));
+
+  const pathIsPageControlled = fullNav.some((n) => n.to === pathname);
+  const pathDenied = allowedPageKeys !== null && pathIsPageControlled && !allowedPageKeys.includes(pathname);
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -174,7 +190,11 @@ function AuthedShell() {
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {nav.map((n) => {
+          {pageAccessLoading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-9 rounded-md bg-sidebar-accent/30 animate-pulse" />
+            ))
+          ) : nav.length === 0 ? null : nav.map((n) => {
             const active = pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to));
             return (
               <Link
@@ -226,8 +246,45 @@ function AuthedShell() {
             {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </button>
         </div>
-        <Outlet />
+        {pageAccessLoading ? null : pathDenied ? (
+          <AccessDenied />
+        ) : !pageAccessLoading && nav.length === 0 && allowedPageKeys !== null ? (
+          <NoPagesAssigned />
+        ) : (
+          <Outlet />
+        )}
       </main>
+    </div>
+  );
+}
+
+function AccessDenied() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center gap-3 px-6 py-24">
+      <ShieldAlert className="h-10 w-10 text-muted-foreground" />
+      <h2 className="text-lg font-semibold">You don't have access to this page</h2>
+      <p className="text-sm text-muted-foreground max-w-sm">
+        Contact your administrator if you believe you need access.
+      </p>
+      <Link
+        to="/kob-dashboard"
+        className="mt-2 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90"
+      >
+        <Home className="h-4 w-4" />
+        Go to My Home
+      </Link>
+    </div>
+  );
+}
+
+function NoPagesAssigned() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center gap-3 px-6 py-24">
+      <ShieldAlert className="h-10 w-10 text-muted-foreground" />
+      <h2 className="text-lg font-semibold">No pages have been assigned to your account</h2>
+      <p className="text-sm text-muted-foreground max-w-sm">
+        Please contact your administrator.
+      </p>
     </div>
   );
 }

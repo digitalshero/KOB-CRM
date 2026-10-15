@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mgr/users")({
   head: () => ({ meta: [{ title: "Users & Roles — Shero KOB" }] }),
@@ -20,7 +22,7 @@ function MgrUsers() {
         <CardContent className="overflow-auto p-0">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground border-b bg-muted/30">
-              <tr><th className="p-2">Name</th><th className="p-2">Email</th><th className="p-2">Phone</th><th className="p-2">Roles</th><th className="p-2">Team Leader</th></tr>
+              <tr><th className="p-2">Name</th><th className="p-2">Email</th><th className="p-2">Phone</th><th className="p-2">Roles</th><th className="p-2">Team Leader</th><th className="p-2">Page Access</th></tr>
             </thead>
             <tbody>
               {(data as any[]).map((u) => (
@@ -36,6 +38,13 @@ function MgrUsers() {
                     </div>
                   </td>
                   <td className="p-2 text-xs font-mono">{u.team_leader_id?.slice(0, 8) ?? "—"}</td>
+                  <td className="p-2">
+                    <Button asChild variant="outline" size="sm" className="h-7 gap-1.5 text-xs">
+                      <Link to="/mgr/users/$userId/page-access" params={{ userId: u.id }}>
+                        <ShieldCheck className="h-3.5 w-3.5" /> Page Access
+                      </Link>
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>

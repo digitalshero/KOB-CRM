@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import { getMyPageAccess, getUserPageAccess, putUserPageAccess } from "../controllers/pageAccess.controller.js";
 import {
   listBrands,
   listSources,
@@ -274,6 +275,11 @@ kobRouter.get("/tat-breach-detailed", requireAuth, getTATBreachDetailed);
 
 // GET /api/kob/my-role - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/my-role", requireAuth, getMyRole);
+
+// Page Access Management (additive, CEO-controlled) — RDS-only, see pageAccess.controller.ts
+kobRouter.get("/my-page-access", requireAuth, getMyPageAccess);
+kobRouter.get("/users/:userId/page-access", requireAuth, getUserPageAccess);
+kobRouter.put("/users/:userId/page-access", requireAuth, putUserPageAccess);
 
 // GET /api/kob/gallabox-fire-queue - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/gallabox-fire-queue", requireAuth, listGallaboxFireQueue);
