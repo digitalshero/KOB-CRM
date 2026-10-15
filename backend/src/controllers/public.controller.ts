@@ -12,6 +12,7 @@ import * as publicIntakeRepo from "../repositories/publicIntake.repository.js";
 import * as adminRepo from "../repositories/admin.repository.js";
 import * as leadRepo from "../repositories/lead.repository.js";
 import { pgClient } from "../db/pgQueryAdapter.js";
+import { maybeSendWebsiteFormInitialTemplate } from "../services/websiteFormInitialSend.service.js";
 
 // STAGE 10H: true only when DATA_BACKEND=rds (default remains "supabase").
 // Used only by the specific system/public-webhook handlers migrated in this
@@ -1188,6 +1189,20 @@ export async function postLeads(req: Request, res: Response): Promise<void> {
     } catch (e: any) {
       res.status(500).json({ error: e?.message ?? "Insert failed" });
       return;
+    }
+
+    // Website Form initial template: see websiteFormInitialSend.service.ts —
+    // Node-side replacement for the Supabase trg_send_website_form_* triggers,
+    // which never ran on RDS (no pg_net there). Scoped to source = Website
+    // Form only; no-ops for any other source or unsupported language, and
+    // never throws, so a Gallabox failure can't affect this response.
+    if ((sourceRowName ?? "").trim().toLowerCase() === "website form") {
+      void maybeSendWebsiteFormInitialTemplate({
+        id: inserted.id,
+        full_name: name,
+        phone,
+        language: inserted.language,
+      });
     }
 
     res.status(201).json({
