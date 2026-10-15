@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly trigger for kob-eoi1-retargeting.service (DISABLED until explicitly enabled)
+
+[Timer]
+OnCalendar=hourly
+Persistent=false
+Unit=kob-eoi1-retargeting.service
+
+[Install]
+WantedBy=timers.target

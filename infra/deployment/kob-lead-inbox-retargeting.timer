@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly trigger for kob-lead-inbox-retargeting.service (DISABLED until explicitly enabled)
+
+[Timer]
+OnCalendar=hourly
+Persistent=false
+Unit=kob-lead-inbox-retargeting.service
+
+[Install]
+WantedBy=timers.target

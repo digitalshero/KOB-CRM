@@ -1,0 +1,12 @@
+[Unit]
+Description=KOB CRM EOI1 7-day Retargeting, all languages (batch mode) - Node replacement for Supabase send_eoi1_7day_retargeting{,_telugu,_malayalam}()
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/data/kob-crm/current/backend
+EnvironmentFile=/data/kob-crm/shared/kob-staging.env
+ExecStart=/data/kob-crm/runtime/node22/bin/node dist/workers/eoi1Retargeting.js
+
+# No [Install] WantedBy here deliberately: only ever started by the timer.
