@@ -15,8 +15,8 @@ import { pgClient } from "../db/pgQueryAdapter.js";
 
 // STAGE 10H: true only when DATA_BACKEND=rds (default remains "supabase").
 // Used only by the specific system/public-webhook handlers migrated in this
-// file (postLeadStage, postTemplateStage) — every other handler here is
-// untouched and keeps using supabaseAdmin exactly as before.
+// file (postLeadStage, postTemplateStage, postFailedFire) — every other
+// handler here is untouched and keeps using supabaseAdmin exactly as before.
 const useRds = () => config.dataBackend === "rds";
 
 /** Page through PostgREST's 1000-row cap. */
@@ -534,7 +534,9 @@ export async function postFailedFire(req: Request, res: Response): Promise<void>
   let lookupUrl: string | undefined;
   const gallaboxMessageId = pick(body, [["id"], ["message_id"], ["messageId"]]);
   if (gallaboxMessageId) {
-    const r = await resolveTemplateIdFromGallabox(supabaseAdmin, gallaboxMessageId);
+    // resolveTemplateIdFromGallabox only uses .from().select().in() — pgClient
+    // (the RDS shim) covers that vocabulary, so the same helper works unmodified.
+    const r = await resolveTemplateIdFromGallabox(useRds() ? pgClient : supabaseAdmin, gallaboxMessageId);
     resolvedTemplateId = r.templateId;
     lookupError = r.error;
     lookupUrl = r.url;
@@ -548,6 +550,115 @@ export async function postFailedFire(req: Request, res: Response): Promise<void>
       lookup_url: lookupUrl ?? null,
       lookup_error: lookupError ?? null,
       reason: "Failed message is not the configured Failed Fire template",
+    });
+    return;
+  }
+
+  if (useRds()) {
+    // Idempotency
+    const existing = await publicIntakeRepo.findLeadEventByPayloadMessageId(EVENT_NAME, messageId);
+    if (existing) {
+      res.status(200).json({
+        success: true,
+        already_processed: true,
+        message: "Failed fire event already processed",
+      });
+      return;
+    }
+
+    // Resolve lead by phone tail
+    const tail = phoneTail(phone);
+    const candidates = await publicIntakeRepo.findLeadsByPhoneSuffix(getPool(), tail, 5);
+    const match = candidates.find((l) => phoneTail(l.phone ?? "") === tail);
+    if (!match) {
+      res.status(404).json({ success: false, error: "Lead not found" });
+      return;
+    }
+
+    const previousStage = match.stage as string | null;
+
+    let eventAt: string | null = null;
+    if (timestamp) {
+      const d = /^\d{10,13}$/.test(timestamp)
+        ? new Date(timestamp.length <= 10 ? Number(timestamp) * 1000 : Number(timestamp))
+        : new Date(timestamp);
+      if (!isNaN(d.getTime())) eventAt = d.toISOString();
+    }
+    if (!eventAt && typeof firstError?.time === "string") {
+      const d = new Date(firstError.time);
+      if (!isNaN(d.getTime())) eventAt = d.toISOString();
+    }
+
+    try {
+      await withTransaction(null, async (client) => {
+        await leadRepo.insertLeadEvent(client, {
+          lead_id: match.id,
+          phone,
+          event: EVENT_NAME,
+          template: pick(body, [["template"], ["templateName"], ["message", "template"]]) ?? null,
+          status: status ?? "FAILED_FIRE",
+          event_at: eventAt,
+          payload: {
+            message_id: messageId,
+            local_message_id: localMessageId ?? null,
+            recipient_id: phone,
+            event_name: eventName || null,
+            error_code: errorCode,
+            error_title: errorTitle,
+            error_message: errorMessage,
+            reason: reason ?? null,
+            status: status ?? null,
+            source: "gallabox-failed-fire-webhook",
+            raw: body,
+          },
+        });
+      });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message ?? "Insert failed" });
+      return;
+    }
+
+    let stageUpdated = false;
+    if (previousStage !== "FAILED_FIRE") {
+      try {
+        await withTransaction(null, async (client) => {
+          await publicIntakeRepo.updateLeadStageSystem(client, match.id, "FAILED_FIRE");
+        });
+      } catch (e: any) {
+        res.status(200).json({
+          success: false,
+          lead_id: match.id,
+          error: `Stage update failed: ${e?.message ?? "unknown error"}`,
+          event_logged: true,
+        });
+        return;
+      }
+      stageUpdated = true;
+    }
+
+    await withTransaction(null, (client) => adminRepo.insertAuditLog(client, null, "GALLABOX_FAILED_FIRE", "kob_leads", match.id, {
+      source: "failed-fire-webhook",
+      phone,
+      message_id: messageId,
+      local_message_id: localMessageId ?? null,
+      event_name: eventName || null,
+      error_code: errorCode,
+      error_title: errorTitle,
+      reason: reason ?? null,
+      gallabox_status: status ?? null,
+      timestamp: eventAt,
+      from: previousStage,
+      to: "FAILED_FIRE",
+      stage_updated: stageUpdated,
+    }));
+
+    res.status(200).json({
+      success: true,
+      lead_id: match.id,
+      stage: "FAILED_FIRE",
+      previous_stage: previousStage,
+      stage_updated: stageUpdated,
+      message: "Failed fire recorded successfully",
     });
     return;
   }
