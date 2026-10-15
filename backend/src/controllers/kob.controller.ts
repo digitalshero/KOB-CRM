@@ -4220,7 +4220,7 @@ export async function listWhatsappMessages(req: Request, res: Response, next: Ne
  */
 export async function upsertKpiTarget(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4246,27 +4246,12 @@ export async function upsertKpiTarget(req: Request, res: Response, next: NextFun
       effective_from: eff,
     };
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.upsertKpiTarget(client, payload);
-        await adminRepo.insertAuditLog(client, userId, "kpi_target_update", "kpi_targets", null, payload);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kpi_targets")
-      .upsert(payload, { onConflict: "metric,period,effective_from" });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "kpi_target_update", "kpi_targets", null, payload);
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.upsertKpiTarget(client, payload);
+      await adminRepo.insertAuditLog(client, userId, "kpi_target_update", "kpi_targets", null, payload);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4279,7 +4264,7 @@ export async function upsertKpiTarget(req: Request, res: Response, next: NextFun
  */
 export async function deleteKpiTarget(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4291,28 +4276,12 @@ export async function deleteKpiTarget(req: Request, res: Response, next: NextFun
       return;
     }
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.deleteKpiTarget(client, id);
-        await adminRepo.insertAuditLog(client, userId, "kpi_target_delete", "kpi_targets", id, {});
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kpi_targets")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "kpi_target_delete", "kpi_targets", id, {});
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.deleteKpiTarget(client, id);
+      await adminRepo.insertAuditLog(client, userId, "kpi_target_delete", "kpi_targets", id, {});
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4325,7 +4294,7 @@ export async function deleteKpiTarget(req: Request, res: Response, next: NextFun
  */
 export async function upsertMarketingTarget(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4346,27 +4315,12 @@ export async function upsertMarketingTarget(req: Request, res: Response, next: N
     const period = inputPeriod ?? new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
     const row = { metric, target_value: Number(target_value), period };
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.upsertMarketingTarget(client, row);
-        await adminRepo.insertAuditLog(client, userId, "marketing_target_upsert", "marketing_kpi_targets", null, row);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("marketing_kpi_targets")
-      .upsert(row, { onConflict: "metric,period" });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "marketing_target_upsert", "marketing_kpi_targets", null, row);
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.upsertMarketingTarget(client, row);
+      await adminRepo.insertAuditLog(client, userId, "marketing_target_upsert", "marketing_kpi_targets", null, row);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4451,7 +4405,7 @@ export async function upsertManualRating(req: Request, res: Response, next: Next
  */
 export async function createBrand(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4476,32 +4430,14 @@ export async function createBrand(req: Request, res: Response, next: NextFunctio
       active: Boolean(active),
     };
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
-      const id = await withTransaction(userId, async (client) => {
-        const created = await adminRepo.createBrand(client, payload);
-        await adminRepo.insertAuditLog(client, userId, "create", "brands", created.id, payload);
-        return created.id;
-      });
-      res.status(200).json({ ok: true, id });
-      return;
-    }
-
-    const { data: row, error } = await req.supabase
-      .from("brands")
-      .insert(payload)
-      .select("id")
-      .single();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "create", "brands", row.id, payload);
-
-    res.status(200).json({ ok: true, id: row.id });
+    const role = await requireRoleOrDeny(userId, ["super_admin"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+    const id = await withTransaction(userId, async (client) => {
+      const created = await adminRepo.createBrand(client, payload);
+      await adminRepo.insertAuditLog(client, userId, "create", "brands", created.id, payload);
+      return created.id;
+    });
+    res.status(200).json({ ok: true, id });
   } catch (err) {
     next(err);
   }
@@ -4513,7 +4449,7 @@ export async function createBrand(req: Request, res: Response, next: NextFunctio
  */
 export async function updateSourceCost(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4534,28 +4470,12 @@ export async function updateSourceCost(req: Request, res: Response, next: NextFu
 
     const costNum = Number(cost_per_lead);
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.updateSourceCost(client, id, costNum);
-        await adminRepo.insertAuditLog(client, userId, "source_cost_update", "lead_sources", id, { cost_per_lead: costNum });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("lead_sources")
-      .update({ cost_per_lead: costNum })
-      .eq("id", id);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "source_cost_update", "lead_sources", id, { cost_per_lead: costNum });
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.updateSourceCost(client, id, costNum);
+      await adminRepo.insertAuditLog(client, userId, "source_cost_update", "lead_sources", id, { cost_per_lead: costNum });
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4568,7 +4488,7 @@ export async function updateSourceCost(req: Request, res: Response, next: NextFu
  */
 export async function upsertStateNativeBrand(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4581,27 +4501,12 @@ export async function upsertStateNativeBrand(req: Request, res: Response, next: 
       return;
     }
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.upsertStateNativeBrand(client, state_id, brand_id);
-        await adminRepo.insertAuditLog(client, userId, "native_brand_map", "state_native_brand", state_id, { state_id, brand_id });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("state_native_brand")
-      .upsert({ state_id, brand_id }, { onConflict: "state_id" });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "native_brand_map", "state_native_brand", state_id, { state_id, brand_id });
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.upsertStateNativeBrand(client, state_id, brand_id);
+      await adminRepo.insertAuditLog(client, userId, "native_brand_map", "state_native_brand", state_id, { state_id, brand_id });
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4724,7 +4629,7 @@ export async function upsertGallaboxTemplate(req: Request, res: Response, next: 
  */
 export async function updateIncentiveRule(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4774,24 +4679,12 @@ export async function updateIncentiveRule(req: Request, res: Response, next: Nex
       incentive_pct: incPctNum,
     };
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.updateIncentiveRule(client, id, patch);
-        await adminRepo.insertAuditLog(client, userId, "incentive_rule_update", "incentive_rules", id, patch);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase.from("incentive_rules").update(patch).eq("id", id);
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "incentive_rule_update", "incentive_rules", id, patch);
+    const role = await requireRoleOrDeny(userId, ["super_admin"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.updateIncentiveRule(client, id, patch);
+      await adminRepo.insertAuditLog(client, userId, "incentive_rule_update", "incentive_rules", id, patch);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4804,7 +4697,7 @@ export async function updateIncentiveRule(req: Request, res: Response, next: Nex
  */
 export async function updateScvRules(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4847,24 +4740,12 @@ export async function updateScvRules(req: Request, res: Response, next: NextFunc
       weight_crm_discipline: weights[4].val,
     };
 
-    if (useRds()) {
-      const role = await requireRoleOrDeny(userId, ["super_admin"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.updateScvRules(client, patch);
-        await adminRepo.insertAuditLog(client, userId, "scv_rules_update", "scv_rules", null, patch);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase.from("scv_rules").update(patch).eq("id", 1);
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "scv_rules_update", "scv_rules", null, patch);
+    const role = await requireRoleOrDeny(userId, ["super_admin"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.updateScvRules(client, patch);
+      await adminRepo.insertAuditLog(client, userId, "scv_rules_update", "scv_rules", null, patch);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4877,7 +4758,7 @@ export async function updateScvRules(req: Request, res: Response, next: NextFunc
  */
 export async function updateConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4889,35 +4770,19 @@ export async function updateConfig(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    if (useRds()) {
-      // Role gate mirrors kob_configuration's RLS policy (super_admin OR
-      // kob_manager). The FURTHER per-field restriction for kob_manager
-      // (only default_mode/auto_mode_killswitch) is NOT re-implemented
-      // here — it is enforced by the unmodified
-      // enforce_kob_configuration_manager_scope trigger on RDS, exactly as
-      // on the Supabase path, using the request.jwt.claim.sub this
-      // transaction sets.
-      const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
-      if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
-      await withTransaction(userId, async (client) => {
-        await adminRepo.updateConfig(client, patch);
-        await adminRepo.insertAuditLog(client, userId, "config_update", "kob_configuration", null, patch);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kob_configuration")
-      .update(patch)
-      .eq("id", 1);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "config_update", "kob_configuration", null, patch);
+    // Role gate mirrors kob_configuration's RLS policy (super_admin OR
+    // kob_manager). The FURTHER per-field restriction for kob_manager
+    // (only default_mode/auto_mode_killswitch) is NOT re-implemented
+    // here — it is enforced by the unmodified
+    // enforce_kob_configuration_manager_scope trigger on RDS, exactly as
+    // on the Supabase path, using the request.jwt.claim.sub this
+    // transaction sets.
+    const role = await requireRoleOrDeny(userId, ["super_admin", "kob_manager"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin or kob_manager" }); return; }
+    await withTransaction(userId, async (client) => {
+      await adminRepo.updateConfig(client, patch);
+      await adminRepo.insertAuditLog(client, userId, "config_update", "kob_configuration", null, patch);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -4930,7 +4795,7 @@ export async function updateConfig(req: Request, res: Response, next: NextFuncti
  */
 export async function updateMyAllocationMode(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4941,26 +4806,10 @@ export async function updateMyAllocationMode(req: Request, res: Response, next: 
       return;
     }
 
-    if (useRds()) {
-      await withTransaction(req.userId, async (client) => {
-        await adminRepo.updateAllocationMode(client, req.userId!, mode);
-        await adminRepo.insertAuditLog(client, req.userId!, "allocation_mode_update", "profiles", req.userId!, { mode });
-      });
-      res.status(200).json({ ok: true, mode });
-      return;
-    }
-
-    const { error } = await req.supabase!
-      .from("profiles")
-      .update({ allocation_mode: mode })
-      .eq("id", req.userId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase!, req.userId, "allocation_mode_update", "profiles", req.userId, { mode });
+    await withTransaction(req.userId, async (client) => {
+      await adminRepo.updateAllocationMode(client, req.userId!, mode);
+      await adminRepo.insertAuditLog(client, req.userId!, "allocation_mode_update", "profiles", req.userId!, { mode });
+    });
     res.status(200).json({ ok: true, mode });
   } catch (err) {
     next(err);
@@ -4973,7 +4822,7 @@ export async function updateMyAllocationMode(req: Request, res: Response, next: 
  */
 export async function updateExecutiveLanguage(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -4992,77 +4841,28 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
       patch.secondary_language = req.body.secondary_language || null;
     }
 
-    if (useRds()) {
-      const roles = await adminRepo.getRolesForUser(req.userId);
-      const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
-      const isTL = roles.includes("team_leader");
-      if (!isAdmin && !isTL) {
-        res.status(403).json({ error: "Forbidden" });
-        return;
-      }
-      if (!isAdmin) {
-        const tlId = await adminRepo.getProfileTeamLeaderId(executiveId);
-        if (tlId !== req.userId) {
-          res.status(403).json({ error: "Forbidden" });
-          return;
-        }
-      }
-      if (Object.keys(patch).length === 0) {
-        res.status(200).json({ ok: true });
-        return;
-      }
-      await withTransaction(req.userId, async (client) => {
-        await adminRepo.updateProfileLanguages(client, executiveId, patch);
-        await adminRepo.insertAuditLog(client, req.userId!, "executive_language_updated", "profiles", executiveId, patch);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { data: roles } = await req.supabase!
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", req.userId);
-
-    const isAdmin = (roles ?? []).some((r: any) => r.role === "super_admin" || r.role === "kob_manager");
-    const isTL = (roles ?? []).some((r: any) => r.role === "team_leader");
-
+    const roles = await adminRepo.getRolesForUser(req.userId);
+    const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
+    const isTL = roles.includes("team_leader");
     if (!isAdmin && !isTL) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
-
-    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase!;
-
     if (!isAdmin) {
-      const { data: prof } = await db
-        .from("profiles")
-        .select("team_leader_id")
-        .eq("id", executiveId)
-        .maybeSingle();
-
-      if (!prof || (prof as any).team_leader_id !== req.userId) {
+      const tlId = await adminRepo.getProfileTeamLeaderId(executiveId);
+      if (tlId !== req.userId) {
         res.status(403).json({ error: "Forbidden" });
         return;
       }
     }
-
     if (Object.keys(patch).length === 0) {
       res.status(200).json({ ok: true });
       return;
     }
-
-    const { error } = await db
-      .from("profiles")
-      .update(patch)
-      .eq("id", executiveId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase!, req.userId, "executive_language_updated", "profiles", executiveId, patch);
+    await withTransaction(req.userId, async (client) => {
+      await adminRepo.updateProfileLanguages(client, executiveId, patch);
+      await adminRepo.insertAuditLog(client, req.userId!, "executive_language_updated", "profiles", executiveId, patch);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5075,7 +4875,7 @@ export async function updateExecutiveLanguage(req: Request, res: Response, next:
  */
 export async function reassignExecutiveTeamLeader(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -5093,46 +4893,15 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
       return;
     }
 
-    if (useRds()) {
-      const roles = await adminRepo.getRolesForUser(req.userId);
-      const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
-      if (!isAdmin) {
-        res.status(403).json({ error: "Forbidden" });
-        return;
-      }
-      await withTransaction(req.userId, async (client) => {
-        await adminRepo.updateProfileTeamLeader(client, executiveId, teamLeaderId);
-        await adminRepo.insertAuditLog(client, req.userId!, "executive_reassign_tl", "profiles", executiveId, { team_leader_id: teamLeaderId });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { data: roles } = await req.supabase!
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", req.userId);
-
-    const isAdmin = (roles ?? []).some((r: any) => r.role === "super_admin" || r.role === "kob_manager");
+    const roles = await adminRepo.getRolesForUser(req.userId);
+    const isAdmin = roles.includes("super_admin") || roles.includes("kob_manager");
     if (!isAdmin) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
-
-    const db = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase!;
-
-    const { error } = await db
-      .from("profiles")
-      .update({ team_leader_id: teamLeaderId })
-      .eq("id", executiveId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase!, req.userId, "executive_reassign_tl", "profiles", executiveId, {
-      team_leader_id: teamLeaderId,
+    await withTransaction(req.userId, async (client) => {
+      await adminRepo.updateProfileTeamLeader(client, executiveId, teamLeaderId);
+      await adminRepo.insertAuditLog(client, req.userId!, "executive_reassign_tl", "profiles", executiveId, { team_leader_id: teamLeaderId });
     });
     res.status(200).json({ ok: true });
   } catch (err) {
@@ -5146,17 +4915,15 @@ export async function reassignExecutiveTeamLeader(req: Request, res: Response, n
  */
 export async function updateScvComponentWeights(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
 
-    const [isMgr, isAdmin] = useRds()
-      ? await Promise.all([actorHasRole(getPool(), req.userId, "kob_manager"), actorHasRole(getPool(), req.userId, "super_admin")])
-      : await Promise.all([
-          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "kob_manager" }).then((r: any) => r.data),
-          req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "super_admin" }).then((r: any) => r.data),
-        ]);
+    const [isMgr, isAdmin] = await Promise.all([
+      actorHasRole(getPool(), req.userId, "kob_manager"),
+      actorHasRole(getPool(), req.userId, "super_admin"),
+    ]);
 
     if (!isMgr && !isAdmin) {
       res.status(403).json({ error: "Only CEO or Manager can change SCV weights" });
@@ -5191,24 +4958,9 @@ export async function updateScvComponentWeights(req: Request, res: Response, nex
       weight_crm_discipline: values[3].val,
     };
 
-    if (useRds()) {
-      await withTransaction(req.userId, async (client) => {
-        await scvRepo.updateComponentWeights(client, patch);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase!
-      .from("scv_component_weights")
-      .update(patch)
-      .eq("id", 1);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
+    await withTransaction(req.userId, async (client) => {
+      await scvRepo.updateComponentWeights(client, patch);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5221,7 +4973,7 @@ export async function updateScvComponentWeights(req: Request, res: Response, nex
  */
 export async function saveScvMonthlyInput(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(500).json({ error: "Supabase client not initialized or unauthenticated" });
       return;
     }
@@ -5254,9 +5006,7 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
       }
     }
 
-    const role = useRds()
-      ? await resolveActorRole(getPool(), req.userId)
-      : (await req.supabase!.rpc("get_user_role", { _user_id: req.userId })).data;
+    const role = await resolveActorRole(getPool(), req.userId);
     const isMgr = role === "kob_manager" || role === "super_admin";
     const isTL = role === "team_leader";
 
@@ -5274,23 +5024,9 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
       crm_discipline: crmDiscipline !== undefined && crmDiscipline !== null ? Number(crmDiscipline) : null,
     };
 
-    if (useRds()) {
-      await withTransaction(req.userId, async (client) => {
-        await scvRepo.upsertMonthlyInput(client, payload);
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase!
-      .from("scv_monthly_inputs")
-      .upsert(payload, { onConflict: "user_id,period" });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
+    await withTransaction(req.userId, async (client) => {
+      await scvRepo.upsertMonthlyInput(client, payload);
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5305,11 +5041,6 @@ export async function saveScvMonthlyInput(req: Request, res: Response, next: Nex
  */
 export async function toggleEntity(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!useRds() && !req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const table = (req.params.entity || req.params.table || req.body?.table || req.body?.entity) as string;
     const id = (req.params.id || req.body?.id) as string;
     const active = req.body?.active;
@@ -5331,34 +5062,10 @@ export async function toggleEntity(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    if (useRds()) {
-      await withTransaction(req.userId ?? null, async (client) => {
-        await adminRepo.toggleEntityActive(client, table, id, active);
-        await adminRepo.insertAuditLog(client, req.userId ?? null, active ? "activate" : "deactivate", table, id, { active });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase!
-      .from(table)
-      .update({ active })
-      .eq("id", id);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase!,
-      req.userId ?? null,
-      active ? "activate" : "deactivate",
-      table,
-      id,
-      { active }
-    );
-
+    await withTransaction(req.userId ?? null, async (client) => {
+      await adminRepo.toggleEntityActive(client, table, id, active);
+      await adminRepo.insertAuditLog(client, req.userId ?? null, active ? "activate" : "deactivate", table, id, { active });
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5878,11 +5585,6 @@ export async function saveScvModeInput(req: Request, res: Response, next: NextFu
  */
 export async function setLeadCuisine(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const leadId = (req.params.id || req.body?.leadId || req.body?.id) as string;
     const cuisine = req.body?.cuisine;
 
@@ -5899,64 +5601,21 @@ export async function setLeadCuisine(req: Request, res: Response, next: NextFunc
 
     const trimmedCuisine = cuisine.trim();
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
-      const userId = req.userId;
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      let brandRejected = false;
-      await withTransaction(userId, async (client) => {
-        const active = await leadRepo.isActiveBrandName(client, trimmedCuisine);
-        if (!active) { brandRejected = true; return; }
-        // Non-stage field update: no stage/history/retargeting trigger fires
-        // (verified from trigger WHEN-clauses — see Stage 10G audit). Only
-        // touch_updated_at runs, same as every other kob_leads UPDATE.
-        await leadRepo.setLeadCuisine(client, leadId, trimmedCuisine, scope);
-        await adminRepo.insertAuditLog(client, userId, "lead_cuisine_update", "kob_leads", leadId, { cuisine: trimmedCuisine });
-      });
-      if (brandRejected) { res.status(400).json({ error: "Selected brand is not active in Brand Management" }); return; }
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    // Options come from Brand Management: only ACTIVE brands can be newly selected.
-    const { data: brand, error: brandErr } = await req.supabase
-      .from("brands")
-      .select("name")
-      .eq("active", true)
-      .eq("name", trimmedCuisine)
-      .maybeSingle();
-
-    if (brandErr) {
-      res.status(500).json({ error: brandErr.message });
-      return;
-    }
-
-    if (!brand) {
-      res.status(400).json({ error: "Selected brand is not active in Brand Management" });
-      return;
-    }
-
-    // Update ONLY cuisine. Do NOT touch stage, stage_entered_at, assignment, etc.
-    const { error: updateErr } = await req.supabase
-      .from("kob_leads")
-      .update({ cuisine: trimmedCuisine })
-      .eq("id", leadId);
-
-    if (updateErr) {
-      res.status(500).json({ error: updateErr.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase,
-      req.userId ?? null,
-      "lead_cuisine_update",
-      "kob_leads",
-      leadId,
-      { cuisine: trimmedCuisine }
-    );
-
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+    const userId = req.userId;
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    let brandRejected = false;
+    await withTransaction(userId, async (client) => {
+      const active = await leadRepo.isActiveBrandName(client, trimmedCuisine);
+      if (!active) { brandRejected = true; return; }
+      // Non-stage field update: no stage/history/retargeting trigger fires
+      // (verified from trigger WHEN-clauses — see Stage 10G audit). Only
+      // touch_updated_at runs, same as every other kob_leads UPDATE.
+      await leadRepo.setLeadCuisine(client, leadId, trimmedCuisine, scope);
+      await adminRepo.insertAuditLog(client, userId, "lead_cuisine_update", "kob_leads", leadId, { cuisine: trimmedCuisine });
+    });
+    if (brandRejected) { res.status(400).json({ error: "Selected brand is not active in Brand Management" }); return; }
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -5970,11 +5629,6 @@ export async function setLeadCuisine(req: Request, res: Response, next: NextFunc
  */
 export async function updateLeadNextAction(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const leadId = (req.params.id || req.body?.leadId || req.body?.id) as string;
     const nextAction = req.body?.nextAction;
 
@@ -5996,38 +5650,14 @@ export async function updateLeadNextAction(req: Request, res: Response, next: Ne
 
     const value = typeof nextAction === "string" && nextAction.trim().length > 0 ? nextAction.trim() : null;
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
-      const userId = req.userId;
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      await withTransaction(userId, async (client) => {
-        await leadRepo.updateLeadNextAction(client, leadId, value, scope);
-        await adminRepo.insertAuditLog(client, userId, "lead_next_action_update", "kob_leads", leadId, { next_action: value });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kob_leads")
-      .update({ next_action: value })
-      .eq("id", leadId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase,
-      req.userId ?? null,
-      "lead_next_action_update",
-      "kob_leads",
-      leadId,
-      { next_action: value }
-    );
-
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+    const userId = req.userId;
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    await withTransaction(userId, async (client) => {
+      await leadRepo.updateLeadNextAction(client, leadId, value, scope);
+      await adminRepo.insertAuditLog(client, userId, "lead_next_action_update", "kob_leads", leadId, { next_action: value });
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -6041,11 +5671,6 @@ export async function updateLeadNextAction(req: Request, res: Response, next: Ne
  */
 export async function setLeadRnrTag(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const leadId = (req.params.id || req.body?.leadId || req.body?.id) as string;
     const rnr = req.body?.rnr;
 
@@ -6060,69 +5685,24 @@ export async function setLeadRnrTag(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
-      const userId = req.userId;
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      let notFound = false;
-      let resultTags: string[] = [];
-      await withTransaction(userId, async (client) => {
-        // Scoped read: an inaccessible lead returns null here, exactly like
-        // the Supabase path's RLS-filtered SELECT finding no row.
-        const current = await leadRepo.getLeadTagsScoped(client, leadId, scope);
-        if (current === null) { notFound = true; return; }
-        const nextTags = rnr ? Array.from(new Set([...current, "RNR"])) : current.filter((t) => t !== "RNR");
-        await leadRepo.setLeadTags(client, leadId, nextTags, scope);
-        await adminRepo.insertAuditLog(client, userId, rnr ? "lead_tag_rnr_added" : "lead_tag_rnr_removed", "kob_leads", leadId, { tags: nextTags });
-        resultTags = nextTags;
-      });
-      if (notFound) { res.status(404).json({ error: "Lead not found" }); return; }
-      res.status(200).json({ ok: true, tags: resultTags });
-      return;
-    }
-
-    const { data: row, error: readErr } = await req.supabase
-      .from("kob_leads")
-      .select("tags")
-      .eq("id", leadId)
-      .maybeSingle();
-
-    if (readErr) {
-      res.status(500).json({ error: readErr.message });
-      return;
-    }
-
-    if (!row) {
-      res.status(404).json({ error: "Lead not found" });
-      return;
-    }
-
-    const current: string[] = ((row as any)?.tags ?? []) as string[];
-    const nextTags = rnr
-      ? Array.from(new Set([...current, "RNR"]))
-      : current.filter((t) => t !== "RNR");
-
-    const { error: updErr } = await req.supabase
-      .from("kob_leads")
-      .update({ tags: nextTags })
-      .eq("id", leadId);
-
-    if (updErr) {
-      res.status(500).json({ error: updErr.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase,
-      req.userId ?? null,
-      rnr ? "lead_tag_rnr_added" : "lead_tag_rnr_removed",
-      "kob_leads",
-      leadId,
-      { tags: nextTags }
-    );
-
-    res.status(200).json({ ok: true, tags: nextTags });
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+    const userId = req.userId;
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    let notFound = false;
+    let resultTags: string[] = [];
+    await withTransaction(userId, async (client) => {
+      // Scoped read: an inaccessible lead returns null here, exactly like
+      // the Supabase path's RLS-filtered SELECT finding no row.
+      const current = await leadRepo.getLeadTagsScoped(client, leadId, scope);
+      if (current === null) { notFound = true; return; }
+      const nextTags = rnr ? Array.from(new Set([...current, "RNR"])) : current.filter((t) => t !== "RNR");
+      await leadRepo.setLeadTags(client, leadId, nextTags, scope);
+      await adminRepo.insertAuditLog(client, userId, rnr ? "lead_tag_rnr_added" : "lead_tag_rnr_removed", "kob_leads", leadId, { tags: nextTags });
+      resultTags = nextTags;
+    });
+    if (notFound) { res.status(404).json({ error: "Lead not found" }); return; }
+    res.status(200).json({ ok: true, tags: resultTags });
   } catch (err) {
     next(err);
   }
@@ -6135,11 +5715,6 @@ export async function setLeadRnrTag(req: Request, res: Response, next: NextFunct
  */
 export async function markLeadMessagesRead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const leadId = (req.params.id || req.body?.leadId || req.body?.id) as string;
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -6148,38 +5723,14 @@ export async function markLeadMessagesRead(req: Request, res: Response, next: Ne
       return;
     }
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
-      const userId = req.userId;
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      await withTransaction(userId, async (client) => {
-        await leadRepo.markLeadMessagesRead(client, leadId, scope);
-        await adminRepo.insertAuditLog(client, userId, "lead_messages_marked_read", "kob_leads", leadId, null);
-      });
-      res.status(200).json({ ok: true, unread_message_count: 0, has_unread_messages: false });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kob_leads")
-      .update({ unread_message_count: 0, has_unread_messages: false })
-      .eq("id", leadId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase,
-      req.userId ?? null,
-      "lead_messages_marked_read",
-      "kob_leads",
-      leadId,
-      null
-    );
-
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+    const userId = req.userId;
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    await withTransaction(userId, async (client) => {
+      await leadRepo.markLeadMessagesRead(client, leadId, scope);
+      await adminRepo.insertAuditLog(client, userId, "lead_messages_marked_read", "kob_leads", leadId, null);
+    });
     res.status(200).json({ ok: true, unread_message_count: 0, has_unread_messages: false });
   } catch (err) {
     next(err);
@@ -6324,11 +5875,6 @@ export async function createExecutive(req: Request, res: Response, next: NextFun
  */
 export async function reassignLead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
     const leadId = (req.params.id || req.body?.leadId || req.body?.id) as string;
     const executiveId = (req.body?.executiveId || req.body?.assigned_to) as string;
 
@@ -6343,41 +5889,17 @@ export async function reassignLead(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
-      const userId = req.userId;
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      await withTransaction(userId, async (client) => {
-        // Scoped WHERE evaluates against the lead's CURRENT (pre-update) row,
-        // same as RLS's own USING clause — an executive may only reassign a
-        // lead currently assigned to themselves.
-        await leadRepo.reassignLead(client, leadId, executiveId, scope);
-        await adminRepo.insertAuditLog(client, userId, "lead_reassign", "kob_leads", leadId, { executiveId });
-      });
-      res.status(200).json({ ok: true });
-      return;
-    }
-
-    const { error } = await req.supabase
-      .from("kob_leads")
-      .update({ assigned_to: executiveId })
-      .eq("id", leadId);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(
-      req.supabase,
-      req.userId ?? null,
-      "lead_reassign",
-      "kob_leads",
-      leadId,
-      { executiveId }
-    );
-
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized on request" }); return; }
+    const userId = req.userId;
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    await withTransaction(userId, async (client) => {
+      // Scoped WHERE evaluates against the lead's CURRENT (pre-update) row,
+      // same as RLS's own USING clause — an executive may only reassign a
+      // lead currently assigned to themselves.
+      await leadRepo.reassignLead(client, leadId, executiveId, scope);
+      await adminRepo.insertAuditLog(client, userId, "lead_reassign", "kob_leads", leadId, { executiveId });
+    });
     res.status(200).json({ ok: true });
   } catch (err) {
     next(err);
@@ -6391,7 +5913,7 @@ export async function reassignLead(req: Request, res: Response, next: NextFuncti
  */
 export async function createManualLead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -6432,99 +5954,38 @@ export async function createManualLead(req: Request, res: Response, next: NextFu
       return;
     }
 
-    if (useRds()) {
-      const clash = await leadRepo.findPhoneClash(digits);
-      if (clash) {
-        res.status(400).json({ error: `Phone already exists in CRM (lead ${clash.code})` });
-        return;
-      }
-
-      const last = await leadRepo.getLastManualLeadCode();
-      let nextNum = 1;
-      const m = /^IND-(\d+)$/.exec(last ?? "");
-      if (m) nextNum = parseInt(m[1], 10) + 1;
-      const code = `IND-${String(nextNum).padStart(5, "0")}`;
-
-      // Team Leaders may only insert leads owned by their own team (same rule as the Supabase RLS policy).
-      const isTL = await actorHasRole(getPool(), req.userId, "team_leader");
-
-      const inserted = await withTransaction(req.userId, async (client) => {
-        const row = await leadRepo.insertManualLead(client, {
-          code,
-          full_name: full_name.trim(),
-          phone: `+91${digits}`,
-          language,
-          source_id: source_id || null,
-          team_leader_id: isTL ? req.userId! : null,
-          notes: cleanPincode ? `Pincode: ${cleanPincode}` : null,
-        });
-        await adminRepo.insertAuditLog(client, req.userId!, "lead_manual_create", "kob_leads", row.id, {
-          code: row.code,
-          phone: `+91${digits}`,
-          language,
-          pincode: cleanPincode || null,
-        });
-        return row;
-      });
-
-      res.status(200).json({ id: inserted.id, code: inserted.code });
-      return;
-    }
-
-    const { data: dupes, error: dupeErr } = await req.supabase!.from("kob_leads").select("id, phone, code");
-    if (dupeErr) {
-      res.status(500).json({ error: dupeErr.message });
-      return;
-    }
-
-    const clash = (dupes ?? []).find((l: any) => String(l.phone ?? "").replace(/\D/g, "").slice(-10) === digits);
+    const clash = await leadRepo.findPhoneClash(digits);
     if (clash) {
       res.status(400).json({ error: `Phone already exists in CRM (lead ${clash.code})` });
       return;
     }
 
-    const { data: last } = await req.supabase!
-      .from("kob_leads")
-      .select("code")
-      .like("code", "IND-%")
-      .order("code", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
+    const last = await leadRepo.getLastManualLeadCode();
     let nextNum = 1;
-    const m = /^IND-(\d+)$/.exec((last as any)?.code ?? "");
+    const m = /^IND-(\d+)$/.exec(last ?? "");
     if (m) nextNum = parseInt(m[1], 10) + 1;
     const code = `IND-${String(nextNum).padStart(5, "0")}`;
 
-    // Team Leaders may only insert leads owned by their own team (RLS).
-    const { data: isTL } = await req.supabase!.rpc("has_role", { _user_id: req.userId, _role: "team_leader" });
+    // Team Leaders may only insert leads owned by their own team (same rule as the Supabase RLS policy).
+    const isTL = await actorHasRole(getPool(), req.userId, "team_leader");
 
-    const { data: inserted, error } = await req.supabase!
-      .from("kob_leads")
-      .insert({
+    const inserted = await withTransaction(req.userId, async (client) => {
+      const row = await leadRepo.insertManualLead(client, {
         code,
         full_name: full_name.trim(),
         phone: `+91${digits}`,
         language,
         source_id: source_id || null,
-        stage: "LEAD_INBOX",
-        mode: "MANUAL",
-        team_leader_id: isTL ? req.userId : null,
+        team_leader_id: isTL ? req.userId! : null,
         notes: cleanPincode ? `Pincode: ${cleanPincode}` : null,
-      })
-      .select("id, code")
-      .single();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    await logAudit(req.supabase, req.userId, "lead_manual_create", "kob_leads", inserted.id, {
-      code: inserted.code,
-      phone: `+91${digits}`,
-      language,
-      pincode: cleanPincode || null,
+      });
+      await adminRepo.insertAuditLog(client, req.userId!, "lead_manual_create", "kob_leads", row.id, {
+        code: row.code,
+        phone: `+91${digits}`,
+        language,
+        pincode: cleanPincode || null,
+      });
+      return row;
     });
 
     res.status(200).json({ id: inserted.id, code: inserted.code });
