@@ -1,7 +1,16 @@
 import "dotenv/config";
 
+const envOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:5173",
+  ...envOrigins,
+  "https://kob.shero.website",
+  "http://kob.shero.website",
+  "http://localhost:8088",
+  "http://127.0.0.1:8088",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:4173",
@@ -37,13 +46,14 @@ export const config = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      const normalized = origin.replace(/\/+$/, "");
+      if (allowedOrigins.some((allowed) => allowed.replace(/\/+$/, "") === normalized)) {
         return callback(null, true);
       }
       return callback(new Error(`CORS policy violation: Origin ${origin} not allowed`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "X-Requested-With"],
   },
 };
