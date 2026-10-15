@@ -222,42 +222,8 @@ function aggregateStatePincodeTotals(
 
 export async function listStatePincodeTotals(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const { totals, scope, states } = await referenceRepo.listStatePincodeTotalsRaw();
-      res.status(200).json(aggregateStatePincodeTotals(totals, scope, states));
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const [totalsRes, scopeRes, statesRes] = await Promise.all([
-      req.supabase
-        .from("v_state_pincode_totals")
-        .select("state, total_pincodes")
-        .order("state"),
-      req.supabase
-        .from("v_city_scope")
-        .select("state_name, native_kitchen_scope, other_kitchen_scope, city_id"),
-      req.supabase
-        .from("india_states")
-        .select("id, name, code, active"),
-    ]);
-
-    if (totalsRes.error) {
-      res.status(500).json({ error: totalsRes.error.message });
-      return;
-    }
-
-    const result = aggregateStatePincodeTotals(
-      (totalsRes.data ?? []) as any[],
-      (scopeRes.data ?? []) as any[],
-      (statesRes.data ?? []) as any[],
-    );
-
-    res.status(200).json(result);
+    const { totals, scope, states } = await referenceRepo.listStatePincodeTotalsRaw();
+    res.status(200).json(aggregateStatePincodeTotals(totals, scope, states));
   } catch (err) {
     next(err);
   }
@@ -273,46 +239,12 @@ export async function listStatePincodeTotals(req: Request, res: Response, next: 
  */
 export async function listCitiesWithScope(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const { scope, aliases } = await referenceRepo.listCitiesWithScopeRaw();
-      const result = scope.map((c) => ({
-        ...c,
-        district_aliases: aliases.get(c.city_id)?.district_aliases ?? [],
-        state_aliases: aliases.get(c.city_id)?.state_aliases ?? [],
-      }));
-      res.status(200).json(result);
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const [scopeRes, aliasRes] = await Promise.all([
-      req.supabase.from("v_city_scope").select("*").order("state_name"),
-      req.supabase.from("india_cities").select("id, district_aliases, state_aliases"),
-    ]);
-
-    if (scopeRes.error) {
-      res.status(500).json({ error: scopeRes.error.message });
-      return;
-    }
-
-    const aliases = new Map<string, { district_aliases: string[]; state_aliases: string[] }>();
-    for (const r of (((aliasRes as any).data ?? []) as any[])) {
-      aliases.set(r.id, {
-        district_aliases: r.district_aliases ?? [],
-        state_aliases: r.state_aliases ?? [],
-      });
-    }
-
-    const result = (((scopeRes.data ?? []) as any[])).map((c) => ({
+    const { scope, aliases } = await referenceRepo.listCitiesWithScopeRaw();
+    const result = scope.map((c) => ({
       ...c,
       district_aliases: aliases.get(c.city_id)?.district_aliases ?? [],
       state_aliases: aliases.get(c.city_id)?.state_aliases ?? [],
     }));
-
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -392,28 +324,7 @@ const SCV_RULES_FALLBACK = {
 
 export async function getScvRules(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json((await configRepo.getScvRules()) ?? SCV_RULES_FALLBACK);
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("scv_rules")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? SCV_RULES_FALLBACK);
+    res.status(200).json((await configRepo.getScvRules()) ?? SCV_RULES_FALLBACK);
   } catch (err) {
     next(err);
   }
@@ -427,27 +338,7 @@ export async function getScvRules(req: Request, res: Response, next: NextFunctio
  */
 export async function getIncentiveRules(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await configRepo.getIncentiveRules());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("incentive_rules")
-      .select("*")
-      .order("sort_order");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await configRepo.getIncentiveRules());
   } catch (err) {
     next(err);
   }
@@ -461,34 +352,8 @@ export async function getIncentiveRules(req: Request, res: Response, next: NextF
  */
 export async function listRateableUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const rows = await referenceRepo.listRateableUsers();
-      res.status(200).json(rows.map((r) => ({ user_id: r.user_id, role: r.role, full_name: r.full_name ?? "—", email: r.email ?? null })));
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("user_roles")
-      .select("user_id, role, profiles!inner(id, full_name, email)")
-      .in("role", ["executive", "team_leader", "kob_manager"]);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    const result = (data ?? []).map((r: any) => ({
-      user_id: r.user_id,
-      role: r.role as string,
-      full_name: r.profiles?.full_name ?? "—",
-      email: r.profiles?.email ?? null,
-    }));
-
-    res.status(200).json(result);
+    const rows = await referenceRepo.listRateableUsers();
+    res.status(200).json(rows.map((r) => ({ user_id: r.user_id, role: r.role, full_name: r.full_name ?? "—", email: r.email ?? null })));
   } catch (err) {
     next(err);
   }
@@ -502,25 +367,7 @@ export async function listRateableUsers(req: Request, res: Response, next: NextF
  */
 export async function listRoleWeights(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listRoleWeights());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("scv_role_weights")
-      .select("*");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listRoleWeights());
   } catch (err) {
     next(err);
   }
@@ -536,44 +383,7 @@ export async function listRoleWeights(req: Request, res: Response, next: NextFun
  */
 export async function listAllProfiles(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listAllProfilesWithRoles());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data: profiles, error: pErr } = await req.supabase
-      .from("profiles")
-      .select("id, full_name, email, phone, team_leader_id");
-
-    if (pErr) {
-      res.status(500).json({ error: pErr.message });
-      return;
-    }
-
-    const { data: roles, error: rErr } = await req.supabase
-      .from("user_roles")
-      .select("user_id, role");
-
-    if (rErr) {
-      res.status(500).json({ error: rErr.message });
-      return;
-    }
-
-    const roleByUser: Record<string, string[]> = {};
-    for (const r of roles ?? []) {
-      (roleByUser[(r as any).user_id] ??= []).push((r as any).role);
-    }
-
-    const result = (profiles ?? []).map((p: any) => ({
-      ...p,
-      roles: roleByUser[p.id] ?? [],
-    }));
-
-    res.status(200).json(result);
+    res.status(200).json(await referenceRepo.listAllProfilesWithRoles());
   } catch (err) {
     next(err);
   }
@@ -591,81 +401,25 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
     const r = parseDateRange(req);
 
     if (!r.from && !r.to) {
-      if (useRds()) {
-        res.status(200).json(await analyticsRepo.getKpiSnapshotView());
-        return;
-      }
-      const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-      if (!supabase) {
-        res.status(500).json({ error: "Supabase client not initialized" });
-        return;
-      }
-      const { data: rows, error } = await supabase.from("v_kpi_snapshot").select("*");
-      if (error) {
-        res.status(500).json({ error: error.message });
-        return;
-      }
-      res.status(200).json(rows ?? []);
+      res.status(200).json(await analyticsRepo.getKpiSnapshotView());
       return;
     }
 
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-    if (!useRds() && !supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
-    const PAGE = 1000;
-    const fetchAll = async (build: () => any) => {
-      const out: any[] = [];
-      for (let page = 0; ; page++) {
-        const { data: chunk, error } = await build().range(page * PAGE, page * PAGE + PAGE - 1);
-        if (error) throw error;
-        const got = (chunk ?? []) as any[];
-        out.push(...got);
-        if (got.length < PAGE) break;
-      }
-      return out;
-    };
-
-    const rows = useRds()
-      ? await analyticsRepo.getLeadsForKpiSnapshot(r)
-      : await fetchAll(() =>
-          applyCreatedRange(
-            supabase!.from("kob_leads").select("id, stage, created_at, updated_at").order("created_at", { ascending: true }),
-            r,
-            "created_at",
-          ),
-        );
+    const rows = await analyticsRepo.getLeadsForKpiSnapshot(r);
 
     const fromMs = r.from ? new Date(r.from).getTime() : 0;
     const toMs = r.to ? new Date(r.to).getTime() : Date.now();
     const span = Math.max(1, toMs - fromMs);
     const prevFrom = new Date(fromMs - span).toISOString();
     const prevTo = new Date(fromMs).toISOString();
-    const prev = useRds()
-      ? await analyticsRepo.getLeadsForKpiSnapshot({ from: prevFrom, to: prevTo })
-      : await fetchAll(() =>
-          supabase!.from("kob_leads").select("id, stage, created_at")
-            .gte("created_at", prevFrom).lt("created_at", prevTo)
-            .order("created_at", { ascending: true }),
-        );
+    const prev = await analyticsRepo.getLeadsForKpiSnapshot({ from: prevFrom, to: prevTo });
 
     const allIds = [...rows, ...prev].map((l) => l.id).filter(Boolean);
     const firedIds = new Set<string>();
     const failedIds = new Set<string>();
     for (let i = 0; i < allIds.length; i += 100) {
       const chunk = allIds.slice(i, i + 100);
-      const hist = useRds()
-        ? await analyticsRepo.getLeadIdStageFireHistory(chunk)
-        : (
-            await supabase!
-              .from("lead_stage_history")
-              .select("lead_id, to_stage")
-              .in("lead_id", chunk)
-              .in("to_stage", ["AUTO_FIRED", "FAILED_FIRE"])
-              .limit(2000)
-          ).data ?? [];
+      const hist = await analyticsRepo.getLeadIdStageFireHistory(chunk);
       for (const h of hist as any[]) {
         if (h.to_stage === "AUTO_FIRED") firedIds.add(h.lead_id);
         else failedIds.add(h.lead_id);
@@ -680,16 +434,7 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
     };
     const fromMonth = monthStart(fromMs || toMs);
     const toMonth = monthStart(toMs);
-    const targets = useRds()
-      ? await analyticsRepo.getKpiTargetsInRange(fromMonth, toMonth)
-      : (
-          await supabase!
-            .from("kpi_targets")
-            .select("metric, target_value, effective_from")
-            .gte("effective_from", fromMonth)
-            .lte("effective_from", toMonth)
-            .order("effective_from", { ascending: false })
-        ).data ?? [];
+    const targets = await analyticsRepo.getKpiTargetsInRange(fromMonth, toMonth);
     const tmap = new Map<string, number>();
     for (const t of targets as any[]) {
       if (!tmap.has(t.metric)) tmap.set(t.metric, Number(t.target_value ?? 0));
@@ -739,47 +484,15 @@ export async function getKpiSnapshot(req: Request, res: Response, next: NextFunc
  */
 export async function getContractsCount(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const r = parseDateRange(req);
-      const current = await analyticsRepo.countContracts(r.from, r.to);
-      let previous = 0;
-      if (r.from && r.to) {
-        const fromMs = new Date(r.from).getTime();
-        const toMs = new Date(r.to).getTime();
-        const span = Math.max(1, toMs - fromMs);
-        previous = await analyticsRepo.countContracts(new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
-      }
-      res.status(200).json({ count: current, prev_period: previous });
-      return;
-    }
-
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-    if (!supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
     const r = parseDateRange(req);
-
-    const countFor = async (from?: string, to?: string) => {
-      let q = supabase.from("kob_leads").select("id", { count: "exact", head: true }).eq("stage", "KTN_CS");
-      if (from) q = q.gte("stage_entered_at", from);
-      if (to) q = q.lte("stage_entered_at", to);
-      const { count, error } = await q;
-      if (error) throw error;
-      return count ?? 0;
-    };
-
-    const current = await countFor(r.from, r.to);
-
+    const current = await analyticsRepo.countContracts(r.from, r.to);
     let previous = 0;
     if (r.from && r.to) {
       const fromMs = new Date(r.from).getTime();
       const toMs = new Date(r.to).getTime();
       const span = Math.max(1, toMs - fromMs);
-      previous = await countFor(new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
+      previous = await analyticsRepo.countContracts(new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
     }
-
     res.status(200).json({ count: current, prev_period: previous });
   } catch (err) {
     next(err);
@@ -793,89 +506,33 @@ export async function getContractsCount(req: Request, res: Response, next: NextF
  */
 export async function getDashboardKpis(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const r = parseDateRange(req);
-      const leads = await analyticsRepo.getAllLeadsForDashboardKpis(r);
-      const count = (pred: (l: analyticsRepo.DashboardKpiLeadRow) => boolean) => leads.filter(pred).length;
-      const totalLeads = leads.length;
-      const feePaid = count((l) => l.stage === "FEE_PAID");
-      const agreementSigned = count((l) => l.stage === "AGREEMENT_SIGNED");
-      const ktnCs = count((l) => l.stage === "KTN_CS");
-      const ktnLive = count((l) => l.stage === "KTN_LIVE");
-      const parked = count((l) => ["NO_RESPONSE", "LATER", "NO", "RETARGETING"].includes(l.stage));
-      const autoLeads = count((l) => l.mode === "AUTO");
-      const manualLeads = count((l) => l.mode === "MANUAL");
-      const activeStates = await analyticsRepo.countActiveStates();
-      const activeCities = await analyticsRepo.countActiveCities();
-      const kitchenScope = await analyticsRepo.getKitchenScopeTotal();
-
-      const periods = budgetPeriodsForRange(r);
-      const spendTargets = await analyticsRepo.getMarketingSpendByPeriods(periods);
-      const budgeted = budgetedSpendFromTargets(spendTargets, r);
-      const totalSpend = budgeted ?? leads.reduce((s, l) => s + Number(l.cost_per_lead ?? 0), 0);
-
-      const cpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
-      const cac = ktnLive > 0 ? totalSpend / ktnLive : 0;
-
-      res.status(200).json({
-        totalLeads, feePaid, agreementSigned, ktnCs, ktnLive, parked, autoLeads, manualLeads,
-        activeStates: activeStates ?? 0, activeCities: activeCities ?? 0, kitchenScope,
-        totalSpend, cac: Math.round(cac), cpl: Math.round(cpl),
-      });
-      return;
-    }
-
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY ? supabaseAdmin : req.supabase;
-    if (!supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
     const r = parseDateRange(req);
+    const leads = await analyticsRepo.getAllLeadsForDashboardKpis(r);
+    const count = (pred: (l: analyticsRepo.DashboardKpiLeadRow) => boolean) => leads.filter(pred).length;
+    const totalLeads = leads.length;
+    const feePaid = count((l) => l.stage === "FEE_PAID");
+    const agreementSigned = count((l) => l.stage === "AGREEMENT_SIGNED");
+    const ktnCs = count((l) => l.stage === "KTN_CS");
+    const ktnLive = count((l) => l.stage === "KTN_LIVE");
+    const parked = count((l) => ["NO_RESPONSE", "LATER", "NO", "RETARGETING"].includes(l.stage));
+    const autoLeads = count((l) => l.mode === "AUTO");
+    const manualLeads = count((l) => l.mode === "MANUAL");
+    const activeStates = await analyticsRepo.countActiveStates();
+    const activeCities = await analyticsRepo.countActiveCities();
+    const kitchenScope = await analyticsRepo.getKitchenScopeTotal();
 
-    const base = () => applyCreatedRange(supabase.from("kob_leads").select("*", { count: "exact", head: true }), r);
-    const { count: totalLeads } = await base();
-    const { count: feePaid } = await base().eq("stage", "FEE_PAID");
-    const { count: agreementSigned } = await base().eq("stage", "AGREEMENT_SIGNED");
-    const { count: ktnCs } = await base().eq("stage", "KTN_CS");
-    const { count: ktnLive } = await base().eq("stage", "KTN_LIVE");
-    const { count: parked } = await base().in("stage", ["NO_RESPONSE", "LATER", "NO", "RETARGETING"]);
-    const { count: autoLeads } = await base().eq("mode", "AUTO");
-    const { count: manualLeads } = await base().eq("mode", "MANUAL");
-    const { count: activeStates } = await supabase.from("india_states").select("*", { count: "exact", head: true }).eq("active", true);
-    const { count: activeCities } = await supabase.from("india_cities").select("*", { count: "exact", head: true }).eq("active", true);
+    const periods = budgetPeriodsForRange(r);
+    const spendTargets = await analyticsRepo.getMarketingSpendByPeriods(periods);
+    const budgeted = budgetedSpendFromTargets(spendTargets, r);
+    const totalSpend = budgeted ?? leads.reduce((s, l) => s + Number(l.cost_per_lead ?? 0), 0);
 
-    const { data: scope } = await supabase.from("v_city_scope").select("native_kitchen_scope, other_kitchen_scope, city_active, state_active, district_active");
-    const kitchenScope = (scope ?? [])
-      .filter((row: any) => row.city_active && row.state_active && row.district_active)
-      .reduce((s: number, row: any) => s + (row.native_kitchen_scope ?? 0) + (row.other_kitchen_scope ?? 0), 0);
-
-    let ql = supabase.from("kob_leads").select("source_id, lead_sources(cost_per_lead)");
-    ql = applyCreatedRange(ql, r);
-    const { data: leadRows } = await ql;
-    const budgeted = await budgetedSpendForRange(supabase, r);
-    const totalSpend = budgeted ?? (leadRows ?? []).reduce(
-      (s: number, l: any) => s + Number(l.lead_sources?.cost_per_lead ?? 0), 0,
-    );
-
-    const cpl = totalLeads && totalLeads > 0 ? totalSpend / totalLeads : 0;
-    const cac = ktnLive && ktnLive > 0 ? totalSpend / ktnLive : 0;
+    const cpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
+    const cac = ktnLive > 0 ? totalSpend / ktnLive : 0;
 
     res.status(200).json({
-      totalLeads: totalLeads ?? 0,
-      feePaid: feePaid ?? 0,
-      agreementSigned: agreementSigned ?? 0,
-      ktnCs: ktnCs ?? 0,
-      ktnLive: ktnLive ?? 0,
-      parked: parked ?? 0,
-      autoLeads: autoLeads ?? 0,
-      manualLeads: manualLeads ?? 0,
-      activeStates: activeStates ?? 0,
-      activeCities: activeCities ?? 0,
-      kitchenScope,
-      totalSpend,
-      cac: Math.round(cac),
-      cpl: Math.round(cpl),
+      totalLeads, feePaid, agreementSigned, ktnCs, ktnLive, parked, autoLeads, manualLeads,
+      activeStates: activeStates ?? 0, activeCities: activeCities ?? 0, kitchenScope,
+      totalSpend, cac: Math.round(cac), cpl: Math.round(cpl),
     });
   } catch (err) {
     next(err);
@@ -927,38 +584,12 @@ export async function getFunnelBySource(req: Request, res: Response, next: NextF
   try {
     const r = parseDateRange(req);
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
-      const scope = await resolveLeadScopeOrDeny(req.userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      const sources = await referenceRepo.listSources();
-      const leads = await funnelRepo.getLeadsSourceStage(scope, r);
-      res.status(200).json(aggregateFunnelBySource(sources, leads));
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
-    const { data: sources, error: sErr } = await req.supabase.from("lead_sources").select("id, name, cost_per_lead");
-    if (sErr) {
-      res.status(500).json({ error: sErr.message });
-      return;
-    }
-
-    const orgClient = await getOrgReadClient(req);
-
-    let q = orgClient.from("kob_leads").select("source_id, stage");
-    q = applyCreatedRange(q, r);
-    const { data: leads, error: lErr } = await q;
-    if (lErr) {
-      res.status(500).json({ error: lErr.message });
-      return;
-    }
-
-    res.status(200).json(aggregateFunnelBySource((sources ?? []) as any[], (leads ?? []) as any[]));
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+    const scope = await resolveLeadScopeOrDeny(req.userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    const sources = await referenceRepo.listSources();
+    const leads = await funnelRepo.getLeadsSourceStage(scope, r);
+    res.status(200).json(aggregateFunnelBySource(sources, leads));
   } catch (err) {
     next(err);
   }
@@ -991,26 +622,11 @@ export async function getFunnelByLanguage(req: Request, res: Response, next: Nex
   try {
     const r = parseDateRange(req);
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
-      const scope = await resolveLeadScopeOrDeny(req.userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      const leads = await funnelRepo.getLeadsLanguageStage(scope, r);
-      res.status(200).json(aggregateFunnelByLanguage(leads));
-      return;
-    }
-
-    const orgClient = await getOrgReadClient(req);
-
-    let q = orgClient.from("kob_leads").select("language, stage");
-    q = applyCreatedRange(q, r);
-    const { data: leads, error } = await q;
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(aggregateFunnelByLanguage((leads ?? []) as any[]));
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+    const scope = await resolveLeadScopeOrDeny(req.userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    const leads = await funnelRepo.getLeadsLanguageStage(scope, r);
+    res.status(200).json(aggregateFunnelByLanguage(leads));
   } catch (err) {
     next(err);
   }
@@ -1050,38 +666,12 @@ export async function getFunnelByBrand(req: Request, res: Response, next: NextFu
   try {
     const r = parseDateRange(req);
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
-      const scope = await resolveLeadScopeOrDeny(req.userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      const brands = await referenceRepo.listBrands();
-      const leads = await funnelRepo.getLeadsBrandStage(scope, r);
-      res.status(200).json(aggregateFunnelByBrand(brands, leads));
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
-    const { data: brands, error: bErr } = await req.supabase.from("brands").select("id, name, code");
-    if (bErr) {
-      res.status(500).json({ error: bErr.message });
-      return;
-    }
-
-    const orgClient = await getOrgReadClient(req);
-
-    let q = orgClient.from("kob_leads").select("brand_id, stage");
-    q = applyCreatedRange(q, r);
-    const { data: leads, error: lErr } = await q;
-    if (lErr) {
-      res.status(500).json({ error: lErr.message });
-      return;
-    }
-
-    res.status(200).json(aggregateFunnelByBrand((brands ?? []) as any[], (leads ?? []) as any[]));
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+    const scope = await resolveLeadScopeOrDeny(req.userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    const brands = await referenceRepo.listBrands();
+    const leads = await funnelRepo.getLeadsBrandStage(scope, r);
+    res.status(200).json(aggregateFunnelByBrand(brands, leads));
   } catch (err) {
     next(err);
   }
@@ -1097,39 +687,12 @@ export async function getStageDistribution(req: Request, res: Response, next: Ne
   try {
     const r = parseDateRange(req);
 
-    if (useRds()) {
-      if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
-      const scope = await resolveLeadScopeOrDeny(req.userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
-      const rows = await funnelRepo.getLeadsIdStageCreated(scope, r);
-      const counts: Record<string, number> = {};
-      for (const row of rows) counts[row.stage] = (counts[row.stage] ?? 0) + 1;
-      res.status(200).json(Object.entries(counts).map(([stage, count]) => ({ stage, count })));
-      return;
-    }
-
-    const orgClient = await getOrgReadClient(req);
-
-    const seen = new Set<string>();
+    if (!req.userId) { res.status(500).json({ error: "Supabase client not initialized" }); return; }
+    const scope = await resolveLeadScopeOrDeny(req.userId);
+    if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+    const rows = await funnelRepo.getLeadsIdStageCreated(scope, r);
     const counts: Record<string, number> = {};
-
-    for (let page = 0; page < 200; page++) {
-      let q = orgClient.from("kob_leads").select("id, stage, created_at").order("created_at", { ascending: true });
-      q = applyCreatedRange(q, r);
-      const { data: rows, error } = await q.range(page * 1000, page * 1000 + 999);
-      if (error) {
-        res.status(500).json({ error: error.message });
-        return;
-      }
-      const list = (rows ?? []) as any[];
-      for (const row of list) {
-        if (seen.has(row.id)) continue;
-        seen.add(row.id);
-        counts[row.stage] = (counts[row.stage] ?? 0) + 1;
-      }
-      if (list.length < 1000) break;
-    }
-
+    for (const row of rows) counts[row.stage] = (counts[row.stage] ?? 0) + 1;
     res.status(200).json(Object.entries(counts).map(([stage, count]) => ({ stage, count })));
   } catch (err) {
     next(err);
@@ -1143,85 +706,31 @@ export async function getStageDistribution(req: Request, res: Response, next: Ne
  */
 export async function getStateSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      const userId = req.userId;
-      if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-      const scope = await resolveLeadScopeOrDeny(userId);
-      if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
+    const userId = req.userId;
+    if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
+    const scope = await resolveLeadScopeOrDeny(userId);
+    if (!scope) { res.status(403).json({ error: "Forbidden" }); return; }
 
-      const r = parseDateRange(req);
-      const [states, leads, scopeRows] = await Promise.all([
-        analyticsRepo.listStatesForSummary(),
-        analyticsRepo.getScopedLeadsStateStageCreated(scope, r),
-        analyticsRepo.getCityScopeForStateSummary(),
-      ]);
-
-      const byState: Record<string, any> = {};
-      for (const s of states) byState[s.id] = { ...s, leads: 0, ktn_live: 0, fee_paid: 0, scope: 0 };
-      for (const l of leads) {
-        const b = byState[l.state_id as string];
-        if (!b) continue;
-        b.leads++;
-        if (l.stage === "KTN_LIVE") b.ktn_live++;
-        if (l.stage === "FEE_PAID") b.fee_paid++;
-      }
-      for (const c of scopeRows) {
-        if (!c.city_active || !c.state_active || !c.district_active) continue;
-        const b = byState[c.state_id];
-        if (b) b.scope += (Number(c.native_kitchen_scope) || 0) + (Number(c.other_kitchen_scope) || 0);
-      }
-
-      res.status(200).json(Object.values(byState));
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized" });
-      return;
-    }
-
-    const { data: states, error: sErr } = await req.supabase.from("india_states").select("id, name, code, active");
-    if (sErr) {
-      res.status(500).json({ error: sErr.message });
-      return;
-    }
-
-    const orgClient = await getOrgReadClient(req);
     const r = parseDateRange(req);
-
-    let q = orgClient.from("kob_leads").select("state_id, stage, created_at");
-    q = applyCreatedRange(q, r);
-    const { data: leads, error: lErr } = await q;
-    if (lErr) {
-      res.status(500).json({ error: lErr.message });
-      return;
-    }
-
-    const { data: scope, error: scErr } = await req.supabase
-      .from("v_city_scope")
-      .select("state_id, native_kitchen_scope, other_kitchen_scope, city_active, state_active, district_active");
-    if (scErr) {
-      res.status(500).json({ error: scErr.message });
-      return;
-    }
+    const [states, leads, scopeRows] = await Promise.all([
+      analyticsRepo.listStatesForSummary(),
+      analyticsRepo.getScopedLeadsStateStageCreated(scope, r),
+      analyticsRepo.getCityScopeForStateSummary(),
+    ]);
 
     const byState: Record<string, any> = {};
-    for (const s of states ?? []) {
-      byState[(s as any).id] = { ...s, leads: 0, ktn_live: 0, fee_paid: 0, scope: 0 };
-    }
-    for (const l of leads ?? []) {
-      const b = byState[(l as any).state_id];
+    for (const s of states) byState[s.id] = { ...s, leads: 0, ktn_live: 0, fee_paid: 0, scope: 0 };
+    for (const l of leads) {
+      const b = byState[l.state_id as string];
       if (!b) continue;
       b.leads++;
-      if ((l as any).stage === "KTN_LIVE") b.ktn_live++;
-      if ((l as any).stage === "FEE_PAID") b.fee_paid++;
+      if (l.stage === "KTN_LIVE") b.ktn_live++;
+      if (l.stage === "FEE_PAID") b.fee_paid++;
     }
-    for (const c of scope ?? []) {
-      if (!(c as any).city_active || !(c as any).state_active || !(c as any).district_active) continue;
-      const b = byState[(c as any).state_id];
-      if (b) {
-        b.scope += (Number((c as any).native_kitchen_scope) || 0) + (Number((c as any).other_kitchen_scope) || 0);
-      }
+    for (const c of scopeRows) {
+      if (!c.city_active || !c.state_active || !c.district_active) continue;
+      const b = byState[c.state_id];
+      if (b) b.scope += (Number(c.native_kitchen_scope) || 0) + (Number(c.other_kitchen_scope) || 0);
     }
 
     res.status(200).json(Object.values(byState));
@@ -1242,27 +751,7 @@ export async function listMarketingTargets(req: Request, res: Response, next: Ne
       ? req.query.period.trim()
       : new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString().slice(0, 10);
 
-    if (useRds()) {
-      res.status(200).json(await configRepo.listMarketingTargets(period));
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("marketing_kpi_targets")
-      .select("*")
-      .eq("period", period);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json((data ?? []) as any[]);
+    res.status(200).json(await configRepo.listMarketingTargets(period));
   } catch (err) {
     next(err);
   }
@@ -1276,28 +765,7 @@ export async function listMarketingTargets(req: Request, res: Response, next: Ne
  */
 export async function listManualRatings(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listManualRatings());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("scv_manual_ratings")
-      .select("*")
-      .order("period", { ascending: false })
-      .order("rated_at", { ascending: false })
-      .limit(500);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listManualRatings());
   } catch (err) {
     next(err);
   }
@@ -1311,26 +779,7 @@ export async function listManualRatings(req: Request, res: Response, next: NextF
  */
 export async function listScvComposite(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await scvRepo.getScvComposite());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("v_scv_composite")
-      .select("*")
-      .order("composite_score", { ascending: false });
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await scvRepo.getScvComposite());
   } catch (err) {
     next(err);
   }
@@ -1344,31 +793,13 @@ export async function listScvComposite(req: Request, res: Response, next: NextFu
  */
 export async function getMyAllocationMode(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.userId || (!useRds() && !req.supabase)) {
+    if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    if (useRds()) {
-      const mode = await referenceRepo.getMyAllocationMode(req.userId);
-      res.status(200).json({ mode: (mode ?? "MANUAL") as "MANUAL" | "ROUND_ROBIN" });
-      return;
-    }
-
-    const { data, error } = await req.supabase!
-      .from("profiles")
-      .select("allocation_mode")
-      .eq("id", req.userId)
-      .maybeSingle();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json({
-      mode: ((data as any)?.allocation_mode ?? "MANUAL") as "MANUAL" | "ROUND_ROBIN",
-    });
+    const mode = await referenceRepo.getMyAllocationMode(req.userId);
+    res.status(200).json({ mode: (mode ?? "MANUAL") as "MANUAL" | "ROUND_ROBIN" });
   } catch (err) {
     next(err);
   }
@@ -1382,26 +813,7 @@ export async function getMyAllocationMode(req: Request, res: Response, next: Nex
  */
 export async function listGallaboxTemplates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listGallaboxTemplates());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("gallabox_templates")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listGallaboxTemplates());
   } catch (err) {
     next(err);
   }
@@ -6025,16 +5437,35 @@ export async function updateLeadStage(req: Request, res: Response, next: NextFun
       // STAGE 10G: scope resolved server-side; unknown role denied, matching
       // the Stage 10E1/10E2 policy for every other RDS lead endpoint.
       const scope = await resolveLeadScopeOrDeny(userId);
-      if (scope === null) { res.status(403).json({ error: "Forbidden: no role assigned" }); return; }
+      if (scope === null) {
+        // Diagnostic only — does not change response/behavior. Logged
+        // because this endpoint has an unreproduced 500 report; captures
+        // enough to diagnose the NEXT real failure without ever logging
+        // secrets (no JWT/password/API key is read or logged here).
+        const roleForLog = await resolveActorRole(getPool(), userId).catch(() => "lookup_failed");
+        console.error("[updateLeadStage] forbidden: no role assigned", {
+          userId, role: roleForLog, leadId: leadId.trim(), targetStage: stage.trim(), authResult: "DENY_NO_ROLE",
+        });
+        res.status(403).json({ error: "Forbidden: no role assigned" });
+        return;
+      }
+      let step = "leadRepo.updateLeadStage";
       try {
         await withTransaction(userId, async (client) => {
           // validate_stage_transition/on_lead_stage_change/log_lead_activity/
           // auto_enroll_retargeting/cancel_retargeting_on_exit fire unmodified,
           // with auth.uid() = userId for the duration of this transaction.
           await leadRepo.updateLeadStage(client, leadId.trim(), stage.trim(), scope);
+          step = "adminRepo.insertAuditLog";
           await adminRepo.insertAuditLog(client, userId, "lead_stage_update", "kob_leads", leadId.trim(), { stage: stage.trim() });
         });
       } catch (e: any) {
+        // Diagnostic only — same 400 response as before, just logged first.
+        console.error("[updateLeadStage] stage update failed", {
+          userId, scopeKind: scope.kind, leadId: leadId.trim(), targetStage: stage.trim(),
+          authResult: "ALLOW", failingStep: step,
+          pgErrorCode: e?.code ?? null, pgErrorMessage: e?.message ?? String(e),
+        });
         // Matches this endpoint's existing 400 (not 500) error status.
         res.status(400).json({ error: e?.message ?? "Stage update failed" });
         return;
