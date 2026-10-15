@@ -10,8 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo, useState } from "react";
 import { DateRangeFilter } from "@/components/date-range-filter";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useDateRange } from "@/hooks/use-date-range";
@@ -234,24 +233,14 @@ function LeadsPage() {
   });
 
 
-  // Live unread-badge refresh: any kob_leads update (incl. WhatsApp webhook
-  // bumping unread_message_count) re-fetches the board.
-  useEffect(() => {
-    const channel = supabase
-      .channel("leads-unread")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "kob_leads" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["leads-all"] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [qc]);
-
+  // Unread-badge refresh (incl. WhatsApp webhook bumping unread_message_count)
+  // is handled by the refetchInterval above. A Supabase postgres_changes
+  // subscription used to also drive this, but it listened to Supabase's own
+  // Postgres replication stream, which no longer receives writes now that
+  // kob_leads lives on RDS — it was already a non-functional no-op in
+  // production. The 60s poll was always the mechanism actually keeping this
+  // board current; removing the dead subscription changes no user-facing
+  // behavior.
 
   const [search, setSearch] = usePersistedState<string>("leads.global.search", "866 819 3200");
   const visibleLeads = useMemo(() => {

@@ -183,7 +183,10 @@ export interface ScopedLeadRich {
  * identical result set (same simplification precedent as Stage 10C/10E2).
  */
 export async function fetchScopedLeadsRich(scope: LeadScope, range: DateRange = {}): Promise<ScopedLeadRich[]> {
-  const { where, params } = scopeWhere(scope, range);
+  // dateCol qualified for the same reason as getAllLeadsForDashboardKpis
+  // above: this query also LEFT JOINs lead_sources (and brands), which have
+  // their own created_at columns, so the unqualified default is ambiguous.
+  const { where, params } = scopeWhere(scope, range, "l.created_at");
   const { rows } = await getPool().query<ScopedLeadRich>(
     `SELECT l.id, l.code, l.full_name, l.phone, l.stage::text AS stage, l.mode::text AS mode, l.language::text AS language,
             l.assigned_to, l.team_leader_id, l.brand_id, l.source_id, l.state_id, l.city_id, l.scv_score,
@@ -414,7 +417,11 @@ export async function countContracts(from?: string, to?: string): Promise<number
 export interface DashboardKpiLeadRow { stage: string; mode: string; source_id: string | null; cost_per_lead: number | null }
 
 export async function getAllLeadsForDashboardKpis(range: DateRange): Promise<DashboardKpiLeadRow[]> {
-  const { where, params } = scopeWhere({ kind: "all" }, range);
+  // dateCol must be qualified here: this query LEFT JOINs lead_sources,
+  // which also has its own created_at column, so the default unqualified
+  // "created_at" is ambiguous and Postgres rejects the query outright
+  // (this was the exact cause of the live 500 on GET /api/kob/get-dashboard-kpis).
+  const { where, params } = scopeWhere({ kind: "all" }, range, "l.created_at");
   const { rows } = await getPool().query<DashboardKpiLeadRow>(
     `SELECT l.stage::text AS stage, l.mode::text AS mode, l.source_id, src.cost_per_lead::float8 AS cost_per_lead
      FROM public.kob_leads l LEFT JOIN public.lead_sources src ON src.id = l.source_id

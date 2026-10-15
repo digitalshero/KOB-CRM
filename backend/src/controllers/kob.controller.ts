@@ -137,27 +137,7 @@ function budgetedSpendFromTargets(rows: { period: string; target_value: number }
  */
 export async function listBrands(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listBrands());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("brands")
-      .select("*")
-      .order("code");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listBrands());
   } catch (err) {
     next(err);
   }
@@ -171,27 +151,7 @@ export async function listBrands(req: Request, res: Response, next: NextFunction
  */
 export async function listSources(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listSources());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("lead_sources")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listSources());
   } catch (err) {
     next(err);
   }
@@ -205,27 +165,7 @@ export async function listSources(req: Request, res: Response, next: NextFunctio
  */
 export async function listStates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listStates());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("india_states")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listStates());
   } catch (err) {
     next(err);
   }
@@ -387,26 +327,7 @@ export async function listCitiesWithScope(req: Request, res: Response, next: Nex
  */
 export async function listStateNativeBrands(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listStateNativeBrands());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("state_native_brand")
-      .select("state_id, brand_id, india_states(name, code), brands(name, code)");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listStateNativeBrands());
   } catch (err) {
     next(err);
   }
@@ -420,28 +341,7 @@ export async function listStateNativeBrands(req: Request, res: Response, next: N
  */
 export async function getConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await configRepo.getConfig());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("kob_configuration")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle();
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data);
+    res.status(200).json(await configRepo.getConfig());
   } catch (err) {
     next(err);
   }
@@ -455,27 +355,7 @@ export async function getConfig(req: Request, res: Response, next: NextFunction)
  */
 export async function listKpiTargets(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await configRepo.listKpiTargets());
-      return;
-    }
-
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("kpi_targets")
-      .select("*")
-      .order("metric");
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await configRepo.listKpiTargets());
   } catch (err) {
     next(err);
   }
@@ -489,27 +369,7 @@ export async function listKpiTargets(req: Request, res: Response, next: NextFunc
  */
 export async function listAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (useRds()) {
-      res.status(200).json(await referenceRepo.listRecentAuditLogs());
-      return;
-    }
-    if (!req.supabase) {
-      res.status(500).json({ error: "Supabase client not initialized on request" });
-      return;
-    }
-
-    const { data, error } = await req.supabase
-      .from("audit_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error) {
-      res.status(500).json({ error: error.message });
-      return;
-    }
-
-    res.status(200).json(data ?? []);
+    res.status(200).json(await referenceRepo.listRecentAuditLogs());
   } catch (err) {
     next(err);
   }
