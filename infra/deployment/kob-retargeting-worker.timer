@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly trigger for kob-retargeting-worker.service (DISABLED until explicitly enabled - see rollout notes)
+
+[Timer]
+OnCalendar=hourly
+Persistent=false
+Unit=kob-retargeting-worker.service
+
+[Install]
+WantedBy=timers.target

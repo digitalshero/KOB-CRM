@@ -1,0 +1,13 @@
+[Unit]
+Description=KOB CRM Retargeting Worker (batch mode) - Node replacement for Supabase pg_cron/pg_net process_retargeting_sends()
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/data/kob-crm/current/backend
+EnvironmentFile=/data/kob-crm/shared/kob-staging.env
+ExecStart=/data/kob-crm/runtime/node22/bin/node dist/workers/retargetingWorker.js
+
+# No [Install] WantedBy here deliberately: this unit is only ever started by
+# kob-retargeting-worker.timer, never enabled directly at boot.
