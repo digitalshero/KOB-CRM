@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as AuthenticatedCampaignManagementRouteImport } from './routes/_authenticated/campaign-management'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -115,6 +116,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SetupRoute = SetupRouteImport.update({
@@ -633,6 +639,7 @@ const AuthenticatedTlWebinarHistoryRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/change-password': typeof ChangePasswordRoute
   '/setup': typeof SetupRoute
   '/campaign-management': typeof AuthenticatedCampaignManagementRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -727,6 +734,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/change-password': typeof ChangePasswordRoute
   '/setup': typeof SetupRoute
   '/campaign-management': typeof AuthenticatedCampaignManagementRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -823,6 +831,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/change-password': typeof ChangePasswordRoute
   '/setup': typeof SetupRoute
   '/_authenticated/campaign-management': typeof AuthenticatedCampaignManagementRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -919,6 +928,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/change-password'
     | '/setup'
     | '/campaign-management'
     | '/dashboard'
@@ -1013,6 +1023,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/change-password'
     | '/setup'
     | '/campaign-management'
     | '/dashboard'
@@ -1108,6 +1119,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/change-password'
     | '/setup'
     | '/_authenticated/campaign-management'
     | '/_authenticated/dashboard'
@@ -1204,6 +1216,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ChangePasswordRoute: typeof ChangePasswordRoute
   SetupRoute: typeof SetupRoute
 }
 
@@ -1228,6 +1241,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/setup': {
@@ -2060,6 +2080,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ChangePasswordRoute: ChangePasswordRoute,
   SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,8 +1,8 @@
-import { createFileRoute, Outlet, redirect, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, getRdsToken, clearRdsToken } from "@/lib/api-client";
 import type { MyRoleResponse } from "@/lib/types";
 import sheroLogo from "@/assets/shero-logo-mark.png";
 
@@ -21,8 +21,13 @@ export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+    if (!error && data.user) return { user: data.user };
+    // Parallel RDS/JWT auth: no Supabase session, but a backend-issued JWT
+    // from /api/auth/login may still be present — an invalid/expired one
+    // simply fails on the first authenticated API call below (my-role),
+    // same as an expired Supabase session would.
+    if (getRdsToken()) return { user: null };
+    throw redirect({ to: "/auth" });
   },
   component: AuthedShell,
 });
@@ -137,10 +142,24 @@ const EXEC_NAV = [
 ];
 
 function AuthedShell() {
+  const navigate = useNavigate();
   const { data } = useQuery({
     queryKey: ["my-role"],
     queryFn: () => apiClient.get<MyRoleResponse>("/api/kob/my-role"),
   });
+  // Parallel RDS/JWT auth: force a password change before any normal CRM
+  // access when must_change_password is set. Inert (false) for every
+  // Supabase-only user, so this has zero effect unless/until a user has
+  // been migrated to RDS auth.
+  const { data: authStatus } = useQuery({
+    queryKey: ["auth-status"],
+    queryFn: () => apiClient.get<{ has_rds_credential: boolean; must_change_password: boolean }>("/api/auth/status"),
+  });
+  useEffect(() => {
+    if (authStatus?.must_change_password) {
+      navigate({ to: "/change-password" });
+    }
+  }, [authStatus, navigate]);
   const { data: pageAccess, isLoading: pageAccessLoading } = useQuery({
     queryKey: ["my-page-access"],
     queryFn: () => apiClient.get<MyPageAccessResponse>("/api/kob/my-page-access"),
@@ -224,7 +243,7 @@ function AuthedShell() {
             </>
           )}
           <button
-            onClick={async () => { await supabase.auth.signOut(); window.location.href = "/auth"; }}
+            onClick={async () => { await supabase.auth.signOut(); clearRdsToken(); window.location.href = "/auth"; }}
             title={collapsed ? "Sign out" : undefined}
             className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
           >

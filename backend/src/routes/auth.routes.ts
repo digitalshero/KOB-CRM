@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { loginWithUsername } from "../controllers/userManagement.controller.js";
-import { login, changeOwnPassword } from "../controllers/rdsAuth.controller.js";
+import { login, changeOwnPassword, getAuthStatus } from "../controllers/rdsAuth.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 
 export const authRouter = Router();
@@ -21,3 +21,8 @@ authRouter.post("/login", login);
 // requireAuth resolves either). Self-service password change; disabled in
 // "supabase" mode (no app_users row exists for anyone yet).
 authRouter.post("/change-password", requireAuth, changeOwnPassword);
+
+// GET /api/auth/status - authenticated; tells the frontend whether this
+// identity must change its password before normal access (inert/false for
+// every Supabase-only user, i.e. everyone not yet migrated to RDS auth).
+authRouter.get("/status", requireAuth, getAuthStatus);

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, User, Lock, ArrowRight, Check, ShieldCheck } from "lucide-react";
-import { apiClient, ApiError } from "@/lib/api-client";
+import { apiClient, ApiError, setRdsToken } from "@/lib/api-client";
 import sheroLogo from "@/assets/shero-logo-mark.png";
 import sheroChef from "@/assets/shero-chef-cutout.png";
 
@@ -33,17 +33,25 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Username -> email resolution happens server-side only (never
-      // exposed to the client); the backend performs the exact same
-      // Supabase Auth password sign-in, then hands back the resulting
-      // session for the client to adopt below.
-      const session = await apiClient.post<{ access_token: string; refresh_token: string }>(
-        "/api/auth/login-with-username",
-        { username, password },
-      );
+      // Unified, AUTH_BACKEND-aware login. Username -> email/credential
+      // resolution happens server-side only (never exposed to the client).
+      // Response shape tells us which path authenticated:
+      //  - { access_token, refresh_token }: Supabase Auth (unchanged path)
+      //  - { token, must_change_password }: new RDS/JWT auth
+      const result = await apiClient.post<
+        { access_token: string; refresh_token: string } | { token: string; must_change_password: boolean }
+      >("/api/auth/login", { username, password });
+
+      if ("token" in result) {
+        setRdsToken(result.token);
+        toast.success("Signed in");
+        navigate({ to: result.must_change_password ? "/change-password" : "/" });
+        return;
+      }
+
       const { error } = await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
       });
       if (error) { toast.error(error.message); return; }
       toast.success("Signed in");

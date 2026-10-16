@@ -198,10 +198,14 @@ export async function resetPasswordRds(req: Request, res: Response, next: NextFu
 }
 
 /**
- * Self-service: the signed-in user (RDS-JWT or Supabase session, either
- * way requireAuth has already resolved req.userId) sets their own new
- * password, clearing must_change_password. Used for the post-first-login
- * forced change flow and ordinary voluntary password changes.
+ * Self-service: the signed-in user (identified via the RDS JWT requireAuth
+ * resolved) verifies their CURRENT password, then sets a new one, clearing
+ * must_change_password. Used for the forced post-first-login change flow
+ * and for ordinary voluntary password changes. Never touches user_id,
+ * username, role, Page Access, or team_leader_id — only app_users'
+ * password_hash/must_change_password/password_changed_at/updated_at.
+ * Audit logging fires ONLY on a successful change, never on a failed
+ * current-password check, and never includes the password or hash.
  */
 export async function changeOwnPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -212,14 +216,30 @@ export async function changeOwnPassword(req: Request, res: Response, next: NextF
       return;
     }
 
-    const { new_password } = req.body ?? {};
+    const { current_password, new_password, confirm_new_password } = req.body ?? {};
+    if (typeof current_password !== "string" || !current_password) {
+      res.status(400).json({ error: "Current password is required" });
+      return;
+    }
     if (typeof new_password !== "string" || new_password.length < 8) {
-      res.status(400).json({ error: "Password must be at least 8 characters" });
+      res.status(400).json({ error: "New password must be at least 8 characters" });
+      return;
+    }
+    if (confirm_new_password !== undefined && new_password !== confirm_new_password) {
+      res.status(400).json({ error: "New password and confirmation do not match" });
       return;
     }
 
     const existing = await rdsAuthRepo.findAppUserById(req.userId);
     if (!existing) { res.status(404).json({ error: "No RDS-auth credential found for this account" }); return; }
+
+    const currentOk = await bcrypt.compare(current_password, existing.password_hash);
+    if (!currentOk) {
+      // Generic, same shape as a login failure — never confirms the stored
+      // password one way or the other beyond "that wasn't it".
+      res.status(401).json({ error: "Current password is incorrect" });
+      return;
+    }
 
     const passwordHash = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
     await withTransaction(req.userId, async (client) => {
@@ -228,6 +248,26 @@ export async function changeOwnPassword(req: Request, res: Response, next: NextF
     });
 
     res.status(200).json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Authenticated status check used only to drive the forced-change-password
+ * redirect: tells the frontend whether the signed-in identity has an
+ * app_users row and, if so, whether must_change_password is set. A
+ * Supabase-only user (no app_users row) always gets must_change_password:
+ * false, so this gate is inert for every existing, non-migrated user.
+ */
+export async function getAuthStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.userId) { res.status(401).json({ error: "Unauthenticated" }); return; }
+    const existing = await rdsAuthRepo.findAppUserById(req.userId);
+    res.status(200).json({
+      has_rds_credential: !!existing,
+      must_change_password: existing?.must_change_password ?? false,
+    });
   } catch (err) {
     next(err);
   }
