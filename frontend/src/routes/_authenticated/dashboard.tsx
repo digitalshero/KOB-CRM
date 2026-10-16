@@ -45,10 +45,10 @@ const STAGE_LABEL: Record<string, string> = {
 function Stat({ label, value, sub, icon: Icon, tone = "primary", to, params, detailsMetric, detailsTitle, className = "" }: any) {
   const toneMap: Record<string, string> = {
     primary: "border-l-primary",
-    success: "border-l-emerald-500",
+    success: "border-l-shero-teal",
     warn: "border-l-amber-500",
-    info: "border-l-sky-500",
-    danger: "border-l-rose-500",
+    info: "border-l-shero-navy/40",
+    danger: "border-l-shero-danger",
   };
   const [trendOpen, setTrendOpen] = useState(false);
   const body = (
@@ -156,7 +156,7 @@ function Dashboard() {
 
       {/* My SCV card hidden for now — keep logic intact */}
       {false && (
-        <Card className="border-l-4 border-l-purple-500 max-w-xs">
+        <Card className="border-l-4 border-l-shero-navy max-w-xs">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">My SCV</div>
             <div className="text-3xl font-bold mt-1">{myScv?.score ?? "—"}</div>

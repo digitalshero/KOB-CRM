@@ -26,11 +26,11 @@ export type KpiCardProps = {
 
 
 const BORDER: Record<string, string> = {
-  good: "border-l-green-500",
-  risk: "border-l-red-500",
-  attention: "border-l-orange-500",
-  neutral: "border-l-blue-500",
-  mgmt: "border-l-purple-500",
+  good: "border-l-shero-teal",
+  risk: "border-l-shero-danger",
+  attention: "border-l-amber-500",
+  neutral: "border-l-shero-navy/40",
+  mgmt: "border-l-shero-navy",
 };
 
 export function KpiCard({

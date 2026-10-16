@@ -101,7 +101,7 @@ function TATBreach() {
       </Card>
 
       {SECTIONS.slice(1).map(([key, label]) => (
-        <Card key={key} className="border-l-4 border-l-orange-500 shadow-sm">
+        <Card key={key} className="border-l-4 border-l-amber-500 shadow-sm">
           <CardHeader><CardTitle className="text-base">{label} ({(trans[key] ?? []).length})</CardTitle></CardHeader>
           <CardContent className="overflow-auto p-0"><TransitionTable rows={trans[key] ?? []} /></CardContent>
         </Card>

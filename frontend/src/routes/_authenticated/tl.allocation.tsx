@@ -233,7 +233,7 @@ function TLAllocation() {
         </CardContent></Card>
       </div>
 
-      <Card className="border-l-4 border-l-blue-500 shadow-sm">
+      <Card className="border-l-4 border-l-shero-teal shadow-sm">
         <CardHeader><CardTitle className="text-base">Executive Workload</CardTitle></CardHeader>
         <CardContent className="overflow-auto">
           <table className="w-full text-sm">

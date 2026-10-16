@@ -112,7 +112,7 @@ function QAPanel() {
             <Zap className="h-4 w-4" /> Run Retargeting Advancement Now
           </button>
           <button onClick={() => run("Compute SCV scores (all executives)", () => apiClient.post("/api/qa/compute-scv-scores")).then(invalidateAll)}
-            className="flex items-center gap-2 text-sm px-3 py-2 rounded bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100">
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded bg-shero-mint text-shero-navy border border-shero-navy/20 hover:bg-shero-mint/70">
             <Calculator className="h-4 w-4" /> Compute SCV scores
           </button>
           <button onClick={() => run("Cleanup QA leads", () => apiClient.post("/api/qa/cleanup")).then(invalidateAll)}
@@ -164,7 +164,7 @@ function QAPanel() {
 
       {/* Actions grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-shero-teal">
           <CardHeader className="pb-2"><CardTitle className="text-base">2. Assign to Team Leader</CardTitle></CardHeader>
           <CardContent className="flex gap-2">
             <select className="flex-1 border rounded px-2 py-1 text-sm" value={tlId} onChange={(e) => setTlId(e.target.value)}>
@@ -177,7 +177,7 @@ function QAPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-shero-teal">
           <CardHeader className="pb-2"><CardTitle className="text-base">3. Assign to Executive</CardTitle></CardHeader>
           <CardContent className="flex gap-2">
             <select className="flex-1 border rounded px-2 py-1 text-sm" value={execId} onChange={(e) => setExecId(e.target.value)}>
@@ -190,7 +190,7 @@ function QAPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-shero-navy">
           <CardHeader className="pb-2"><CardTitle className="text-base">4. Move through KOB stages</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             <div className="flex gap-2">
@@ -218,11 +218,11 @@ function QAPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500">
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="pb-2"><CardTitle className="text-base">5-9. Milestones & Retargeting</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-2">
             <button disabled={!leadId} onClick={() => run("5. Trigger retargeting", () => apiClient.post("/api/qa/retargeting/trigger", { leadId })).then(invalidateAll)}
-              className="text-xs px-2 py-1.5 rounded bg-orange-100 text-orange-800 disabled:opacity-40">5. Retargeting</button>
+              className="text-xs px-2 py-1.5 rounded bg-amber-100 text-amber-800 disabled:opacity-40">5. Retargeting</button>
             <button disabled={!leadId} onClick={() => run("6. Mark Fee Paid", () => apiClient.post(`/api/qa/leads/${leadId}/stage`, { stage: "FEE_PAID" })).then(invalidateAll)}
               className="text-xs px-2 py-1.5 rounded bg-green-100 text-green-800 disabled:opacity-40">6. Fee Paid</button>
             <button disabled={!leadId} onClick={() => run("8. Mark KTN CS", () => apiClient.post(`/api/qa/leads/${leadId}/stage`, { stage: "KTN_CS" })).then(invalidateAll)}

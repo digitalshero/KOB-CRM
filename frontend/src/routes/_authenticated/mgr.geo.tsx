@@ -21,7 +21,7 @@ function MgrGeo() {
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-2xl font-bold">Language / Geo</h1>
-      <Card className="border-l-4 border-l-purple-500 shadow-sm">
+      <Card className="border-l-4 border-l-shero-navy shadow-sm">
         <CardHeader><CardTitle className="text-base">By Language</CardTitle></CardHeader>
         <CardContent className="overflow-auto p-0">
           <table className="w-full text-sm">
@@ -41,7 +41,7 @@ function MgrGeo() {
           </table>
         </CardContent>
       </Card>
-      <Card className="border-l-4 border-l-cyan-500 shadow-sm">
+      <Card className="border-l-4 border-l-shero-teal shadow-sm">
         <CardHeader><CardTitle className="text-base">By State</CardTitle></CardHeader>
         <CardContent className="overflow-auto p-0">
           <table className="w-full text-sm">

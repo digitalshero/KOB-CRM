@@ -5,7 +5,7 @@ export function Header({ range, onRangeChange }: { range: DateRangeValue; onRang
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-shero-navy text-white">
           <LayoutDashboard className="h-5 w-5" />
         </div>
         <div className="min-w-0">

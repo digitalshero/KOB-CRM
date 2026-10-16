@@ -30,22 +30,22 @@ const STAGE_LABEL: Record<string, string> = {
   NON_SERVICEABLE: "Non Serviceable", NO_VACANCY: "No Vacancy", DUPLICATE_LEAD: "Duplicate Lead",
 };
 const STAGE_COLOR: Record<string, string> = {
-  LEAD_INBOX: "bg-cyan-100 text-cyan-700 border-cyan-300",
-  AUTO_FIRED: "bg-sky-100 text-sky-700 border-sky-300",
+  LEAD_INBOX: "bg-shero-mint text-shero-navy border-shero-navy/25",
+  AUTO_FIRED: "bg-shero-mint text-shero-navy border-shero-navy/25",
   FAILED_FIRE: "bg-red-100 text-red-700 border-red-300",
   EOI_1: "bg-teal-100 text-teal-700 border-teal-300",
   WEBINAR: "bg-teal-100 text-teal-800 border-teal-300",
   WEBINAR_ATTENDED: "bg-teal-200 text-teal-900 border-teal-400",
   EOI2_PENDING: "bg-lime-100 text-lime-700 border-lime-300",
   EOI_2: "bg-emerald-100 text-emerald-700 border-emerald-300",
-  FORM_FILLED: "bg-violet-100 text-violet-700 border-violet-300",
+  FORM_FILLED: "bg-shero-mint text-shero-navy border-shero-navy/30",
   FEE_PAID: "bg-green-100 text-green-700 border-green-300",
   AGREEMENT_SIGNED: "bg-green-200 text-green-800 border-green-400",
   KTN_CS: "bg-green-300 text-green-900 border-green-500",
   KTN_LIVE: "bg-green-500 text-white border-green-600",
   NO: "bg-red-100 text-red-700 border-red-300",
   LATER: "bg-yellow-100 text-yellow-700 border-yellow-300",
-  NO_RESPONSE: "bg-orange-100 text-orange-700 border-orange-300",
+  NO_RESPONSE: "bg-amber-100 text-amber-700 border-amber-300",
   RETARGETING: "bg-amber-100 text-amber-700 border-amber-300",
   DEAD_LEAD: "bg-gray-300 text-gray-800 border-gray-400",
 };
@@ -241,7 +241,7 @@ function LeadDetailPage() {
                 let actor: string | null = null;
 
                 if (ev.type === "created") {
-                  dotClass = "bg-cyan-500";
+                  dotClass = "bg-shero-navy";
                   title = <span className="font-semibold">Lead created</span>;
                   body = <span className="text-muted-foreground">Entered pipeline as <b>{STAGE_LABEL.LEAD_INBOX}</b> from source <b>{lead.lead_sources?.name ?? "—"}</b></span>;
                 } else if (ev.type === "stage") {
@@ -262,7 +262,7 @@ function LeadDetailPage() {
                   actor = p.changed_by ? actors?.[p.changed_by] ?? "System" : "System";
                 } else {
                   const p = ev.payload;
-                  dotClass = "bg-violet-500";
+                  dotClass = "bg-shero-navy/70";
                   icon = <MessageSquare className="h-3 w-3 text-white"/>;
                   title = <span className="font-semibold">{p.activity_type.replace(/_/g, " ")}</span>;
                   if (p.detail) body = <span className="text-muted-foreground">{p.detail}</span>;

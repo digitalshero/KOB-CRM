@@ -96,7 +96,7 @@ function CeoGallaboxTemplates() {
               <td className="p-2">
                 <div className="flex gap-1 flex-wrap">
                   <Badge variant="secondary" className="text-[10px]">WhatsApp</Badge>
-                  {emailReady && <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-[10px]">Email Ready</Badge>}
+                  {emailReady && <Badge className="bg-shero-mint text-shero-navy hover:bg-shero-mint text-[10px]">Email Ready</Badge>}
                 </div>
               </td>
               <td className="p-2">{t.active ? "Yes" : "No"}</td>

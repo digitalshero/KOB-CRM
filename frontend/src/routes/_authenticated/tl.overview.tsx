@@ -18,10 +18,10 @@ import { apiClient } from "@/lib/api-client";
 function Stat({ label, value, sub, icon: Icon, tone = "primary", to, params, detailsMetric, detailsTitle }: any) {
   const toneMap: Record<string, string> = {
     primary: "border-l-primary",
-    success: "border-l-emerald-500",
+    success: "border-l-shero-teal",
     warn: "border-l-amber-500",
-    info: "border-l-sky-500",
-    danger: "border-l-rose-500",
+    info: "border-l-shero-navy/40",
+    danger: "border-l-shero-danger",
   };
   const [trendOpen, setTrendOpen] = useState(false);
   const body = (
@@ -180,7 +180,7 @@ function TLOverview() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-shero-navy">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">My SCV</div>
             <div className="text-3xl font-bold mt-1">{myScv?.score ?? "—"}</div>
@@ -205,7 +205,7 @@ function TLOverview() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-sky-500">
+        <Card className="border-l-4 border-l-shero-teal">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">Lead Entry Mode</div>
             <div className="flex items-center gap-3 mt-2">
@@ -214,7 +214,7 @@ function TLOverview() {
                 disabled={entryMut.isPending}
                 onCheckedChange={(v) => entryMut.mutate(v ? "AUTO" : "MANUAL")}
               />
-              <span className={`text-sm font-semibold ${entryMode === "AUTO" ? "text-sky-600" : "text-muted-foreground"}`}>
+              <span className={`text-sm font-semibold ${entryMode === "AUTO" ? "text-shero-teal" : "text-muted-foreground"}`}>
                 {entryMode === "AUTO" ? "AUTO" : "MANUAL"}
               </span>
             </div>

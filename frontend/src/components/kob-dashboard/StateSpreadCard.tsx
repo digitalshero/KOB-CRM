@@ -29,7 +29,7 @@ export function StateSpreadCard() {
               <td className="py-2.5 font-medium">{s.state}</td>
               <td className="py-2.5 text-right tabular-nums">{s.leads}</td>
               <td className="py-2.5 text-right tabular-nums text-emerald-600">{s.conv}</td>
-              <td className="py-2.5 text-right tabular-nums text-sky-600">{s.coverage}</td>
+              <td className="py-2.5 text-right tabular-nums text-shero-teal">{s.coverage}</td>
             </tr>
           ))}
         </tbody>

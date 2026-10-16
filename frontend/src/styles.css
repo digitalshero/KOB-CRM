@@ -60,77 +60,100 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-shero-teal: var(--shero-teal);
+  --color-shero-navy: var(--shero-navy);
+  --color-shero-mint: var(--shero-mint);
+  --color-shero-surface: var(--shero-surface);
+  --color-shero-text: var(--shero-text);
+  --color-shero-danger: var(--shero-danger);
 }
 
+/*
+ * Shero Home Food brand tokens. Keep every semantic color above derived
+ * from these six values — do not hardcode a competing color elsewhere.
+ *   --shero-teal:   #009A93  (primary/accent)
+ *   --shero-navy:   #0F1932  (sidebar/nav)
+ *   --shero-mint:   #EBF4F3  (page background / soft surfaces)
+ *   --shero-surface:#FFFFFF  (cards/popovers)
+ *   --shero-text:   #212121  (near-black body text)
+ *   --shero-danger: #B51F1F  (alerts/negative only, never dominant)
+ */
 :root {
+  --shero-teal: oklch(0.619 0.107 189.1);
+  --shero-navy: oklch(0.219 0.051 265.9);
+  --shero-mint: oklch(0.96 0.01 189.1);
+  --shero-surface: oklch(1 0 0);
+  --shero-text: oklch(0.248 0 89.9);
+  --shero-danger: oklch(0.5 0.185 27.2);
+
   --radius: 0.625rem;
-  --background: oklch(0.985 0.005 180);
-  --foreground: oklch(0.18 0.03 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.03 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.03 250);
-  --primary: oklch(0.62 0.11 195);
+  --background: var(--shero-mint);
+  --foreground: var(--shero-text);
+  --card: var(--shero-surface);
+  --card-foreground: var(--shero-text);
+  --popover: var(--shero-surface);
+  --popover-foreground: var(--shero-text);
+  --primary: var(--shero-teal);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.955 0.01 200);
-  --secondary-foreground: oklch(0.22 0.04 250);
-  --muted: oklch(0.96 0.008 220);
-  --muted-foreground: oklch(0.48 0.03 250);
-  --accent: oklch(0.95 0.03 195);
-  --accent-foreground: oklch(0.22 0.05 195);
-  --destructive: oklch(0.55 0.16 25);
+  --secondary: oklch(0.955 0.008 189.1);
+  --secondary-foreground: var(--shero-navy);
+  --muted: oklch(0.95 0.006 189.1);
+  --muted-foreground: oklch(0.48 0.02 220);
+  --accent: oklch(0.93 0.03 189.1);
+  --accent-foreground: var(--shero-navy);
+  --destructive: var(--shero-danger);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.01 220);
-  --input: oklch(0.9 0.01 220);
-  --ring: oklch(0.62 0.11 195);
-  --chart-1: oklch(0.62 0.11 195);
-  --chart-2: oklch(0.55 0.16 25);
-  --chart-3: oklch(0.65 0.15 145);
+  --border: oklch(0.9 0.012 189.1);
+  --input: oklch(0.9 0.012 189.1);
+  --ring: var(--shero-teal);
+  --chart-1: var(--shero-teal);
+  --chart-2: var(--shero-danger);
+  --chart-3: var(--shero-navy);
   --chart-4: oklch(0.7 0.14 70);
-  --chart-5: oklch(0.55 0.18 285);
-  --sidebar: oklch(0.22 0.05 265);
-  --sidebar-foreground: oklch(0.95 0.01 220);
-  --sidebar-primary: oklch(0.62 0.11 195);
+  --chart-5: oklch(0.45 0.08 189.1);
+  --sidebar: var(--shero-navy);
+  --sidebar-foreground: oklch(0.82 0.015 220);
+  --sidebar-primary: var(--shero-teal);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.28 0.05 265);
-  --sidebar-accent-foreground: oklch(0.98 0.01 220);
-  --sidebar-border: oklch(0.32 0.04 265);
-  --sidebar-ring: oklch(0.62 0.11 195);
+  --sidebar-accent: oklch(0.32 0.06 189.1);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3 0.045 265.9);
+  --sidebar-ring: var(--shero-teal);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
+  --background: oklch(0.17 0.03 265.9);
+  --foreground: oklch(0.95 0.008 189.1);
+  --card: oklch(0.219 0.051 265.9);
+  --card-foreground: oklch(0.95 0.008 189.1);
+  --popover: oklch(0.219 0.051 265.9);
+  --popover-foreground: oklch(0.95 0.008 189.1);
+  --primary: var(--shero-teal);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --secondary-foreground: oklch(0.95 0.008 189.1);
   --muted: oklch(0.279 0.041 260.031);
   --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --accent: oklch(0.3 0.045 189.1);
+  --accent-foreground: oklch(0.95 0.008 189.1);
+  --destructive: var(--shero-danger);
+  --destructive-foreground: oklch(1 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --ring: var(--shero-teal);
+  --chart-1: var(--shero-teal);
+  --chart-2: var(--shero-danger);
+  --chart-3: oklch(0.7 0.05 189.1);
+  --chart-4: oklch(0.7 0.14 70);
+  --chart-5: oklch(0.55 0.08 189.1);
+  --sidebar: var(--shero-navy);
+  --sidebar-foreground: oklch(0.82 0.015 220);
+  --sidebar-primary: var(--shero-teal);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.32 0.06 189.1);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.3 0.045 265.9);
+  --sidebar-ring: var(--shero-teal);
 }
 
 @layer base {

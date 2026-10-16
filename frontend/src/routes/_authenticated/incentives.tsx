@@ -37,7 +37,7 @@ function IncentivesPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(slabs as any[]).map((s) => (
-          <Card key={s.id} className="border-l-4 border-l-purple-500">
+          <Card key={s.id} className="border-l-4 border-l-shero-navy">
             <CardContent className="p-4">
               <div className="text-xs text-muted-foreground">{s.label}</div>
               <div className="text-2xl font-bold">{s.incentive_pct}%</div>

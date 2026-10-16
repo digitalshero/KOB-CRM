@@ -3,7 +3,7 @@ import { ACTIONS } from "./data";
 
 const STATUS: Record<string, string> = {
   Pending: "border-amber-200 bg-amber-50 text-amber-700",
-  "In Review": "border-sky-200 bg-sky-50 text-sky-700",
+  "In Review": "border-shero-navy/20 bg-shero-mint text-shero-navy",
   Blocked: "border-rose-200 bg-rose-50 text-rose-700",
 };
 

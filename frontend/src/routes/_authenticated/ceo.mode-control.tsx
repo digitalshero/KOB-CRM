@@ -94,7 +94,7 @@ function CeoModeControl() {
                         <div className="text-xs text-muted-foreground font-mono">{r.lead?.code}</div>
                       </td>
                       <td className="p-2">
-                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium ${isEmail ? "bg-blue-100 text-blue-800" : "bg-emerald-100 text-emerald-800"}`}>
+                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium ${isEmail ? "bg-shero-mint text-shero-navy" : "bg-emerald-100 text-emerald-800"}`}>
                           <span aria-hidden>{isEmail ? "✉️" : "💬"}</span>
                           {isEmail ? "Email" : "WhatsApp"}
                         </span>

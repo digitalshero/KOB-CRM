@@ -37,7 +37,7 @@ function RetargetingPage() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {["NO_RESPONSE", "LATER", "NO"].map((b) => (
-          <Card key={b} className={`border-l-4 ${b === "NO_RESPONSE" ? "border-l-orange-500" : b === "LATER" ? "border-l-yellow-500" : "border-l-red-500"}`}>
+          <Card key={b} className={`border-l-4 ${b === "NO_RESPONSE" ? "border-l-amber-500" : b === "LATER" ? "border-l-yellow-500" : "border-l-shero-danger"}`}>
             <CardHeader className="pb-2"><CardTitle className="text-sm">{b.replace("_", " ")}</CardTitle></CardHeader>
             <CardContent><div className="text-3xl font-bold">{buckets[b]?.length ?? 0}</div><div className="text-xs text-muted-foreground">in queue</div></CardContent>
           </Card>

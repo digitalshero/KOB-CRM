@@ -156,8 +156,8 @@ function CeoRetargetingRules() {
             ]} />
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-orange-500 shadow-sm">
-          <CardHeader><CardTitle className="text-base text-orange-600">NO-RESPONSE</CardTitle></CardHeader>
+        <Card className="border-l-4 border-l-amber-500 shadow-sm">
+          <CardHeader><CardTitle className="text-base text-amber-700">NO-RESPONSE</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <SectionLabel>Configuration</SectionLabel>
             <Field label="First message (days)" val={cur.rt_noresp_first_msg_days} onChange={(v) => upd("rt_noresp_first_msg_days", v)} error={errors["rt_noresp_first_msg_days"]} />

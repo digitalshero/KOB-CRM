@@ -58,10 +58,10 @@ function ModeControlCard() {
 function Stat({ label, value, sub, icon: Icon, tone = "primary", to, params, detailsMetric, detailsTitle, className = "" }: any) {
   const toneMap: Record<string, string> = {
     primary: "border-l-primary",
-    success: "border-l-emerald-500",
+    success: "border-l-shero-teal",
     warn: "border-l-amber-500",
-    info: "border-l-sky-500",
-    danger: "border-l-rose-500",
+    info: "border-l-shero-navy/40",
+    danger: "border-l-shero-danger",
   };
   const [trendOpen, setTrendOpen] = useState(false);
   const body = (
@@ -106,11 +106,11 @@ function Stat({ label, value, sub, icon: Icon, tone = "primary", to, params, det
  * change must stay scoped to CEO Overview only.
  */
 const CEO_KPI_BORDER: Record<string, string> = {
-  good: "border-l-emerald-500",
-  risk: "border-l-rose-500",
+  good: "border-l-shero-teal",
+  risk: "border-l-shero-danger",
   attention: "border-l-amber-500",
-  neutral: "border-l-sky-500",
-  mgmt: "border-l-violet-500",
+  neutral: "border-l-shero-navy/40",
+  mgmt: "border-l-shero-navy",
 };
 
 function CeoKpiCard({

@@ -210,7 +210,7 @@ function Marketing() {
         />
       </div>
 
-      <Card className="border-l-4 border-l-blue-500 shadow-sm">
+      <Card className="border-l-4 border-l-shero-teal shadow-sm">
         <CardHeader><CardTitle className="text-base">Source Performance</CardTitle></CardHeader>
         <CardContent className="overflow-auto p-0">
           <table className="w-full text-sm">

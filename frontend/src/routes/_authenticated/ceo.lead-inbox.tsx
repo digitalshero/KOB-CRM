@@ -34,11 +34,11 @@ const STAGE_LABEL: Record<string, string> = {
   NON_SERVICEABLE: "Non Serviceable", NO_VACANCY: "No Vacancy", DUPLICATE_LEAD: "Duplicate Lead",
 };
 const STAGE_COLOR: Record<string, string> = {
-  LEAD_INBOX: "bg-cyan-100 text-cyan-700", AUTO_FIRED: "bg-sky-100 text-sky-700", FAILED_FIRE: "bg-red-100 text-red-700",
+  LEAD_INBOX: "bg-shero-mint text-shero-navy", AUTO_FIRED: "bg-shero-mint text-shero-navy", FAILED_FIRE: "bg-red-100 text-red-700",
   EOI_1: "bg-teal-100 text-teal-700", WEBINAR: "bg-teal-100 text-teal-800", WEBINAR_ATTENDED: "bg-teal-200 text-teal-900", EOI2_PENDING: "bg-lime-100 text-lime-700", EOI_2: "bg-emerald-100 text-emerald-700",
-  FORM_FILLED: "bg-violet-100 text-violet-700", FEE_PAID: "bg-green-100 text-green-700",
+  FORM_FILLED: "bg-shero-mint text-shero-navy", FEE_PAID: "bg-green-100 text-green-700",
   AGREEMENT_SIGNED: "bg-green-200 text-green-800", KTN_CS: "bg-green-300 text-green-900", KTN_LIVE: "bg-green-500 text-white",
-  NO: "bg-red-100 text-red-700", LATER: "bg-yellow-100 text-yellow-700", NO_RESPONSE: "bg-orange-100 text-orange-700",
+  NO: "bg-red-100 text-red-700", LATER: "bg-yellow-100 text-yellow-700", NO_RESPONSE: "bg-amber-100 text-amber-700",
   RETARGETING: "bg-amber-100 text-amber-700", DEAD_LEAD: "bg-gray-200 text-gray-700",
   NON_SERVICEABLE: "bg-slate-200 text-slate-700", NO_VACANCY: "bg-stone-200 text-stone-700",
   DUPLICATE_LEAD: "bg-zinc-200 text-zinc-700",
@@ -210,7 +210,7 @@ function StageColumn({ stage, stageLeads }: { stage: string; stageLeads: any[] }
                         <div className="text-xs text-muted-foreground">{l.brands?.name ?? "—"}</div>
                         <div className="flex flex-wrap gap-1">
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">{l.language ?? "—"}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${l.mode === "AUTO" ? "bg-sky-100 text-sky-700" : "bg-purple-100 text-purple-700"}`}>{l.mode ?? "—"}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${l.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-shero-mint text-shero-navy"}`}>{l.mode ?? "—"}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${tat.cls}`}>TAT · {tat.label}</span>
                           {ab?.abandoned && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">Abandoned · {ab.days}d</span>
@@ -424,7 +424,7 @@ function ReadOnlyTable({ leads }: { leads: any[] }) {
                   <td className="p-2 text-xs">{l.phone ?? "—"}</td>
                   <td className="p-2"><LastMessageCell message={l.last_message} at={l.last_message_at} unread={l.has_unread_messages} /></td>
                   <td className="p-2">{l.language}</td>
-                  <td className="p-2"><span className={`px-1.5 py-0.5 rounded text-[10px] ${l.mode === "AUTO" ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-700"}`}>{l.mode}</span></td>
+                  <td className="p-2"><span className={`px-1.5 py-0.5 rounded text-[10px] ${l.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-700"}`}>{l.mode}</span></td>
                   <td className="p-2">{l.lead_sources?.name}</td>
 
                   <td className="p-2"><span className={`px-2 py-0.5 rounded text-xs ${STAGE_COLOR[l.stage]}`}>{STAGE_LABEL[l.stage] ?? l.stage}</span></td>

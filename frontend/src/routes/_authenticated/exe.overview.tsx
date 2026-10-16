@@ -97,7 +97,7 @@ function ExecOverview() {
           { label: "EOI 2", value: (data as any).kpis?.eoi2 ?? 0, icon: ClipboardList },
           { label: "KTN CS", value: (data as any).kpis?.ktnCs ?? 0, icon: CheckCircle2 },
         ].map((c) => (
-          <Card key={c.label} className="border-l-4 border-l-blue-500">
+          <Card key={c.label} className="border-l-4 border-l-shero-teal">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">{c.label}</div>
@@ -188,7 +188,7 @@ function ExecOverview() {
         {/* Due today */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base"><Clock className="h-4 w-4 text-blue-600" /> Due Today</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base"><Clock className="h-4 w-4 text-shero-navy" /> Due Today</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {data.dueToday.length === 0 ? (

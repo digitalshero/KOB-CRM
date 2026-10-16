@@ -181,7 +181,7 @@ function WebinarPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500 shadow-sm lg:col-span-2">
+        <Card className="border-l-4 border-l-shero-teal shadow-sm lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-base">
               {selectedBatch ? "Attendance" : "Select a batch"}

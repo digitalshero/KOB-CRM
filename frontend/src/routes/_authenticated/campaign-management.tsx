@@ -255,12 +255,12 @@ function CampaignManagementPage() {
       </div>
 
       {/* Connected Account & Safety Notice */}
-      <div className="rounded-xl border border-blue-200/80 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/50 p-4 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-3">
-        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+      <div className="rounded-xl border border-shero-navy/15 bg-shero-mint p-4 text-xs text-shero-navy flex items-start gap-3">
+        <Info className="h-5 w-5 text-shero-navy shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <div className="font-semibold text-blue-950 dark:text-blue-100 flex items-center gap-2">
+          <div className="font-semibold text-shero-navy flex items-center gap-2">
             <span>Meta Ad Account:</span>
-            <span className="font-mono bg-blue-100/80 dark:bg-blue-900/50 px-2 py-0.5 rounded text-[11px]">
+            <span className="font-mono bg-white/70 px-2 py-0.5 rounded text-[11px]">
               {data?.account?.name ?? "Barottas hospitality pvt ltd"} ({data?.account?.id ?? "act_278974773282719"})
             </span>
             <span className="text-muted-foreground">· Currency: {data?.account?.currency ?? "INR"}</span>
@@ -286,13 +286,13 @@ function CampaignManagementPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-xs border-border/70 border-l-4 border-l-blue-500">
+        <Card className="shadow-xs border-border/70 border-l-4 border-l-shero-teal">
           <CardContent className="p-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground font-medium uppercase tracking-wide">
               <span>Included in CPL</span>
-              <Target className="h-4 w-4 text-blue-500" />
+              <Target className="h-4 w-4 text-shero-teal" />
             </div>
-            <div className="text-2xl font-bold mt-2 text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold mt-2 text-shero-teal">
               {isLoading ? "—" : `${data?.summary?.enabledCount ?? 0} active`}
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">Enabled for KOB calculations</p>
@@ -508,7 +508,7 @@ function CampaignManagementPage() {
                     return (
                       <TableRow
                         key={c.id}
-                        className={`transition-colors ${c.is_enabled ? "bg-blue-50/20 dark:bg-blue-950/10" : ""}`}
+                        className={`transition-colors ${c.is_enabled ? "bg-shero-mint/40" : ""}`}
                       >
                         {/* Campaign Name */}
                         <TableCell className="font-medium">
@@ -584,7 +584,7 @@ function CampaignManagementPage() {
                             />
                             <span
                               className={`text-xs font-semibold select-none ${
-                                c.is_enabled ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+                                c.is_enabled ? "text-shero-teal" : "text-muted-foreground"
                               }`}
                             >
                               {c.is_enabled ? "ON" : "OFF"}

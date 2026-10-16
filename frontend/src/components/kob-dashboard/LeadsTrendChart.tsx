@@ -42,7 +42,7 @@ export function LeadsTrendChart({ range: dateRange }: { range: DateRangeValue })
     <DashboardCard
       title={
         <span className="flex items-center gap-1.5">
-          <TrendingUp className="h-3.5 w-3.5 text-violet-600" />
+          <TrendingUp className="h-3.5 w-3.5 text-shero-navy" />
           Leads &amp; Contracts Trend
         </span>
       }

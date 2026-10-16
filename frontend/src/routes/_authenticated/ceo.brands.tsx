@@ -39,7 +39,7 @@ function CeoBrands() {
           <div className="text-xs uppercase text-muted-foreground">Shero (SHF)</div>
           <div className="text-2xl font-bold">{shero}</div>
         </CardContent></Card>
-        <Card className="border-l-4 border-l-sky-500 shadow-sm"><CardContent className="p-4">
+        <Card className="border-l-4 border-l-shero-navy/40 shadow-sm"><CardContent className="p-4">
           <div className="text-xs uppercase text-muted-foreground">Active</div>
           <div className="text-2xl font-bold">{active} <span className="text-sm text-muted-foreground">/ {rows.length}</span></div>
         </CardContent></Card>

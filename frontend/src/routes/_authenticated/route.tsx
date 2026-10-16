@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MyRoleResponse } from "@/lib/types";
+import sheroBadge from "@/assets/shero-badge.png.asset.json";
 
 import {
   LayoutDashboard, Users, Settings, RefreshCw, Trophy, LogOut, Building2,
@@ -178,13 +179,15 @@ function AuthedShell() {
         />
       )}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] transform transition-transform duration-200 md:static md:z-auto md:max-w-none md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} ${collapsed ? "md:w-16" : "md:w-64"} md:transition-all bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border`}>
-        <div className="p-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">S</div>
+        <div className="px-4 py-4 border-b border-sidebar-border">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden ring-1 ring-sidebar-border bg-white">
+              <img src={sheroBadge.url} alt="Shero" className="h-full w-full object-cover" />
+            </div>
             {!collapsed && (
-              <div className="min-w-0">
-                <div className="font-semibold truncate">Shero Home Food</div>
-                <div className="text-xs opacity-70 truncate">Universal KOB Module</div>
+              <div className="min-w-0 leading-tight">
+                <div className="font-semibold text-sm truncate">Shero Home Food</div>
+                <div className="text-[11px] text-sidebar-foreground/60 truncate">KOB CRM</div>
               </div>
             )}
           </div>
@@ -201,8 +204,10 @@ function AuthedShell() {
                 key={n.to}
                 to={n.to}
                 title={collapsed ? n.label : undefined}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                  active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "hover:bg-sidebar-accent/50"
+                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors border-l-2 ${
+                  active
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-sidebar-primary"
+                    : "border-l-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground"
                 }`}
               >
                 <n.icon className="h-4 w-4 shrink-0" />
