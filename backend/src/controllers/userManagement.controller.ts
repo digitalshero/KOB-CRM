@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { requireRoleOrDeny, type Role } from "../db/authz.js";
 import { withTransaction } from "../db/transaction.js";
-import { supabaseAdmin, createStandardSupabaseClient } from "../integrations/supabase/client.js";
+import { createStandardSupabaseClient } from "../integrations/supabase/client.js";
 import * as userRepo from "../repositories/userManagement.repository.js";
-import { normalizeUsername, syntheticEmailFor, isUsernameTaken } from "../repositories/userManagement.repository.js";
+import { normalizeUsername, isUsernameTaken } from "../repositories/userManagement.repository.js";
 
 const VALID_ROLES: Role[] = ["super_admin", "kob_manager", "team_leader", "executive"];
 
@@ -11,14 +11,18 @@ function isValidRole(v: unknown): v is Role {
   return typeof v === "string" && (VALID_ROLES as string[]).includes(v);
 }
 
+const ADMIN_API_UNAVAILABLE_MESSAGE = "User creation and password reset are temporarily unavailable.";
+
 /**
  * Controller for createUser (CEO-only "Add User").
- * Username is an additive application identity: the underlying Supabase
- * Auth user is still created with an email (required by Supabase Auth
- * itself), but that email is a synthetic, never-shown internal value
- * (username@users.shero.internal) — the CRM UI and the user only ever
- * deal with username + password. No second auth system, no custom
- * password hashing: Supabase Admin createUser does the real work.
+ *
+ * TEMPORARILY DISABLED (Tier 1 scope only): creating a brand-new Supabase
+ * Auth user requires the Supabase service-role key (supabaseAdmin), which
+ * is not currently available in this environment's secret configuration.
+ * Per explicit instruction, no workaround (public signUp, synthetic-email
+ * account creation, or any custom auth system) is implemented — this
+ * returns 501 without touching Supabase or RDS. Re-enable only once the
+ * real service-role key is provisioned.
  */
 export async function createUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -26,51 +30,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const actorRole = await requireRoleOrDeny(req.userId, ["super_admin"]);
     if (actorRole === null) { res.status(403).json({ error: "Forbidden" }); return; }
 
-    const { username: rawUsername, full_name, role, password } = req.body ?? {};
-
-    const username = normalizeUsername(rawUsername);
-    if (!username) {
-      res.status(400).json({ error: "Username must be 3-32 characters: letters, numbers, dot or underscore only" });
-      return;
-    }
-    if (!full_name || typeof full_name !== "string" || full_name.trim().length === 0) {
-      res.status(400).json({ error: "full_name is required" });
-      return;
-    }
-    if (!isValidRole(role)) {
-      res.status(400).json({ error: `role must be one of: ${VALID_ROLES.join(", ")}` });
-      return;
-    }
-    if (typeof password !== "string" || password.length < 8) {
-      res.status(400).json({ error: "Password must be at least 8 characters" });
-      return;
-    }
-
-    if (await isUsernameTaken(username)) {
-      res.status(409).json({ error: "Username is already taken" });
-      return;
-    }
-
-    const syntheticEmail = syntheticEmailFor(username);
-    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email: syntheticEmail,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: full_name.trim(), username },
-    });
-    if (createErr || !created?.user) {
-      res.status(500).json({ error: createErr?.message ?? "Failed to create user" });
-      return;
-    }
-    const newUserId = created.user.id;
-
-    await withTransaction(req.userId, async (client) => {
-      await userRepo.insertUserProfile(client, { id: newUserId, username, full_name: full_name.trim(), email: syntheticEmail });
-      await userRepo.replaceUserRole(client, newUserId, role);
-      await userRepo.auditUserChange(client, req.userId!, "user_created", newUserId, { username, full_name: full_name.trim(), role });
-    });
-
-    res.status(200).json({ ok: true, id: newUserId, username, full_name: full_name.trim(), role });
+    res.status(501).json({ error: ADMIN_API_UNAVAILABLE_MESSAGE });
   } catch (err) {
     next(err);
   }
@@ -139,36 +99,21 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
   }
 }
 
-/** Controller for resetUserPassword (CEO-only). Never returns or logs the password. */
+/**
+ * Controller for resetUserPassword (CEO-only).
+ *
+ * TEMPORARILY DISABLED (Tier 1 scope only): directly setting another
+ * user's password requires the Supabase service-role key, which is not
+ * currently available. No recovery-email workaround or custom auth system
+ * is implemented — returns 501 without touching Supabase or RDS.
+ */
 export async function resetUserPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     if (!req.userId) { res.status(401).json({ error: "Unauthenticated" }); return; }
     const actorRole = await requireRoleOrDeny(req.userId, ["super_admin"]);
     if (actorRole === null) { res.status(403).json({ error: "Forbidden" }); return; }
 
-    const targetUserId = req.params["userId"];
-    if (!targetUserId) { res.status(400).json({ error: "Missing userId" }); return; }
-
-    const { password } = req.body ?? {};
-    if (typeof password !== "string" || password.length < 8) {
-      res.status(400).json({ error: "Password must be at least 8 characters" });
-      return;
-    }
-
-    const existing = await userRepo.getProfileById(targetUserId);
-    if (!existing) { res.status(404).json({ error: "User not found" }); return; }
-
-    const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, { password });
-    if (updateErr) {
-      res.status(500).json({ error: updateErr.message });
-      return;
-    }
-
-    await withTransaction(req.userId, async (client) => {
-      await userRepo.auditUserChange(client, req.userId!, "password_reset", targetUserId, { username: existing.username });
-    });
-
-    res.status(200).json({ ok: true });
+    res.status(501).json({ error: ADMIN_API_UNAVAILABLE_MESSAGE });
   } catch (err) {
     next(err);
   }
