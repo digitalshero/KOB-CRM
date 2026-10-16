@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, User, Lock, ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { apiClient, ApiError } from "@/lib/api-client";
 import sheroLogo from "@/assets/shero-logo-mark.png";
 import sheroChef from "@/assets/shero-chef-cutout.png";
 
@@ -23,7 +24,7 @@ const HIGHLIGHTS = [
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,11 +32,27 @@ function AuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Signed in");
-    navigate({ to: "/" });
+    try {
+      // Username -> email resolution happens server-side only (never
+      // exposed to the client); the backend performs the exact same
+      // Supabase Auth password sign-in, then hands back the resulting
+      // session for the client to adopt below.
+      const session = await apiClient.post<{ access_token: string; refresh_token: string }>(
+        "/api/auth/login-with-username",
+        { username, password },
+      );
+      const { error } = await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+      if (error) { toast.error(error.message); return; }
+      toast.success("Signed in");
+      navigate({ to: "/" });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Invalid username or password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -123,14 +140,15 @@ function AuthPage() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-1.5">
-                <Label>Email</Label>
+                <Label>Username</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type="email"
-                    placeholder="you@sherohomefood.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    autoComplete="username"
+                    placeholder="e.g. jsmith"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="h-11 pl-9"
                     required
                   />

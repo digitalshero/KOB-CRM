@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getMyPageAccess, getUserPageAccess, putUserPageAccess } from "../controllers/pageAccess.controller.js";
+import { createUser, updateUser, resetUserPassword } from "../controllers/userManagement.controller.js";
 import {
   listBrands,
   listSources,
@@ -285,6 +286,11 @@ kobRouter.get("/my-role", requireAuth, getMyRole);
 kobRouter.get("/my-page-access", requireAuth, getMyPageAccess);
 kobRouter.get("/users/:userId/page-access", requireAuth, getUserPageAccess);
 kobRouter.put("/users/:userId/page-access", requireAuth, putUserPageAccess);
+
+// CEO-only user management (username/password-based identity) — additive, see userManagement.controller.ts
+kobRouter.post("/users", requireAuth, createUser);
+kobRouter.patch("/users/:userId", requireAuth, updateUser);
+kobRouter.post("/users/:userId/reset-password", requireAuth, resetUserPassword);
 
 // GET /api/kob/gallabox-fire-queue - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/gallabox-fire-queue", requireAuth, listGallaboxFireQueue);

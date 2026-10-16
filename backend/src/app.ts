@@ -10,6 +10,7 @@ import { dashboardRouter } from "./routes/dashboard.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { metaRouter } from "./routes/meta.routes.js";
 import { publicRouter } from "./routes/public.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
 
 export const app = express();
 
@@ -63,6 +64,7 @@ app.use("/api/webinar", webinarRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/meta", metaRouter);
 app.use("/api/public", publicRouter);
+app.use("/api/auth", authRouter);
 
 // 6. 404 Route Handler
 app.use((_req: Request, res: Response) => {

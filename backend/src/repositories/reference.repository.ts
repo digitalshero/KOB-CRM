@@ -196,10 +196,10 @@ export async function listRoleWeights(): Promise<Record<string, unknown>[]> {
   return rows;
 }
 
-export async function listAllProfilesWithRoles(): Promise<{ id: string; full_name: string; email: string | null; phone: string | null; team_leader_id: string | null; roles: string[] }[]> {
+export async function listAllProfilesWithRoles(): Promise<{ id: string; full_name: string; email: string | null; username: string | null; phone: string | null; team_leader_id: string | null; roles: string[] }[]> {
   const pool = getPool();
   const [profiles, roles] = await Promise.all([
-    pool.query(`SELECT id, full_name, email, phone, team_leader_id FROM public.profiles`),
+    pool.query(`SELECT id, full_name, email, username, phone, team_leader_id FROM public.profiles`),
     pool.query(`SELECT user_id, role::text AS role FROM public.user_roles`),
   ]);
   const roleByUser = new Map<string, string[]>();
