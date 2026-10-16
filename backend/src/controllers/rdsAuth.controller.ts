@@ -1,7 +1,15 @@
 import type { Request, Response, NextFunction } from "express";
 import { randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
-import argon2 from "argon2";
+import bcrypt from "bcryptjs";
+
+// Argon2id was tried first per spec preference, but its native binding has
+// no prebuilt binary for this EC2 instance and the box has no system build
+// toolchain (make/g++) to compile it from source — installing one on a
+// shared production host for a single dependency was judged too invasive.
+// bcryptjs (pure JS, no native compilation, identical on every platform)
+// is the explicitly-allowed fallback for exactly this situation.
+const BCRYPT_ROUNDS = 12;
 import { config } from "../config/index.js";
 import { requireRoleOrDeny, type Role } from "../db/authz.js";
 import { withTransaction } from "../db/transaction.js";
@@ -67,7 +75,7 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
       return;
     }
 
-    const passwordOk = await argon2.verify(appUser.password_hash, password);
+    const passwordOk = await bcrypt.compare(password, appUser.password_hash);
     if (!passwordOk) {
       res.status(401).json({ error: "Invalid username or password" });
       return;
@@ -125,7 +133,7 @@ export async function createUserRds(req: Request, res: Response, next: NextFunct
     }
 
     const newUserId = randomUUID();
-    const passwordHash = await argon2.hash(password);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     await withTransaction(req.userId, async (client) => {
       await userRepo.insertUserProfile(client, { id: newUserId, username, full_name: full_name.trim(), email: null });
@@ -169,7 +177,7 @@ export async function resetPasswordRds(req: Request, res: Response, next: NextFu
     const existing = await rdsAuthRepo.findAppUserById(targetUserId);
     if (!existing) { res.status(404).json({ error: "User has no RDS-auth credential to reset" }); return; }
 
-    const passwordHash = await argon2.hash(password);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     await withTransaction(req.userId, async (client) => {
       await rdsAuthRepo.updateAppUserPassword(client, targetUserId, passwordHash, true);
       await userRepo.auditUserChange(client, req.userId!, "password_reset", targetUserId, { username: existing.username, auth_backend: "rds" });
@@ -205,7 +213,7 @@ export async function changeOwnPassword(req: Request, res: Response, next: NextF
     const existing = await rdsAuthRepo.findAppUserById(req.userId);
     if (!existing) { res.status(404).json({ error: "No RDS-auth credential found for this account" }); return; }
 
-    const passwordHash = await argon2.hash(new_password);
+    const passwordHash = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
     await withTransaction(req.userId, async (client) => {
       await rdsAuthRepo.updateAppUserPassword(client, req.userId!, passwordHash, false);
       await userRepo.auditUserChange(client, req.userId!, "password_changed", req.userId!, { username: existing.username, auth_backend: "rds", self_service: true });
