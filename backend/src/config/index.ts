@@ -28,6 +28,19 @@ function resolveDataBackend(): DataBackend {
   return process.env.DATA_BACKEND === "rds" ? "rds" : "supabase";
 }
 
+// ADDITIVE ONLY — parallel RDS/JWT auth migration. Must default to
+// "supabase" so production behavior is byte-for-byte unchanged unless this
+// is explicitly set. "hybrid" lets a username that has an app_users row
+// authenticate via RDS/JWT while every other username keeps using the
+// existing Supabase Auth path (requireAuth tries Supabase first always;
+// only falls back to verifying our own JWT when this is not "supabase").
+// "rds" is for later, once hybrid has been fully validated.
+export type AuthBackend = "supabase" | "hybrid" | "rds";
+function resolveAuthBackend(): AuthBackend {
+  const v = process.env.AUTH_BACKEND;
+  return v === "hybrid" ? "hybrid" : v === "rds" ? "rds" : "supabase";
+}
+
 // STAGE 10I-F — ADDITIVE ONLY, same as dataBackend above. No Gallabox/email
 // worker exists yet in this codebase (confirmed in the 10I-A dependency
 // audit), so nothing reads this today. It exists so the staging env file can
@@ -41,6 +54,8 @@ export const config = {
   port: parseInt(process.env.PORT || "3001", 10),
   nodeEnv: process.env.NODE_ENV || "development",
   dataBackend: resolveDataBackend(),
+  authBackend: resolveAuthBackend(),
+  jwtSecret: process.env.JWT_SECRET,
   outboundEnabled: resolveOutboundEnabled(),
   cors: {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {

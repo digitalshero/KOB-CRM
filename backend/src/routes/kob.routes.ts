@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getMyPageAccess, getUserPageAccess, putUserPageAccess } from "../controllers/pageAccess.controller.js";
 import { createUser, updateUser, resetUserPassword } from "../controllers/userManagement.controller.js";
+import { createUserRds, resetPasswordRds, setUserActive } from "../controllers/rdsAuth.controller.js";
 import {
   listBrands,
   listSources,
@@ -291,6 +292,12 @@ kobRouter.put("/users/:userId/page-access", requireAuth, putUserPageAccess);
 kobRouter.post("/users", requireAuth, createUser);
 kobRouter.patch("/users/:userId", requireAuth, updateUser);
 kobRouter.post("/users/:userId/reset-password", requireAuth, resetUserPassword);
+
+// CEO-only RDS/JWT-auth user management — additive, only functional when
+// AUTH_BACKEND is "hybrid" or "rds" (501 otherwise). See rdsAuth.controller.ts.
+kobRouter.post("/rds-users", requireAuth, createUserRds);
+kobRouter.post("/rds-users/:userId/reset-password", requireAuth, resetPasswordRds);
+kobRouter.post("/rds-users/:userId/active", requireAuth, setUserActive);
 
 // GET /api/kob/gallabox-fire-queue - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/gallabox-fire-queue", requireAuth, listGallaboxFireQueue);

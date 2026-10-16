@@ -48,7 +48,7 @@ export interface NewUserProfile {
   id: string;
   username: string;
   full_name: string;
-  email: string;
+  email: string | null;
 }
 
 export async function insertUserProfile(client: PoolClient, row: NewUserProfile): Promise<void> {
