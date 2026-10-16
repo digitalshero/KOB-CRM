@@ -18,6 +18,9 @@ import { normalizeUsername, isUsernameTaken } from "../repositories/userManageme
 import * as rdsAuthRepo from "../repositories/rdsAuth.repository.js";
 import { upsertAuthUserMirror } from "../repositories/admin.repository.js";
 import { loginWithUsername as supabaseLoginWithUsername } from "./userManagement.controller.js";
+import { createStandardSupabaseClient } from "../integrations/supabase/client.js";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const RDS_JWT_ISSUER = "kob-rds-auth";
 const JWT_EXPIRY = "7d";
@@ -64,6 +67,27 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
 
     if (!appUser) {
       if (config.authBackend === "hybrid") {
+        const identifier = username.trim();
+        if (EMAIL_RE.test(identifier)) {
+          // Non-migrated existing Supabase user signing in with their own
+          // email + password. No app_users row required, no Admin/service-role
+          // API involved — this is the same signInWithPassword call the old
+          // client-side login used, just proxied server-side.
+          const supabase = createStandardSupabaseClient();
+          const { data, error } = await supabase.auth.signInWithPassword({ email: identifier, password });
+          if (error || !data?.session) {
+            res.status(401).json({ error: "Invalid username or password" });
+            return;
+          }
+          res.status(200).json({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+            expires_in: data.session.expires_in,
+            expires_at: data.session.expires_at,
+            token_type: data.session.token_type,
+          });
+          return;
+        }
         await supabaseLoginWithUsername(req, res, next);
         return;
       }
