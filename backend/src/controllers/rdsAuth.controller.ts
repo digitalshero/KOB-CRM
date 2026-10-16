@@ -16,6 +16,7 @@ import { withTransaction } from "../db/transaction.js";
 import * as userRepo from "../repositories/userManagement.repository.js";
 import { normalizeUsername, isUsernameTaken } from "../repositories/userManagement.repository.js";
 import * as rdsAuthRepo from "../repositories/rdsAuth.repository.js";
+import { upsertAuthUserMirror } from "../repositories/admin.repository.js";
 import { loginWithUsername as supabaseLoginWithUsername } from "./userManagement.controller.js";
 
 const RDS_JWT_ISSUER = "kob-rds-auth";
@@ -134,8 +135,15 @@ export async function createUserRds(req: Request, res: Response, next: NextFunct
 
     const newUserId = randomUUID();
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    // profiles.id has an FK to RDS's local auth.users mirror table (a
+    // compatibility shim, not Supabase Auth itself — see Stage 9 notes).
+    // An RDS-only user has no real Supabase Auth account, so this mirror
+    // row is satisfied with an internal, never-shown placeholder email,
+    // unique per user, purely to keep the existing FK intact.
+    const mirrorEmail = `rds-only+${newUserId}@users.shero.internal`;
 
     await withTransaction(req.userId, async (client) => {
+      await upsertAuthUserMirror(client, newUserId, mirrorEmail);
       await userRepo.insertUserProfile(client, { id: newUserId, username, full_name: full_name.trim(), email: null });
       await userRepo.replaceUserRole(client, newUserId, role);
       await rdsAuthRepo.insertAppUser(client, { user_id: newUserId, username, password_hash: passwordHash, must_change_password: true });
