@@ -19,7 +19,7 @@ function lastFiveCompletedDays() {
   }
   return out;
 }
-const DOT_COLORS = ["#7C3AED", "#6366F1", "#0EA5E9", "#14B8A6", "#10B981", "#F59E0B", "#F59E0B"];
+const DOT_COLORS = ["#005B57", "#006B67", "#008E89", "#14B8A6", "#10B981", "#F59E0B", "#F59E0B"];
 
 export type FunnelRow = {
   stage: string;
@@ -216,13 +216,13 @@ export function FunnelCard({
           <table className="w-full min-w-[560px] border-separate border-spacing-x-0 border-spacing-y-4">
             <thead>
               <tr>
-                <th className="pb-2 text-left text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                <th className="pb-2 text-left text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   Stage
                 </th>
                 {[...DAY_COLS, "MTD"].map((d) => (
                   <th
                     key={d}
-                    className="w-[13%] pb-2 text-right text-[11px] font-medium uppercase tracking-wide text-slate-400"
+                    className="w-[13%] pb-2 text-right text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
                   >
                     {d}
                   </th>
@@ -242,23 +242,23 @@ export function FunnelCard({
                         className="h-2 w-2 shrink-0 rounded-full"
                         style={{ background: DOT_COLORS[i % DOT_COLORS.length] }}
                       />
-                      <span className="whitespace-nowrap text-sm font-medium text-slate-900">
+                      <span className="whitespace-nowrap text-sm font-medium text-foreground">
                         {r.stage}
                       </span>
                     </span>
                   </td>
                   {DAY_COLS.map((d, di) => (
                     <td key={d} className="pl-4 text-right align-middle">
-                      <div className="text-[15px] font-semibold leading-tight tabular-nums text-slate-900">
+                      <div className="text-[15px] font-semibold leading-tight tabular-nums text-foreground">
                         {r.daily?.[di] ?? r.fired}
                       </div>
-                      <div className="text-[11px] leading-tight tabular-nums text-slate-400">
+                      <div className="text-[11px] leading-tight tabular-nums text-muted-foreground">
                         {r.dailyPct?.[di] ?? r.pct}
                       </div>
                     </td>
                   ))}
                   <td className="pl-4 text-right align-middle">
-                    <div className="text-[15px] font-bold leading-tight tabular-nums text-slate-900">
+                    <div className="text-[15px] font-bold leading-tight tabular-nums text-foreground">
                       {r.mtd ?? r.fired}
                     </div>
                     <div className="text-[11px] font-medium leading-tight tabular-nums text-emerald-600">

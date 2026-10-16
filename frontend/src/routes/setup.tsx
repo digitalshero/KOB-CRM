@@ -4,7 +4,7 @@ import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import sheroBadge from "@/assets/shero-badge.png.asset.json";
+import sheroLogo from "@/assets/shero-logo-mark.png";
 
 export const Route = createFileRoute("/setup")({
   ssr: false,
@@ -20,7 +20,7 @@ function SetupPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="mb-8 text-center">
         <div className="mx-auto mb-3 h-16 w-16 rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-primary/20">
-          <img src={sheroBadge.url} alt="Shero" className="h-full w-full object-cover" />
+          <img src={sheroLogo} alt="Shero" className="h-full w-full object-cover" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Shero KOB Control Tower</h1>
         <p className="text-sm text-muted-foreground mt-1">India · Test Environment Setup</p>

@@ -155,7 +155,7 @@ function LeadDetailPage() {
                     <span
                       key={t}
                       title={t === "RNR" ? "Ring No Response" : t}
-                      className={`px-2 py-0.5 rounded text-[11px] font-semibold ${t === "RNR" ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700"}`}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold ${t === "RNR" ? "bg-rose-100 text-rose-700" : "bg-muted text-muted-foreground"}`}
                     >
                       {t}
                     </span>

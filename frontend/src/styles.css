@@ -61,29 +61,41 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-shero-teal: var(--shero-teal);
+  --color-shero-teal-deep: var(--shero-teal-deep);
+  --color-shero-teal-dark: var(--shero-teal-dark);
   --color-shero-navy: var(--shero-navy);
   --color-shero-mint: var(--shero-mint);
   --color-shero-surface: var(--shero-surface);
   --color-shero-text: var(--shero-text);
+  --color-shero-border: var(--shero-border);
   --color-shero-danger: var(--shero-danger);
 }
 
 /*
- * Shero Home Food brand tokens. Keep every semantic color above derived
- * from these six values — do not hardcode a competing color elsewhere.
- *   --shero-teal:   #009A93  (primary/accent)
- *   --shero-navy:   #0F1932  (sidebar/nav)
- *   --shero-mint:   #EBF4F3  (page background / soft surfaces)
- *   --shero-surface:#FFFFFF  (cards/popovers)
- *   --shero-text:   #212121  (near-black body text)
- *   --shero-danger: #B51F1F  (alerts/negative only, never dominant)
+ * Shero Home Food brand tokens — matches the Shero Admin reference
+ * (teal-gradient sidebar, soft mint-white content surfaces). Keep every
+ * semantic color above derived from these values — do not hardcode a
+ * competing color elsewhere.
+ *   --shero-teal:       #008E89  (primary/accent, sidebar gradient top)
+ *   --shero-teal-deep:  #006B67  (sidebar gradient middle, active text)
+ *   --shero-teal-dark:  #005B57  (sidebar gradient bottom)
+ *   --shero-mint:       #EAF5F3  (page background / soft surfaces)
+ *   --shero-surface:    #FFFFFF  (cards/popovers)
+ *   --shero-text:       #23312F  (dark teal-tinted body text)
+ *   --shero-border:     #CFE7E3  (light teal card/input border)
+ *   --shero-navy:       alias of --shero-text, kept for existing card
+ *                        accents that reference it as a "dark neutral"
+ *   --shero-danger:     #B51F1F  (alerts/negative only, never dominant)
  */
 :root {
-  --shero-teal: oklch(0.619 0.107 189.1);
-  --shero-navy: oklch(0.219 0.051 265.9);
-  --shero-mint: oklch(0.96 0.01 189.1);
+  --shero-teal: oklch(0.584 0.101 190.4);
+  --shero-teal-deep: oklch(0.476 0.082 190.3);
+  --shero-teal-dark: oklch(0.425 0.073 189.6);
+  --shero-navy: oklch(0.3 0.019 185.4);
+  --shero-mint: oklch(0.961 0.012 184.1);
   --shero-surface: oklch(1 0 0);
-  --shero-text: oklch(0.248 0 89.9);
+  --shero-text: oklch(0.3 0.019 185.4);
+  --shero-border: oklch(0.909 0.026 184.7);
   --shero-danger: oklch(0.5 0.185 27.2);
 
   --radius: 0.625rem;
@@ -95,47 +107,47 @@
   --popover-foreground: var(--shero-text);
   --primary: var(--shero-teal);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.955 0.008 189.1);
+  --secondary: oklch(0.955 0.012 184.1);
   --secondary-foreground: var(--shero-navy);
-  --muted: oklch(0.95 0.006 189.1);
-  --muted-foreground: oklch(0.48 0.02 220);
-  --accent: oklch(0.93 0.03 189.1);
-  --accent-foreground: var(--shero-navy);
+  --muted: oklch(0.95 0.01 184.1);
+  --muted-foreground: oklch(0.48 0.025 190);
+  --accent: var(--shero-mint);
+  --accent-foreground: var(--shero-teal-deep);
   --destructive: var(--shero-danger);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.012 189.1);
-  --input: oklch(0.9 0.012 189.1);
+  --border: var(--shero-border);
+  --input: var(--shero-border);
   --ring: var(--shero-teal);
   --chart-1: var(--shero-teal);
   --chart-2: var(--shero-danger);
   --chart-3: var(--shero-navy);
   --chart-4: oklch(0.7 0.14 70);
-  --chart-5: oklch(0.45 0.08 189.1);
-  --sidebar: var(--shero-navy);
-  --sidebar-foreground: oklch(0.82 0.015 220);
-  --sidebar-primary: var(--shero-teal);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.32 0.06 189.1);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.3 0.045 265.9);
-  --sidebar-ring: var(--shero-teal);
+  --chart-5: var(--shero-teal-dark);
+  --sidebar: var(--shero-teal-deep);
+  --sidebar-foreground: oklch(0.95 0.015 190);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: var(--shero-teal-deep);
+  --sidebar-accent: oklch(1 0 0);
+  --sidebar-accent-foreground: var(--shero-teal-deep);
+  --sidebar-border: oklch(1 0 0 / 15%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 .dark {
-  --background: oklch(0.17 0.03 265.9);
-  --foreground: oklch(0.95 0.008 189.1);
-  --card: oklch(0.219 0.051 265.9);
-  --card-foreground: oklch(0.95 0.008 189.1);
-  --popover: oklch(0.219 0.051 265.9);
-  --popover-foreground: oklch(0.95 0.008 189.1);
+  --background: oklch(0.2 0.025 190);
+  --foreground: oklch(0.95 0.012 184.1);
+  --card: oklch(0.26 0.03 189.6);
+  --card-foreground: oklch(0.95 0.012 184.1);
+  --popover: oklch(0.26 0.03 189.6);
+  --popover-foreground: oklch(0.95 0.012 184.1);
   --primary: var(--shero-teal);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.95 0.008 189.1);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.3 0.045 189.1);
-  --accent-foreground: oklch(0.95 0.008 189.1);
+  --secondary: oklch(0.3 0.03 189.6);
+  --secondary-foreground: oklch(0.95 0.012 184.1);
+  --muted: oklch(0.3 0.03 189.6);
+  --muted-foreground: oklch(0.7 0.02 190);
+  --accent: oklch(0.32 0.04 189.6);
+  --accent-foreground: oklch(0.95 0.012 184.1);
   --destructive: var(--shero-danger);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(1 0 0 / 10%);
@@ -145,15 +157,15 @@
   --chart-2: var(--shero-danger);
   --chart-3: oklch(0.7 0.05 189.1);
   --chart-4: oklch(0.7 0.14 70);
-  --chart-5: oklch(0.55 0.08 189.1);
-  --sidebar: var(--shero-navy);
-  --sidebar-foreground: oklch(0.82 0.015 220);
-  --sidebar-primary: var(--shero-teal);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.32 0.06 189.1);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.3 0.045 265.9);
-  --sidebar-ring: var(--shero-teal);
+  --chart-5: var(--shero-teal-dark);
+  --sidebar: var(--shero-teal-deep);
+  --sidebar-foreground: oklch(0.95 0.015 190);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: var(--shero-teal-deep);
+  --sidebar-accent: oklch(1 0 0);
+  --sidebar-accent-foreground: var(--shero-teal-deep);
+  --sidebar-border: oklch(1 0 0 / 15%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 @layer base {

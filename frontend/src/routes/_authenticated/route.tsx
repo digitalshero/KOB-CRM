@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { MyRoleResponse } from "@/lib/types";
-import sheroBadge from "@/assets/shero-badge.png.asset.json";
+import sheroLogo from "@/assets/shero-logo-mark.png";
 
 import {
   LayoutDashboard, Users, Settings, RefreshCw, Trophy, LogOut, Building2,
@@ -178,16 +178,16 @@ function AuthedShell() {
           aria-hidden
         />
       )}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] transform transition-transform duration-200 md:static md:z-auto md:max-w-none md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} ${collapsed ? "md:w-16" : "md:w-64"} md:transition-all bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border`}>
-        <div className="px-4 py-4 border-b border-sidebar-border">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] transform transition-transform duration-200 md:static md:z-auto md:max-w-none md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} ${collapsed ? "md:w-16" : "md:w-64"} md:transition-all bg-gradient-to-b from-[#008E89] via-[#006B67] to-[#005B57] text-white flex flex-col`}>
+        <div className="px-4 py-4 border-b border-white/15">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden ring-1 ring-sidebar-border bg-white">
-              <img src={sheroBadge.url} alt="Shero" className="h-full w-full object-cover" />
+            <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden ring-1 ring-white/30 bg-white">
+              <img src={sheroLogo} alt="Shero" className="h-full w-full object-cover" />
             </div>
             {!collapsed && (
               <div className="min-w-0 leading-tight">
-                <div className="font-semibold text-sm truncate">Shero Home Food</div>
-                <div className="text-[11px] text-sidebar-foreground/60 truncate">KOB CRM</div>
+                <div className="font-semibold text-sm text-white truncate">Shero Home Food</div>
+                <div className="text-[11px] text-white/60 truncate">KOB CRM</div>
               </div>
             )}
           </div>
@@ -195,7 +195,7 @@ function AuthedShell() {
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {pageAccessLoading ? (
             Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-9 rounded-md bg-sidebar-accent/30 animate-pulse" />
+              <div key={i} className="h-9 rounded-md bg-white/10 animate-pulse" />
             ))
           ) : nav.length === 0 ? null : nav.map((n) => {
             const active = pathname === n.to || (n.to !== "/" && pathname.startsWith(n.to));
@@ -204,10 +204,10 @@ function AuthedShell() {
                 key={n.to}
                 to={n.to}
                 title={collapsed ? n.label : undefined}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors border-l-2 ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-sidebar-primary"
-                    : "border-l-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground"
+                    ? "bg-white text-[#006B67] shadow-sm"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <n.icon className="h-4 w-4 shrink-0" />
@@ -216,17 +216,17 @@ function AuthedShell() {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-white/15">
           {!collapsed && (
             <>
-              <div className="px-3 py-2 text-xs opacity-70 truncate">{data?.profile?.full_name}</div>
-              <div className="px-3 text-xs mb-2 flex items-center gap-1 opacity-80"><Building2 className="h-3 w-3"/>{roleLabel}</div>
+              <div className="px-3 py-2 text-xs text-white/70 truncate">{data?.profile?.full_name}</div>
+              <div className="px-3 text-xs mb-2 flex items-center gap-1 text-white/60"><Building2 className="h-3 w-3"/>{roleLabel}</div>
             </>
           )}
           <button
             onClick={async () => { await supabase.auth.signOut(); window.location.href = "/auth"; }}
             title={collapsed ? "Sign out" : undefined}
-            className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent/50"
+            className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && "Sign out"}

@@ -40,7 +40,7 @@ const STAGE_COLOR: Record<string, string> = {
   AGREEMENT_SIGNED: "bg-green-200 text-green-800", KTN_CS: "bg-green-300 text-green-900", KTN_LIVE: "bg-green-500 text-white",
   NO: "bg-red-100 text-red-700", LATER: "bg-yellow-100 text-yellow-700", NO_RESPONSE: "bg-amber-100 text-amber-700",
   RETARGETING: "bg-amber-100 text-amber-700", DEAD_LEAD: "bg-gray-200 text-gray-700",
-  NON_SERVICEABLE: "bg-slate-200 text-slate-700", NO_VACANCY: "bg-stone-200 text-stone-700",
+  NON_SERVICEABLE: "bg-muted text-muted-foreground", NO_VACANCY: "bg-stone-200 text-stone-700",
   DUPLICATE_LEAD: "bg-zinc-200 text-zinc-700",
 };
 
@@ -209,7 +209,7 @@ function StageColumn({ stage, stageLeads }: { stage: string; stageLeads: any[] }
                         <div className="text-xs font-medium text-foreground">{l.phone ?? "—"}</div>
                         <div className="text-xs text-muted-foreground">{l.brands?.name ?? "—"}</div>
                         <div className="flex flex-wrap gap-1">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">{l.language ?? "—"}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{l.language ?? "—"}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${l.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-shero-mint text-shero-navy"}`}>{l.mode ?? "—"}</span>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded ${tat.cls}`}>TAT · {tat.label}</span>
                           {ab?.abandoned && (
@@ -424,7 +424,7 @@ function ReadOnlyTable({ leads }: { leads: any[] }) {
                   <td className="p-2 text-xs">{l.phone ?? "—"}</td>
                   <td className="p-2"><LastMessageCell message={l.last_message} at={l.last_message_at} unread={l.has_unread_messages} /></td>
                   <td className="p-2">{l.language}</td>
-                  <td className="p-2"><span className={`px-1.5 py-0.5 rounded text-[10px] ${l.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-700"}`}>{l.mode}</span></td>
+                  <td className="p-2"><span className={`px-1.5 py-0.5 rounded text-[10px] ${l.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-muted text-muted-foreground"}`}>{l.mode}</span></td>
                   <td className="p-2">{l.lead_sources?.name}</td>
 
                   <td className="p-2"><span className={`px-2 py-0.5 rounded text-xs ${STAGE_COLOR[l.stage]}`}>{STAGE_LABEL[l.stage] ?? l.stage}</span></td>
