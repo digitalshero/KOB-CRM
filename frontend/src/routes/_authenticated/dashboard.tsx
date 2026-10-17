@@ -124,6 +124,29 @@ function Dashboard() {
       return apiClient.get<any>(`/api/meta/spend-kpis${q ? `?${q}` : ""}`);
     },
   });
+  // Control Tower Overview's 4 global KPI cards (Total Leads, KTN, CPL, Fee
+  // Paid) — each reuses the exact same source/logic as its reference page,
+  // with no role-specific lead scope, so the values are identical for every
+  // role that has Page Access to this page. See kob.routes.ts /
+  // kob.controller.ts for get-control-tower-total-leads and
+  // get-fee-paid-count; get-contracts-count and /api/meta/cpl are the
+  // pre-existing, already-global endpoints reused as-is.
+  const { data: totalLeadsCT } = useQuery({
+    queryKey: ["ct-total-leads", ...rk],
+    queryFn: () => apiClient.get<{ count: number }>(`/api/kob/get-control-tower-total-leads${qStr}`),
+  });
+  const { data: ktnCT } = useQuery({
+    queryKey: ["ct-ktn", ...rk],
+    queryFn: () => apiClient.get<{ count: number; prev_period: number }>(`/api/kob/get-contracts-count${qStr}`),
+  });
+  const { data: feePaidCT } = useQuery({
+    queryKey: ["ct-fee-paid", ...rk],
+    queryFn: () => apiClient.get<{ count: number; prev_period: number }>(`/api/kob/get-fee-paid-count${qStr}`),
+  });
+  const { data: metaCplCT, error: metaCplCTError } = useQuery({
+    queryKey: ["ct-cpl", ...rk],
+    queryFn: () => apiClient.get<any>(`/api/meta/cpl${qStr}`),
+  });
 
 
   const roleLabel = role?.role === "kob_manager" ? "KOB Manager"
@@ -183,8 +206,14 @@ function Dashboard() {
             ["__CONVERSION__", "Lead → Conversion %", TrendingUp, "neutral"],
           ] as const).map(([metric, title, Icon, variant]) => {
             if (metric === "__CPL__") {
+              // Same source as the KOB Dashboard CPL card (GET /api/meta/cpl)
+              // so Control Tower and KOB Dashboard always show the same CPL
+              // for the same date range — not the separate spend-kpis figure.
+              const cplValue = metaCplCTError || metaCplCT?.error || !metaCplCT?.hasEnabledCampaigns
+                ? "—"
+                : `₹${(metaCplCT?.cpl ?? 0).toLocaleString()}`;
               return (
-                <Stat key="CPL" className="h-full" label="CPL" value={`₹${(meta?.cpl ?? 0).toLocaleString()}`} sub="cost per lead" tone="info" to="/mgr/marketing" detailsMetric="CPL" />
+                <Stat key="CPL" className="h-full" label="CPL" value={cplValue} sub="cost per lead" tone="info" to="/mgr/marketing" detailsMetric="CPL" />
               );
             }
             if (metric === "__CONVERSION__") {
@@ -206,15 +235,30 @@ function Dashboard() {
             const to = metric === "TOTAL_LEADS" || metric === "ABANDONED_LEADS" ? "/leads" : "/exec/$stage";
             const params = metric === "TOTAL_LEADS" || metric === "ABANDONED_LEADS" ? undefined : { stage: metric };
 
+            // Total Leads / KTN / Fee Paid: reuse the Lead Inbox / contracts /
+            // fee-paid-count sources (global, no role-specific lead scope)
+            // instead of get-kpi-snapshot's separate counts, so these three
+            // cards always match Lead Inbox / KTN's current-stage count /
+            // Fee Paid's current-stage count for the same date range.
+            const achieved =
+              metric === "TOTAL_LEADS" ? Number(totalLeadsCT?.count ?? r.achieved ?? 0)
+              : metric === "KTN_CS" ? Number(ktnCT?.count ?? r.achieved ?? 0)
+              : metric === "FEE_PAID" ? Number(feePaidCT?.count ?? r.achieved ?? 0)
+              : Number(r.achieved ?? 0);
+            const prevPeriod =
+              metric === "KTN_CS" ? (ktnCT?.prev_period ?? r.prev_period ?? null)
+              : metric === "FEE_PAID" ? (feePaidCT?.prev_period ?? r.prev_period ?? null)
+              : (r.prev_period ?? null);
+
             return (
               <KpiCard
                 key={metric}
                 title={title}
                 icon={Icon}
-                achieved={Number(r.achieved ?? 0)}
+                achieved={achieved}
                 target={r.target ?? null}
                 runRate={r.run_rate ?? null}
-                prevPeriod={r.prev_period ?? null}
+                prevPeriod={prevPeriod}
                 trendDirection={r.trend}
                 variant={variant}
                 to={to}

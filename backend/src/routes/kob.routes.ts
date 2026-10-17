@@ -21,6 +21,8 @@ import {
   getKpiSnapshot,
   getContractsCount,
   getEoi2Count,
+  getFeePaidCount,
+  getControlTowerTotalLeadsCount,
   getDashboardKpis,
   getFunnelBySource,
   getFunnelByLanguage,
@@ -156,6 +158,12 @@ kobRouter.get("/get-contracts-count", requireAuth, getContractsCount);
 
 // GET /api/kob/get-eoi2-count - same stage_entered_at-scoped pattern as get-contracts-count, for EOI_2
 kobRouter.get("/get-eoi2-count", requireAuth, getEoi2Count);
+
+// GET /api/kob/get-fee-paid-count - same stage_entered_at-scoped pattern as get-contracts-count, for FEE_PAID (Control Tower Overview)
+kobRouter.get("/get-fee-paid-count", requireAuth, getFeePaidCount);
+
+// GET /api/kob/get-control-tower-total-leads - Lead Inbox's exact count logic, scope hard-coded to "all" (organization-wide, Control Tower Overview only)
+kobRouter.get("/get-control-tower-total-leads", requireAuth, getControlTowerTotalLeadsCount);
 
 // GET /api/kob/get-dashboard-kpis - Protected by auth middleware, uses supabaseAdmin or req.supabase
 kobRouter.get("/get-dashboard-kpis", requireAuth, getDashboardKpis);

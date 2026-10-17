@@ -524,6 +524,56 @@ export async function getEoi2Count(req: Request, res: Response, next: NextFuncti
 }
 
 /**
+ * Controller for getFeePaidCount (Control Tower Overview "Fee Paid" card).
+ * Mirrors getContractsCount/getEoi2Count exactly, scoped to stage FEE_PAID:
+ * leads currently in FEE_PAID whose entry into that stage falls within the
+ * selected period — a current-stage count, not a lifetime/historical-visit
+ * count of everyone who ever passed through FEE_PAID.
+ */
+export async function getFeePaidCount(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const r = parseDateRange(req);
+    const current = await analyticsRepo.countLeadsByStageEnteredAt("FEE_PAID", r.from, r.to);
+    let previous = 0;
+    if (r.from && r.to) {
+      const fromMs = new Date(r.from).getTime();
+      const toMs = new Date(r.to).getTime();
+      const span = Math.max(1, toMs - fromMs);
+      previous = await analyticsRepo.countLeadsByStageEnteredAt("FEE_PAID", new Date(fromMs - span).toISOString(), new Date(fromMs).toISOString());
+    }
+    res.status(200).json({ count: current, prev_period: previous });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Controller for getControlTowerTotalLeadsCount (Control Tower Overview
+ * "Total Leads" card). Reuses leadRepo.countLeadRows — the exact same
+ * filter logic as the Lead Inbox page (buildLeadListConditionBlocks) — but
+ * with scope hard-coded to {kind:"all"} rather than resolved from the
+ * caller's role. Control Tower Overview is organization-wide: Page Access
+ * governs who can open the page, not what data it shows, so this
+ * deliberately does NOT call resolveLeadScopeOrDeny (which would narrow an
+ * executive to their own leads) — every caller with Page Access to this
+ * page sees the same global count for the same date range.
+ */
+export async function getControlTowerTotalLeadsCount(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const from = typeof req.query.from === "string" ? req.query.from : undefined;
+    const to = typeof req.query.to === "string" ? req.query.to : undefined;
+    const count = await leadRepo.countLeadRows({ kind: "all" }, { from, to });
+    res.status(200).json({ count });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * Controller for getDashboardKpis.
  * Migrated 1:1 from src/lib/kob.functions.ts (line 285).
  * Uses trusted server client (supabaseAdmin) when available.
