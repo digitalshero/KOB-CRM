@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { ShieldCheck, Pencil, KeyRound } from "lucide-react";
+import { ShieldCheck, Pencil, KeyRound, Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mgr/users")({
   head: () => ({ meta: [{ title: "Users & Roles — Shero KOB" }] }),
@@ -168,6 +168,8 @@ function EditUserDialog({ user, onOpenChange, onDone }: { user: ProfileRow; onOp
 function ResetPasswordDialog({ user, onOpenChange }: { user: ProfileRow; onOpenChange: (v: boolean) => void }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => apiClient.post(`/api/kob/rds-users/${user.id}/reset-password`, { password }),
@@ -187,11 +189,42 @@ function ResetPasswordDialog({ user, onOpenChange }: { user: ProfileRow; onOpenC
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label>New Password</Label>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label>Confirm Password</Label>
-            <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((s) => !s)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           {password && confirmPassword && password !== confirmPassword && (
             <p className="text-xs text-destructive">Passwords do not match.</p>
