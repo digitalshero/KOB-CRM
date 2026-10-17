@@ -87,6 +87,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         if (rdsUserId) {
           req.userId = rdsUserId;
           req.claims = { sub: rdsUserId, iss: RDS_JWT_ISSUER };
+          req.authBackend = "rds";
           next();
           return;
         }
@@ -111,6 +112,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // Attach request-scoped context
     req.userId = userId;
     req.claims = data.claims;
+    req.authBackend = "supabase";
     req.supabase = createRequestScopedClient(token);
 
     next();

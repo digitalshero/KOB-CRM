@@ -287,8 +287,24 @@ export async function changeOwnPassword(req: Request, res: Response, next: NextF
 export async function getAuthStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     if (!req.userId) { res.status(401).json({ error: "Unauthenticated" }); return; }
+
+    // A Supabase-authenticated session must never be forced into the RDS
+    // change-password flow, even for an already-migrated user whose
+    // app_users.must_change_password is true — that flag only governs an
+    // RDS/JWT session for this same user. The user's old Supabase
+    // credentials remain valid independently and are left untouched here.
+    if (req.authBackend === "supabase") {
+      res.status(200).json({
+        auth_backend: "supabase",
+        has_rds_credential: await rdsAuthRepo.findAppUserById(req.userId).then((r) => !!r),
+        must_change_password: false,
+      });
+      return;
+    }
+
     const existing = await rdsAuthRepo.findAppUserById(req.userId);
     res.status(200).json({
+      auth_backend: "rds",
       has_rds_credential: !!existing,
       must_change_password: existing?.must_change_password ?? false,
     });
