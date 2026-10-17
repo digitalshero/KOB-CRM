@@ -56,10 +56,10 @@ function hasRnr(lead: any) {
 
 function RnrFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground uppercase">RNR</span>
+    <div className="flex items-center gap-1.5">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">RNR</span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="h-8 w-[130px] text-xs shadow-sm"><SelectValue /></SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL" className="text-xs">All</SelectItem>
           <SelectItem value="RNR" className="text-xs">RNR</SelectItem>
@@ -134,10 +134,10 @@ function LeadFilterControls({
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground uppercase">Stage</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Stage</span>
         <Select value={filters.stageFilter} onValueChange={(v) => { filters.setStageFilter(v); onChange?.(); }}>
-          <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[180px] text-xs shadow-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL" className="text-xs">All stages</SelectItem>
             {stages.map((s) => (
@@ -148,10 +148,10 @@ function LeadFilterControls({
       </div>
       <RnrFilter value={filters.rnrFilter} onChange={(v) => { filters.setRnrFilter(v); onChange?.(); }} />
       {!isExec && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground uppercase">Executive</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Executive</span>
           <Select value={filters.execFilter} onValueChange={(v) => { filters.setExecFilter(v); onChange?.(); }}>
-            <SelectTrigger className="h-8 w-[200px] text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[200px] text-xs shadow-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL" className="text-xs">All Executives</SelectItem>
               {execs.map((e: any) => (
@@ -163,10 +163,10 @@ function LeadFilterControls({
           </Select>
         </div>
       )}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground uppercase">Language</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Language</span>
         <Select value={filters.langFilter} onValueChange={(v) => { filters.setLangFilter(v); onChange?.(); }}>
-          <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[160px] text-xs shadow-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL" className="text-xs">All languages</SelectItem>
             {languages.map((lg) => (
@@ -175,10 +175,10 @@ function LeadFilterControls({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground uppercase">Lead Source</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Lead Source</span>
         <Select value={filters.sourceFilter} onValueChange={(v) => { filters.setSourceFilter(v); onChange?.(); }}>
-          <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[180px] text-xs shadow-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL" className="text-xs">All Sources</SelectItem>
             {sources.map((s) => (
@@ -273,20 +273,20 @@ function LeadsPage() {
   }, [leads, search]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">Lead Inbox · Pipeline</h1>
+    <div className="p-6 space-y-5">
+      <div className="flex flex-col gap-3 pb-5 border-b sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-semibold tracking-tight">Lead Inbox · Pipeline</h1>
           <p className="text-sm text-muted-foreground">
             {isLoading ? "Loading leads…" : `${visibleLeads.length} leads · drag cards to change stage`}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name or phone…"
-            className="h-9 w-[240px] rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full sm:w-[240px] rounded-lg border border-input bg-background px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
           />
           <DateRangeFilter
             value={range}
@@ -373,12 +373,12 @@ function Kanban({ leads, isExec }: { leads: any[]; isExec?: boolean }) {
   return (
     <DndContext onDragEnd={onDragEnd}>
       <CuisineDialog leadId={cuisineLead} onClose={() => setCuisineLead(null)} />
-      <div className="flex flex-wrap items-center gap-3 pb-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-lg border bg-muted/20 px-3.5 py-2.5 mb-4">
         <LeadFilterControls filters={filters} leads={leads} execs={execs as any[]} isExec={isExec} />
-        <span className="text-xs text-muted-foreground">{boardLeads.length} leads</span>
+        <span className="ml-auto text-xs font-medium text-muted-foreground">{boardLeads.length} leads</span>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="flex gap-3 overflow-x-auto pb-2">
         {KANBAN_STAGES.map((stage) => (
           <Column
             key={stage}
@@ -401,20 +401,20 @@ function Column({ stage, leads, disabled, isExec }: { stage: string; leads: any[
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-[300px] flex-1 rounded-lg border bg-muted/30 relative ${isOver && !disabled ? "ring-2 ring-primary" : ""} ${disabled ? "opacity-50 pointer-events-none blur-[1px] grayscale" : ""}`}
+      className={`min-w-[300px] flex-1 flex flex-col rounded-xl border bg-muted/20 relative transition-shadow ${isOver && !disabled ? "ring-2 ring-primary" : ""} ${disabled ? "opacity-50 pointer-events-none blur-[1px] grayscale" : ""}`}
       aria-disabled={disabled}
       title={disabled ? "Disabled — AUTO mode skips Lead Inbox" : undefined}
     >
-      <div className="p-3 border-b bg-background rounded-t-lg flex items-center justify-between">
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${STAGE_COLOR[stage]}`}>{STAGE_LABEL[stage] ?? stage}</span>
-        <span className="text-xs text-muted-foreground">{leads.length}</span>
+      <div className="px-3 py-2.5 border-b bg-background rounded-t-xl flex items-center justify-between shrink-0">
+        <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STAGE_COLOR[stage]}`}>{STAGE_LABEL[stage] ?? stage}</span>
+        <span className="text-xs font-medium text-muted-foreground">{leads.length}</span>
       </div>
       {disabled && (
         <div className="absolute inset-x-0 top-12 text-center text-[10px] font-medium text-muted-foreground px-2">
           AUTO mode · skipped
         </div>
       )}
-      <div className="p-2 space-y-2 max-h-[calc(100vh-260px)] overflow-y-auto">
+      <div className="p-2 space-y-2 flex-1 min-h-[160px] max-h-[calc(100vh-210px)] overflow-y-auto">
         {visible.map((l) => <KanbanCard key={l.id} lead={l} isExec={isExec} />)}
         {leads.length > 40 && (
           <div className="text-center py-2">
@@ -446,9 +446,9 @@ function KanbanCard({ lead }: { lead: any; isExec?: boolean }) {
       {...listeners}
       {...attributes}
       onClick={() => { if (!isDragging) navigate({ to: "/leads/$id", params: { id: lead.id } }); }}
-      className="cursor-pointer active:cursor-grabbing border-l-4 border-l-primary/60 shadow-sm"
+      className="cursor-pointer active:cursor-grabbing rounded-xl border border-border/60 shadow-sm hover:shadow-md hover:border-border transition-all"
     >
-      <CardContent className="p-3 space-y-1.5">
+      <CardContent className="p-3.5 space-y-2">
         <div className="flex justify-between items-start gap-2">
           <div className="font-semibold text-sm leading-tight flex items-center gap-1.5">
             {lead.full_name}
@@ -461,28 +461,30 @@ function KanbanCard({ lead }: { lead: any; isExec?: boolean }) {
               </span>
             )}
           </div>
-          <Link to="/leads/$id" params={{ id: lead.id }} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} className="text-[10px] text-primary hover:underline shrink-0">View →</Link>
+          <Link to="/leads/$id" params={{ id: lead.id }} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} className="text-[10px] font-medium text-primary hover:underline shrink-0">View →</Link>
 
         </div>
 
-        <div className="text-[10px] font-mono text-muted-foreground">{lead.code}</div>
-        <div className="text-xs font-medium text-foreground">{lead.phone ?? "—"}</div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-medium text-foreground">{lead.phone ?? "—"}</span>
+          <span className="text-[10px] font-mono text-muted-foreground/80">{lead.code}</span>
+        </div>
         <div className="text-xs text-muted-foreground">{lead.brands?.name ?? "—"}</div>
 
-        <div className="flex flex-wrap gap-1">
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{lead.language ?? "—"}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded ${lead.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-shero-mint text-shero-navy"}`}>{lead.mode ?? "—"}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded ${tat.cls}`}>TAT · {tat.label}</span>
+        <div className="flex flex-wrap gap-1 pt-0.5">
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">{lead.language ?? "—"}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${lead.mode === "AUTO" ? "bg-teal-100 text-teal-700" : "bg-shero-mint text-shero-navy"}`}>{lead.mode ?? "—"}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${tat.cls}`}>TAT · {tat.label}</span>
           {ab?.abandoned && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">Abandoned · {ab.days}d</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 font-medium">Abandoned · {ab.days}d</span>
           )}
           {hasRnr(lead) && (
-            <span title="Ring No Response" className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-semibold">RNR</span>
+            <span title="Ring No Response" className="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700 font-semibold">RNR</span>
           )}
         </div>
-        <div className="text-xs text-muted-foreground">{lead.india_states?.code ?? ""} · {lead.india_cities?.name ?? ""}</div>
+        <div className="text-[11px] text-muted-foreground">{lead.india_states?.code ?? ""} · {lead.india_cities?.name ?? ""}</div>
         <div className="text-[11px] text-muted-foreground truncate">Source: {lead.lead_sources?.name ?? "—"}</div>
-        <div className={`text-[11px] font-medium border-t pt-1 mt-1 ${lead.next_action ? "text-primary" : "text-muted-foreground italic"}`}>
+        <div className={`text-[11px] font-medium border-t pt-1.5 mt-1.5 ${lead.next_action ? "text-primary" : "text-muted-foreground italic"}`}>
           → {lead.next_action ?? "No action set"}
         </div>
       </CardContent>
@@ -564,9 +566,9 @@ function LeadsTable({ leads, isExec }: { leads: any[]; isExec?: boolean }) {
   };
 
   return (
-    <div className="space-y-3">
-      <Card>
-        <CardContent className="p-3 flex flex-wrap items-center gap-3">
+    <div className="space-y-4">
+      <Card className="border-border/60">
+        <CardContent className="p-3.5 flex flex-wrap items-center gap-x-4 gap-y-2.5">
           <LeadFilterControls
             filters={filters}
             leads={leads}
@@ -579,13 +581,13 @@ function LeadsTable({ leads, isExec }: { leads: any[]; isExec?: boolean }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search phone, name or code…"
-            className="h-8 w-[240px] rounded-md border bg-background px-2 text-xs"
+            className="h-8 w-[220px] rounded-md border border-input bg-background px-2.5 text-xs shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
           />
-          <div className="text-xs text-muted-foreground">{matchedLeads.length} leads{!isExec ? ` · ${selectedIds.length} selected` : ""}</div>
+          <div className="text-xs font-medium text-muted-foreground">{matchedLeads.length} leads{!isExec ? ` · ${selectedIds.length} selected` : ""}</div>
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-xs"
+            className="h-8 text-xs shadow-sm"
             disabled={matchedLeads.length === 0}
             onClick={() => exportLeadsCsv("leads", matchedLeads)}
           >
@@ -618,7 +620,7 @@ function LeadsTable({ leads, isExec }: { leads: any[]; isExec?: boolean }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-border/60">
         <CardContent className="p-0 overflow-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground border-b bg-muted/30">
