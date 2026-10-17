@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { ShieldCheck, Pencil, Info } from "lucide-react";
+import { ShieldCheck, Pencil, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mgr/users")({
   head: () => ({ meta: [{ title: "Users & Roles — Shero KOB" }] }),
@@ -44,6 +44,7 @@ function MgrUsers() {
   });
 
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<ProfileRow | null>(null);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["mgr-users"] });
 
@@ -59,11 +60,6 @@ function MgrUsers() {
             <ShieldCheck className="h-4 w-4" /> Page Access
           </Link>
         </Button>
-      </div>
-
-      <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-        <span>User creation and password reset are temporarily unavailable.</span>
       </div>
 
       <Card className="border-l-4 border-l-primary shadow-sm">
@@ -94,9 +90,14 @@ function MgrUsers() {
                   </td>
                   <td className="p-2 text-xs font-mono">{u.team_leader_id?.slice(0, 8) ?? "—"}</td>
                   <td className="p-2">
-                    <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditUser(u)}>
-                      <Pencil className="h-3.5 w-3.5" /> Edit
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setEditUser(u)}>
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => setResetPasswordUser(u)}>
+                        <KeyRound className="h-3.5 w-3.5" /> Reset Password
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -107,6 +108,9 @@ function MgrUsers() {
 
       {editUser && (
         <EditUserDialog user={editUser} onOpenChange={(v) => !v && setEditUser(null)} onDone={refresh} />
+      )}
+      {resetPasswordUser && (
+        <ResetPasswordDialog user={resetPasswordUser} onOpenChange={(v) => !v && setResetPasswordUser(null)} />
       )}
     </div>
   );
@@ -154,6 +158,49 @@ function EditUserDialog({ user, onOpenChange, onDone }: { user: ProfileRow; onOp
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button disabled={mutation.isPending || !username || !fullName} onClick={() => mutation.mutate()}>
             {mutation.isPending ? "Saving…" : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordDialog({ user, onOpenChange }: { user: ProfileRow; onOpenChange: (v: boolean) => void }) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: () => apiClient.post(`/api/kob/rds-users/${user.id}/reset-password`, { password }),
+    onSuccess: () => {
+      toast.success(`Password reset for ${user.username ?? user.full_name}. They must change it on next login.`);
+      onOpenChange(false);
+    },
+    onError: (err: any) => toast.error(err?.message || "Failed to reset password"),
+  });
+
+  const canSubmit = password.length >= 8 && password === confirmPassword;
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Reset Password — {user.full_name}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>New Password</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm Password</Label>
+            <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+          </div>
+          {password && confirmPassword && password !== confirmPassword && (
+            <p className="text-xs text-destructive">Passwords do not match.</p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button disabled={mutation.isPending || !canSubmit} onClick={() => mutation.mutate()}>
+            {mutation.isPending ? "Resetting…" : "Reset Password"}
           </Button>
         </DialogFooter>
       </DialogContent>

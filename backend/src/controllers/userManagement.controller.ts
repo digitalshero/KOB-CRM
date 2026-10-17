@@ -4,6 +4,7 @@ import { withTransaction } from "../db/transaction.js";
 import { createStandardSupabaseClient } from "../integrations/supabase/client.js";
 import * as userRepo from "../repositories/userManagement.repository.js";
 import { normalizeUsername, isUsernameTaken } from "../repositories/userManagement.repository.js";
+import * as rdsAuthRepo from "../repositories/rdsAuth.repository.js";
 
 const VALID_ROLES: Role[] = ["super_admin", "kob_manager", "team_leader", "executive"];
 
@@ -66,6 +67,10 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
         res.status(409).json({ error: "Username is already taken" });
         return;
       }
+      if (await rdsAuthRepo.isAppUsernameTaken(username, targetUserId)) {
+        res.status(409).json({ error: "Username is already taken" });
+        return;
+      }
       patch.username = username;
       auditMeta["new_username"] = username;
     }
@@ -85,6 +90,15 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
     await withTransaction(req.userId, async (client) => {
       if (Object.keys(patch).length > 0) {
         await userRepo.updateProfileFields(client, targetUserId, patch);
+      }
+      if (patch.username) {
+        // Keep RDS login in sync: if this user already has an app_users
+        // row (migrated), its username must match profiles.username,
+        // otherwise RDS username login would silently diverge from it.
+        const appUser = await rdsAuthRepo.findAppUserById(targetUserId);
+        if (appUser) {
+          await rdsAuthRepo.updateAppUserUsername(client, targetUserId, patch.username);
+        }
       }
       if (role !== undefined) {
         await userRepo.replaceUserRole(client, targetUserId, role as Role);
