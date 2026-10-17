@@ -296,7 +296,14 @@ const FROZEN_MOCK_INSIGHTS = new Map([
  */
 export async function getMetaCampaignsList(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    // Auth only requires req.userId (set by requireAuth for both a Supabase
+    // session and an RDS/JWT session). req.supabase itself is never
+    // dereferenced below when DATA_BACKEND=rds (getCampaignSelections'
+    // useRds() branch ignores its supabase param), so it must not be a
+    // hard requirement here — doing so 401'd every RDS-authenticated
+    // request after the AUTH_BACKEND=rds cutover, since an RDS session has
+    // no req.supabase by design (see auth.middleware.ts).
+    if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -558,7 +565,10 @@ export async function fetchMetaSpendAndCpl(
  */
 export async function getMetaSpendKpis(req: Request, res: Response, _next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    // See getMetaCampaignsList above — req.supabase is never used in this
+    // function, so only req.userId (set for both Supabase and RDS sessions)
+    // is required.
+    if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -642,7 +652,10 @@ export async function getMetaSpendKpis(req: Request, res: Response, _next: NextF
  */
 export async function getMetaCplForKpiCard(req: Request, res: Response, _next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    // See getMetaCampaignsList above — getEnabledCampaignIds(req.supabase)
+    // only dereferences its param when DATA_BACKEND is not "rds", so
+    // req.supabase is not a hard requirement; only req.userId is.
+    if (!req.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
