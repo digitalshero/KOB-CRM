@@ -174,7 +174,7 @@ function ResetPasswordDialog({ user, onOpenChange }: { user: ProfileRow; onOpenC
   const mutation = useMutation({
     mutationFn: () => apiClient.post(`/api/kob/rds-users/${user.id}/reset-password`, { password }),
     onSuccess: () => {
-      toast.success(`Password reset for ${user.username ?? user.full_name}. They must change it on next login.`);
+      toast.success(`Password updated successfully for ${user.username ?? user.full_name}.`);
       onOpenChange(false);
     },
     onError: (err: any) => toast.error(err?.message || "Failed to reset password"),

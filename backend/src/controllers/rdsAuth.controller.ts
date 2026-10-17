@@ -209,9 +209,14 @@ export async function resetPasswordRds(req: Request, res: Response, next: NextFu
     const existing = await rdsAuthRepo.findAppUserById(targetUserId);
     if (!existing) { res.status(404).json({ error: "User has no RDS-auth credential to reset" }); return; }
 
+    // A super_admin-set password becomes the user's active RDS login
+    // password immediately — no forced change-password gate afterward.
+    // Password management for migrated users is now entirely super_admin-
+    // controlled from Users & Roles; the old forced-first-login flow is
+    // no longer used (see _authenticated/route.tsx and auth.tsx).
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     await withTransaction(req.userId, async (client) => {
-      await rdsAuthRepo.updateAppUserPassword(client, targetUserId, passwordHash, true);
+      await rdsAuthRepo.updateAppUserPassword(client, targetUserId, passwordHash, false);
       await userRepo.auditUserChange(client, req.userId!, "password_reset", targetUserId, { username: existing.username, auth_backend: "rds" });
     });
 

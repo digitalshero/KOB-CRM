@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -142,24 +142,10 @@ const EXEC_NAV = [
 ];
 
 function AuthedShell() {
-  const navigate = useNavigate();
   const { data } = useQuery({
     queryKey: ["my-role"],
     queryFn: () => apiClient.get<MyRoleResponse>("/api/kob/my-role"),
   });
-  // Parallel RDS/JWT auth: force a password change before any normal CRM
-  // access when must_change_password is set. Inert (false) for every
-  // Supabase-only user, so this has zero effect unless/until a user has
-  // been migrated to RDS auth.
-  const { data: authStatus } = useQuery({
-    queryKey: ["auth-status"],
-    queryFn: () => apiClient.get<{ has_rds_credential: boolean; must_change_password: boolean }>("/api/auth/status"),
-  });
-  useEffect(() => {
-    if (authStatus?.must_change_password) {
-      navigate({ to: "/change-password" });
-    }
-  }, [authStatus, navigate]);
   const { data: pageAccess, isLoading: pageAccessLoading } = useQuery({
     queryKey: ["my-page-access"],
     queryFn: () => apiClient.get<MyPageAccessResponse>("/api/kob/my-page-access"),

@@ -45,7 +45,9 @@ function AuthPage() {
       if ("token" in result) {
         setRdsToken(result.token);
         toast.success("Signed in");
-        navigate({ to: result.must_change_password ? "/change-password" : "/" });
+        // Password management is super_admin-controlled from Users & Roles;
+        // there is no forced change-password gate on login anymore.
+        navigate({ to: "/" });
         return;
       }
 
