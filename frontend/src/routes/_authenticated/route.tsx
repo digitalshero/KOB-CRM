@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState } from "@tansta
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { apiClient, getRdsToken, clearRdsToken } from "@/lib/api-client";
+import { apiClient, getRdsToken, clearRdsToken, clearActiveAuthBackend } from "@/lib/api-client";
 import type { MyRoleResponse } from "@/lib/types";
 import sheroLogo from "@/assets/shero-logo-mark.png";
 
@@ -229,7 +229,7 @@ function AuthedShell() {
             </>
           )}
           <button
-            onClick={async () => { await supabase.auth.signOut(); clearRdsToken(); window.location.href = "/auth"; }}
+            onClick={async () => { await supabase.auth.signOut(); clearRdsToken(); clearActiveAuthBackend(); window.location.href = "/auth"; }}
             title={collapsed ? "Sign out" : undefined}
             className="w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white"
           >

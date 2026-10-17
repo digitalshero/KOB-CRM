@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, User, Lock, ArrowRight, Check, ShieldCheck } from "lucide-react";
-import { apiClient, ApiError, setRdsToken } from "@/lib/api-client";
+import { apiClient, ApiError, setRdsToken, setActiveAuthBackend } from "@/lib/api-client";
 import sheroLogo from "@/assets/shero-logo-mark.png";
 import sheroChef from "@/assets/shero-chef-cutout.png";
 
@@ -44,6 +44,7 @@ function AuthPage() {
 
       if ("token" in result) {
         setRdsToken(result.token);
+        setActiveAuthBackend("rds");
         toast.success("Signed in");
         // Password management is super_admin-controlled from Users & Roles;
         // there is no forced change-password gate on login anymore.
@@ -56,6 +57,7 @@ function AuthPage() {
         refresh_token: result.refresh_token,
       });
       if (error) { toast.error(error.message); return; }
+      setActiveAuthBackend("supabase");
       toast.success("Signed in");
       navigate({ to: "/" });
     } catch (err) {
