@@ -11,6 +11,8 @@ import {
   listCitiesWithScope,
   listStateNativeBrands,
   getConfig,
+  getNoResponseRules,
+  updateNoResponseRules,
   listKpiTargets,
   listAuditLogs,
   getScvRules,
@@ -128,6 +130,11 @@ kobRouter.get("/list-state-native-brands", requireAuth, listStateNativeBrands);
 
 // GET /api/kob/get-config - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/get-config", requireAuth, getConfig);
+
+// GET /api/kob/get-no-response-rules - same auth level as get-config; PATCH/POST is super_admin-only (checked in controller)
+kobRouter.get("/get-no-response-rules", requireAuth, getNoResponseRules);
+kobRouter.patch("/no-response-rules", requireAuth, updateNoResponseRules);
+kobRouter.post("/no-response-rules", requireAuth, updateNoResponseRules);
 
 // GET /api/kob/list-kpi-targets - Protected by auth middleware, uses req.supabase (RLS)
 kobRouter.get("/list-kpi-targets", requireAuth, listKpiTargets);

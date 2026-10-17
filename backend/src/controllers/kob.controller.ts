@@ -280,6 +280,69 @@ export async function getConfig(req: Request, res: Response, next: NextFunction)
 }
 
 /**
+ * Controller for getNoResponseRules (No Response Rules tab on the
+ * Retargeting Rules page). Same auth level as getConfig above — any user
+ * with Page Access to this page can view; no additional role check, so
+ * Page Access logic is unchanged.
+ */
+export async function getNoResponseRules(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    res.status(200).json(await adminRepo.getNoResponseRules());
+  } catch (err) {
+    next(err);
+  }
+}
+
+function validateNoResponseHours(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
+  if (n < 1 || n > 720) return null;
+  return n;
+}
+
+/**
+ * Controller for updateNoResponseRules. super_admin-only (stricter than
+ * getConfig/updateConfig's super_admin-OR-kob_manager, per explicit
+ * instruction). Validates each field as a whole number 1-720 before
+ * writing; audits old vs new values, never logs secrets (there are none
+ * in this payload — just three integers).
+ */
+export async function updateNoResponseRules(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.userId) { res.status(401).json({ error: "Unauthenticated" }); return; }
+    const role = await requireRoleOrDeny(req.userId, ["super_admin"]);
+    if (role === null) { res.status(403).json({ error: "Forbidden: requires super_admin" }); return; }
+
+    const body = req.body ?? {};
+    const parsed = {
+      lead_inbox_hours: validateNoResponseHours(body.lead_inbox_hours),
+      eoi1_hours: validateNoResponseHours(body.eoi1_hours),
+      webinar_hours: validateNoResponseHours(body.webinar_hours),
+    };
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value === null) {
+        res.status(400).json({ error: `${key} must be a whole number between 1 and 720` });
+        return;
+      }
+    }
+    const newValues = parsed as Record<keyof typeof parsed, number>;
+
+    const oldValues = await adminRepo.getNoResponseRules();
+    await withTransaction(req.userId, async (client) => {
+      await adminRepo.updateNoResponseRules(client, newValues);
+      await adminRepo.insertAuditLog(client, req.userId!, "no_response_rules_updated", "no_response_rules", null, {
+        old: oldValues,
+        new: newValues,
+      });
+    });
+    res.status(200).json({ ok: true, ...newValues });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * Controller for listKpiTargets.
  * Migrated 1:1 from src/lib/kob.functions.ts (line 933).
  * Query: supabase.from("kpi_targets").select("*").order("metric")

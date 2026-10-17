@@ -95,6 +95,23 @@ export async function updateConfig(client: PoolClient, patch: Record<string, unk
   await client.query(`UPDATE public.kob_configuration SET ${setClauses.join(", ")} WHERE id = 1`, params);
 }
 
+export interface NoResponseRules { lead_inbox_hours: number; eoi1_hours: number; webinar_hours: number }
+
+/** Single-row config read by noResponseAutoMove.ts; defaults match the preserved 24h/48h/48h thresholds if the row is ever missing. */
+export async function getNoResponseRules(): Promise<NoResponseRules> {
+  const { rows } = await getPool().query<NoResponseRules>(
+    `SELECT lead_inbox_hours, eoi1_hours, webinar_hours FROM public.no_response_rules WHERE id = 1`,
+  );
+  return rows[0] ?? { lead_inbox_hours: 24, eoi1_hours: 48, webinar_hours: 48 };
+}
+
+export async function updateNoResponseRules(client: PoolClient, patch: NoResponseRules): Promise<void> {
+  await client.query(
+    `UPDATE public.no_response_rules SET lead_inbox_hours = $1, eoi1_hours = $2, webinar_hours = $3, updated_at = now() WHERE id = 1`,
+    [patch.lead_inbox_hours, patch.eoi1_hours, patch.webinar_hours],
+  );
+}
+
 export interface IncentiveRulePatch { label: string; min_score: number; max_score: number; incentive_pct: number }
 export async function updateIncentiveRule(client: PoolClient, id: string, patch: IncentiveRulePatch): Promise<void> {
   await client.query(

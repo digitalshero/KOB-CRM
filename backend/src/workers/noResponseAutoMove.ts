@@ -24,6 +24,13 @@
  * the existing immediate/manual WEBINAR send behavior (and the three
  * retargeting-send workers) are untouched and unrelated to this file.
  *
+ * Timing thresholds (24h / 48h / 48h by default) are no longer hardcoded —
+ * they are read from public.no_response_rules (one row, id=1), editable via
+ * the No Response Rules tab on the Retargeting Rules page (super_admin
+ * only). Everything else — the eligibility JOIN/EXISTS logic itself, the
+ * changed_by=NULL mechanism, trigger reliance, no Gallabox send — is
+ * unchanged; only the "24 hours"/"48 hours" literals became a parameter.
+ *
  * Modes (same convention as the other workers):
  *   --dry-run     read-only: prints eligible counts + lead_ids per variant,
  *                 no writes
@@ -32,14 +39,22 @@
  */
 import { getPool } from "../db/pool.js";
 import { withTransaction } from "../db/transaction.js";
+import { getNoResponseRules } from "../repositories/admin.repository.js";
 
 interface VariantResult {
   variant: "lead_inbox" | "eoi1" | "webinar";
   moved: number;
   lead_ids: string[];
+  threshold_hours: number;
 }
 
-const SELECT_ELIGIBLE: Record<VariantResult["variant"], string> = {
+type Variant = VariantResult["variant"];
+
+// Each fragment is copied verbatim (WHERE/JOIN logic unchanged) from its
+// source function's definition (see file header) — only the fixed
+// "interval 'N hours'" literal is replaced with a parameterized
+// make_interval(hours => $1::int), reading the configured threshold.
+const SELECT_ELIGIBLE: Record<Variant, string> = {
   // Mirrors move_lead_inbox_24h_to_no_response()'s `due` CTE exactly.
   lead_inbox: `
     SELECT k.id
@@ -50,14 +65,14 @@ const SELECT_ELIGIBLE: Record<VariantResult["variant"], string> = {
      AND s.status = 'SENT'
     WHERE k.stage = 'LEAD_INBOX'::lead_stage
       AND s.sent_at IS NOT NULL
-      AND s.sent_at <= now() - interval '24 hours'
+      AND s.sent_at <= now() - make_interval(hours => $1::int)
   `,
   // Mirrors move_eoi1_48h_to_no_response()'s UPDATE ... WHERE exactly.
   eoi1: `
     SELECT k.id
     FROM public.kob_leads k
     WHERE k.stage = 'EOI_1'::lead_stage
-      AND k.stage_entered_at < now() - interval '48 hours'
+      AND k.stage_entered_at < now() - make_interval(hours => $1::int)
   `,
   // Mirrors move_webinar_48h_to_no_response()'s UPDATE ... WHERE exactly.
   webinar: `
@@ -68,30 +83,39 @@ const SELECT_ELIGIBLE: Record<VariantResult["variant"], string> = {
         SELECT 1 FROM public.lead_webinar_retarget_tamil_sends s
         WHERE s.lead_id = k.id AND s.stage_entered_at = k.stage_entered_at
           AND s.status = 'SENT' AND s.sent_at IS NOT NULL
-          AND s.sent_at < now() - interval '24 hours'
+          AND s.sent_at < now() - make_interval(hours => $1::int)
         UNION ALL
         SELECT 1 FROM public.lead_webinar_retarget_telugu_sends s
         WHERE s.lead_id = k.id AND s.stage_entered_at = k.stage_entered_at
           AND s.status = 'SENT' AND s.sent_at IS NOT NULL
-          AND s.sent_at < now() - interval '24 hours'
+          AND s.sent_at < now() - make_interval(hours => $1::int)
         UNION ALL
         SELECT 1 FROM public.lead_webinar_retarget_malayalam_sends s
         WHERE s.lead_id = k.id AND s.stage_entered_at = k.stage_entered_at
           AND s.status = 'SENT' AND s.sent_at IS NOT NULL
-          AND s.sent_at < now() - interval '24 hours'
+          AND s.sent_at < now() - make_interval(hours => $1::int)
       )
   `,
 };
 
-async function selectEligible(variant: VariantResult["variant"]): Promise<string[]> {
-  const { rows } = await getPool().query<{ id: string }>(SELECT_ELIGIBLE[variant]);
+// Same defensive re-check the original lead_inbox SQL function has in its
+// own UPDATE WHERE (on top of its `due` CTE) — harmless no-op for the other
+// two variants, whose source WHERE already implies it.
+const EXTRA_GUARD: Record<Variant, string> = {
+  lead_inbox: "AND k.stage = 'LEAD_INBOX'::lead_stage",
+  eoi1: "AND k.stage = 'EOI_1'::lead_stage",
+  webinar: "AND k.stage = 'WEBINAR'::lead_stage",
+};
+
+async function selectEligible(variant: Variant, thresholdHours: number): Promise<string[]> {
+  const { rows } = await getPool().query<{ id: string }>(SELECT_ELIGIBLE[variant], [thresholdHours]);
   return rows.map((r) => r.id);
 }
 
-async function moveVariant(variant: VariantResult["variant"], dryRun: boolean): Promise<VariantResult> {
+async function moveVariant(variant: Variant, thresholdHours: number, dryRun: boolean): Promise<VariantResult> {
   if (dryRun) {
-    const eligibleIds = await selectEligible(variant);
-    return { variant, moved: 0, lead_ids: eligibleIds };
+    const eligibleIds = await selectEligible(variant, thresholdHours);
+    return { variant, moved: 0, lead_ids: eligibleIds, threshold_hours: thresholdHours };
   }
 
   // changed_by = NULL: withTransaction(null, ...) never sets
@@ -99,35 +123,33 @@ async function moveVariant(variant: VariantResult["variant"], dryRun: boolean): 
   // the same mechanism every other system/webhook write in this app uses.
   // The UPDATE's FROM clause re-runs the identical SELECT above as a CTE,
   // atomically, exactly as the source SQL function's own `due`/`upd` CTEs do.
-  // Same defensive re-check the original lead_inbox SQL function has in its
-  // own UPDATE WHERE (on top of its `due` CTE) — harmless no-op for the
-  // other two variants, whose source WHERE already implies it.
-  const extraGuard: Record<VariantResult["variant"], string> = {
-    lead_inbox: "AND k.stage = 'LEAD_INBOX'::lead_stage",
-    eoi1: "AND k.stage = 'EOI_1'::lead_stage",
-    webinar: "AND k.stage = 'WEBINAR'::lead_stage",
-  };
-
   const moved = await withTransaction(null, async (client) => {
     const { rows } = await client.query<{ id: string }>(
       `WITH due AS (${SELECT_ELIGIBLE[variant]})
        UPDATE public.kob_leads k
        SET stage = 'NO_RESPONSE'::lead_stage
        FROM due
-       WHERE k.id = due.id ${extraGuard[variant]}
+       WHERE k.id = due.id ${EXTRA_GUARD[variant]}
        RETURNING k.id`,
+      [thresholdHours],
     );
     return rows.map((r) => r.id);
   });
 
-  return { variant, moved: moved.length, lead_ids: moved };
+  return { variant, moved: moved.length, lead_ids: moved, threshold_hours: thresholdHours };
 }
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const rules = await getNoResponseRules();
+  const thresholds: Record<Variant, number> = {
+    lead_inbox: rules.lead_inbox_hours,
+    eoi1: rules.eoi1_hours,
+    webinar: rules.webinar_hours,
+  };
   const results: VariantResult[] = [];
-  for (const variant of Object.keys(SELECT_ELIGIBLE) as VariantResult["variant"][]) {
-    results.push(await moveVariant(variant, dryRun));
+  for (const variant of Object.keys(SELECT_ELIGIBLE) as Variant[]) {
+    results.push(await moveVariant(variant, thresholds[variant], dryRun));
   }
   console.log(JSON.stringify({ mode: dryRun ? "dry-run" : "batch", results }, null, 2));
 }

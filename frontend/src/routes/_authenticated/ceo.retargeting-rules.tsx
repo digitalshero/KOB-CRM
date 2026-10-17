@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import type { MyRoleResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,12 +84,45 @@ function Field({ label, val, onChange, error }: { label: string; val: any; onCha
 }
 
 function CeoRetargetingRules() {
+  const [tab, setTab] = useState<"retargeting" | "no_response">("retargeting");
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Retargeting Rules</h1>
+          <p className="text-sm text-muted-foreground">CEO Office master. Cadence + attempts per bucket. Every save is audit-logged.</p>
+        </div>
+        <div className="inline-flex items-center rounded-lg border bg-muted/40 p-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setTab("retargeting")}
+            className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === "retargeting" ? "bg-background text-shero-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Retargeting Rules
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("no_response")}
+            className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === "no_response" ? "bg-background text-shero-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            No Response Rules
+          </button>
+        </div>
+      </div>
+
+      {tab === "retargeting" ? <RetargetingRulesPanel /> : <NoResponseRulesPanel />}
+    </div>
+  );
+}
+
+function RetargetingRulesPanel() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["cfg"], queryFn: () => apiClient.get<any>("/api/kob/get-config") });
   const [form, setForm] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const cur = form ?? (data as any);
-  if (!cur) return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
+  if (!cur) return <div className="text-sm text-muted-foreground">Loading…</div>;
   const upd = (k: string, v: any) => setForm({ ...cur, [k]: v });
   const save = async () => {
     const errs: Record<string, string | null> = {};
@@ -108,12 +142,7 @@ function CeoRetargetingRules() {
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Retargeting Rules</h1>
-        <p className="text-sm text-muted-foreground">CEO Office master. Cadence + attempts per bucket. Every save is audit-logged.</p>
-      </div>
-
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-l-4 border-l-rose-500 shadow-sm">
           <CardHeader><CardTitle className="text-base text-red-600">NO</CardTitle></CardHeader>
@@ -181,6 +210,105 @@ function CeoRetargetingRules() {
       <div className="flex justify-end">
         <Button onClick={save} disabled={!form}>Save rules</Button>
       </div>
+    </div>
+  );
+}
+
+const NO_RESPONSE_FIELDS = [
+  { key: "lead_inbox_hours", label: "Lead Inbox → No Response" },
+  { key: "eoi1_hours", label: "EOI 1 → No Response" },
+  { key: "webinar_hours", label: "Webinar → No Response" },
+] as const;
+
+function validateNoResponseHours(v: any): string | null {
+  const s = v === null || v === undefined ? "" : String(v).trim();
+  if (s === "") return "Required";
+  const n = Number(s);
+  if (!Number.isFinite(n)) return "Must be a valid number";
+  if (!Number.isInteger(n)) return "Must be a whole number";
+  if (n < 1) return "Must be at least 1 hour";
+  if (n > 720) return "Must be at most 720 hours";
+  return null;
+}
+
+function NoResponseRulesPanel() {
+  const qc = useQueryClient();
+  const { data: role } = useQuery({
+    queryKey: ["my-role"],
+    queryFn: () => apiClient.get<MyRoleResponse>("/api/kob/my-role"),
+  });
+  const canEdit = role?.role === "super_admin";
+
+  const { data } = useQuery({
+    queryKey: ["no-response-rules"],
+    queryFn: () => apiClient.get<{ lead_inbox_hours: number; eoi1_hours: number; webinar_hours: number }>("/api/kob/get-no-response-rules"),
+  });
+  const [form, setForm] = useState<Record<string, any> | null>(null);
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const cur = form ?? data;
+  if (!cur) return <div className="text-sm text-muted-foreground">Loading…</div>;
+
+  const upd = (k: string, v: string) => setForm({ ...cur, [k]: v });
+
+  const save = async () => {
+    const errs: Record<string, string | null> = {};
+    let bad = false;
+    for (const f of NO_RESPONSE_FIELDS) {
+      errs[f.key] = validateNoResponseHours((cur as any)[f.key]);
+      if (errs[f.key]) bad = true;
+    }
+    setErrors(errs);
+    if (bad) { toast.error("Please fix the highlighted fields. Nothing was saved."); return; }
+    const payload = Object.fromEntries(NO_RESPONSE_FIELDS.map((f) => [f.key, Number(String((cur as any)[f.key]).trim())]));
+    try {
+      await apiClient.patch("/api/kob/no-response-rules", payload);
+      toast.success("Changes saved successfully.");
+      qc.invalidateQueries({ queryKey: ["no-response-rules"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  return (
+    <div className="space-y-4 max-w-xl">
+      <Card className="border-l-4 border-l-shero-teal shadow-sm">
+        <CardHeader><CardTitle className="text-base">No Response Auto-Move Rules</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <SectionLabel>Automatic transitions into NO_RESPONSE</SectionLabel>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Controls the Node/systemd worker that moves stale leads into No Response. Does not affect manual stage movement or drag/drop.
+          </p>
+          {NO_RESPONSE_FIELDS.map((f) => (
+            <div key={f.key} className="grid grid-cols-2 gap-2 items-start">
+              <Label className="text-sm pt-2">{f.label}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  step="1"
+                  min={1}
+                  max={720}
+                  value={(cur as any)[f.key] ?? ""}
+                  onChange={(e) => upd(f.key, e.target.value)}
+                  disabled={!canEdit}
+                  aria-invalid={!!errors[f.key]}
+                  className={errors[f.key] ? "border-destructive" : undefined}
+                />
+                <span className="text-sm text-muted-foreground shrink-0">hours</span>
+              </div>
+              {errors[f.key] && <p className="text-xs text-destructive col-start-2">{errors[f.key]}</p>}
+            </div>
+          ))}
+          {!canEdit && (
+            <p className="text-xs text-muted-foreground">Only super_admin can edit these rules. You can view the current configuration.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {canEdit && (
+        <div className="flex justify-end">
+          <Button onClick={save} disabled={!form}>Save rules</Button>
+        </div>
+      )}
     </div>
   );
 }
