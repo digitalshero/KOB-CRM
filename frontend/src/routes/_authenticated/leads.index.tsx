@@ -15,7 +15,7 @@ import { DateRangeFilter } from "@/components/date-range-filter";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useDateRange } from "@/hooks/use-date-range";
 import { exportLeadsCsv } from "@/lib/export-csv";
-import { Download } from "lucide-react";
+import { Download, ChefHat } from "lucide-react";
 
 import { DndContext, useDraggable, useDroppable, type DragEndEvent } from "@dnd-kit/core";
 import { toast } from "sonner";
@@ -306,9 +306,12 @@ function LeadsPage() {
         </Card>
       ) : isLoading ? (
         <Card>
-          <CardContent className="p-10 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-            <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            <div className="text-sm">Fetching leads…</div>
+          <CardContent className="p-10 sm:p-16 flex flex-col items-center justify-center gap-4">
+            <div className="relative h-14 w-14 flex items-center justify-center">
+              <ChefHat className="h-10 w-10 text-shero-teal animate-bounce" style={{ animationDuration: "1.4s" }} />
+              <div className="absolute -bottom-1 h-2 w-8 rounded-full bg-shero-teal/20 animate-pulse" />
+            </div>
+            <div className="text-sm font-medium text-muted-foreground">Preparing your leads…</div>
           </CardContent>
         </Card>
       ) : (
