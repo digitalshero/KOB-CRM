@@ -11,7 +11,15 @@ import { insertAuditLog } from "./admin.repository.js";
  * and a synthetic internal email for Auth's own compatibility needs.
  */
 
-const USERNAME_RE = /^[a-zA-Z0-9._]{3,32}$/;
+// 3-50 printable, non-whitespace characters after trimming. Deliberately
+// permissive (letters/digits/._-@#+ and other normal printable symbols) so
+// usernames like "maniraj@123", "team_leader#1" or "user+ops" are allowed;
+// only control characters (incl. tab/newline) and whitespace are rejected,
+// since a username must round-trip unambiguously through login/display and
+// is never parsed as an email or interpreted as markup anywhere. Case is
+// preserved as entered — uniqueness is checked case-insensitively, not by
+// forcing lowercase.
+const USERNAME_RE = /^[^\s\x00-\x1F\x7F]{3,50}$/;
 
 export function normalizeUsername(raw: unknown): string | null {
   if (typeof raw !== "string") return null;

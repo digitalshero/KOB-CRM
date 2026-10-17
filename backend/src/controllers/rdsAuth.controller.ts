@@ -137,7 +137,7 @@ export async function createUserRds(req: Request, res: Response, next: NextFunct
     const { username: rawUsername, full_name, role, password } = req.body ?? {};
     const username = normalizeUsername(rawUsername);
     if (!username) {
-      res.status(400).json({ error: "Username must be 3-32 characters: letters, numbers, dot or underscore only" });
+      res.status(400).json({ error: "Username must be 3-50 characters, with no spaces or control characters" });
       return;
     }
     if (!full_name || typeof full_name !== "string" || full_name.trim().length === 0) {

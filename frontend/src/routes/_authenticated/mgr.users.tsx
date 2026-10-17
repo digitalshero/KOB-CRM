@@ -116,13 +116,23 @@ function MgrUsers() {
   );
 }
 
+// Mirrors backend/src/repositories/userManagement.repository.ts USERNAME_RE
+// exactly: 3-50 printable, non-whitespace characters after trimming. Lets
+// usernames like "maniraj@123", "team_leader#1", "user+ops" through; only
+// rejects empty/whitespace-only input and control characters (tab/newline).
+const USERNAME_RE = /^[^\s\x00-\x1F\x7F]{3,50}$/;
+function isValidUsername(raw: string): boolean {
+  return USERNAME_RE.test(raw.trim());
+}
+
 function EditUserDialog({ user, onOpenChange, onDone }: { user: ProfileRow; onOpenChange: (v: boolean) => void; onDone: () => void }) {
   const [username, setUsername] = useState(user.username ?? "");
   const [fullName, setFullName] = useState(user.full_name);
   const [role, setRole] = useState(user.roles?.[0] ?? "executive");
+  const usernameValid = isValidUsername(username);
 
   const mutation = useMutation({
-    mutationFn: () => apiClient.patch(`/api/kob/users/${user.id}`, { username, full_name: fullName, role }),
+    mutationFn: () => apiClient.patch(`/api/kob/users/${user.id}`, { username: username.trim(), full_name: fullName, role }),
     onSuccess: () => {
       toast.success("User updated");
       onOpenChange(false);
@@ -139,6 +149,9 @@ function EditUserDialog({ user, onOpenChange, onDone }: { user: ProfileRow; onOp
           <div className="space-y-1.5">
             <Label>Username</Label>
             <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+            {username && !usernameValid && (
+              <p className="text-xs text-destructive">Username must be 3-50 characters, with no spaces or control characters.</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Full Name</Label>
@@ -156,7 +169,7 @@ function EditUserDialog({ user, onOpenChange, onDone }: { user: ProfileRow; onOp
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button disabled={mutation.isPending || !username || !fullName} onClick={() => mutation.mutate()}>
+          <Button disabled={mutation.isPending || !usernameValid || !fullName} onClick={() => mutation.mutate()}>
             {mutation.isPending ? "Saving…" : "Save Changes"}
           </Button>
         </DialogFooter>

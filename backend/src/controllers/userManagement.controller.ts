@@ -60,7 +60,7 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
     if (rawUsername !== undefined) {
       const username = normalizeUsername(rawUsername);
       if (!username) {
-        res.status(400).json({ error: "Username must be 3-32 characters: letters, numbers, dot or underscore only" });
+        res.status(400).json({ error: "Username must be 3-50 characters, with no spaces or control characters" });
         return;
       }
       if (await isUsernameTaken(username, targetUserId)) {
