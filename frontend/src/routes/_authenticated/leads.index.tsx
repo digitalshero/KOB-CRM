@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { DateRangeFilter } from "@/components/date-range-filter";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useDateRange } from "@/hooks/use-date-range";
@@ -82,7 +82,9 @@ function applyRnrFilter(leads: any[], mode: string) {
  * the selected values persist and stay in sync when switching views.
  */
 function useLeadInboxFilters(isExec?: boolean) {
-  const [stageFilter, setStageFilter] = usePersistedState<string>("leads.table.stage", isExec ? "ALL" : "LEAD_INBOX");
+  // Default is always "All" — Lead Inbox must never auto-select the
+  // LEAD_INBOX stage on fresh entry, only when the user picks it manually.
+  const [stageFilter, setStageFilter] = usePersistedState<string>("leads.table.stage", "ALL");
   const [rnrFilter, setRnrFilter] = usePersistedState<string>("leads.table.rnr", "ALL");
   const [execFilter, setExecFilter] = usePersistedState<string>("leads.table.exec", "ALL");
   const [langFilter, setLangFilter] = usePersistedState<string>("leads.table.lang", "ALL");
@@ -215,6 +217,22 @@ function LeadsPage() {
   const isExec = (roleData as any)?.role === "executive" || !roleData;
   const qc = useQueryClient();
 
+  // Lead Inbox must start fresh on every visit: no restored search text, no
+  // restored stage filter. These keys are still sessionStorage-backed (via
+  // usePersistedState) so the value stays in sync when switching between
+  // the Kanban and Table tabs WITHIN a single visit — only the across-visit
+  // persistence is removed, by clearing them synchronously on first render
+  // of this page, before any child's restore-on-mount effect runs.
+  const clearedStaleStateRef = useRef(false);
+  if (!clearedStaleStateRef.current) {
+    try {
+      window.sessionStorage.removeItem("kob:leads.table.stage");
+      window.sessionStorage.removeItem("kob:leads.global.search");
+      window.sessionStorage.removeItem("kob:leads.table.search");
+    } catch { /* ignore */ }
+    clearedStaleStateRef.current = true;
+  }
+
   const [tab, setTab] = usePersistedState<string>("leads.tab", "kanban");
   const [range, setRange] = useDateRange("all_time", "leads.index.v2");
   const rangeArg = { from: range.from.toISOString(), to: range.to.toISOString() };
@@ -242,7 +260,7 @@ function LeadsPage() {
   // board current; removing the dead subscription changes no user-facing
   // behavior.
 
-  const [search, setSearch] = usePersistedState<string>("leads.global.search", "866 819 3200");
+  const [search, setSearch] = usePersistedState<string>("leads.global.search", "");
   const visibleLeads = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return leads as any[];

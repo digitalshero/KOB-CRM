@@ -5515,7 +5515,18 @@ export async function createManualLead(req: Request, res: Response, next: NextFu
  */
 export async function updateLeadStage(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!req.supabase || !req.userId) {
+    // Only req.userId is a hard requirement (set by requireAuth for both a
+    // Supabase session and an RDS/JWT session). The RDS branch below
+    // (useRds()) never touches req.supabase — it uses a plain pg client via
+    // withTransaction — so requiring req.supabase unconditionally here 401'd
+    // every RDS-authenticated drag/drop once AUTH_BACKEND=rds went live.
+    // req.supabase is still required just before its own use, further down,
+    // on the legacy non-RDS path only.
+    if (!req.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    if (!useRds() && !req.supabase) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
@@ -5576,7 +5587,7 @@ export async function updateLeadStage(req: Request, res: Response, next: NextFun
       return;
     }
 
-    const { error } = await req.supabase
+    const { error } = await req.supabase!
       .from("kob_leads")
       .update({ stage: stage.trim() as any })
       .eq("id", leadId.trim());
